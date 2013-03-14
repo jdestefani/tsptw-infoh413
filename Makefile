@@ -8,28 +8,33 @@ ENSOURCES=InstanceReader.cpp TimeWindow.cpp
 ENHEADERS=$(ENSOURCES:.cpp=.h)
 ENOBJECTS=$(ENSOURCES:.cpp=.o)
 
-OBJS =		TSPTW.o
+MAINSOURCES=TSPTW.cpp
 
-LIBS =
+OBJS=TSPTW.o
 
-TARGET =	TSPTW
+LIBS=
+
+TARGET=TSPTW
 
 
 
-%.o: %.cpp 
-	$(CXX) $(CFLAGS) $< $(DIRFLAG)
+#%.o: %.cpp 
+#	$(CXX) $(COMPILEFLAGS) $< $(DIRFLAG)
 
 tsptw-entities.a: $(ENSOURCES) $(ENHEADERS)
-		$(CXX) $(CFLAGS) $(ENSOURCES) 
+		$(CXX) $(COMPILEFLAGS) $(ENSOURCES) 
 		ar -r tsptw-entities.a $(MOOBJECTS) 
 		ranlib tsptw-entities.a
 
-$(TARGET):	tsptw-entities.a $(OBJS)
-	$(CXX) -o $(TARGET) $(OBJS) $(LIBS) tsptw-entities.a
+$(OBJS): $(MAINSOURCES)
+		 $(CXX) $(COMPILEFLAGS) $(MAINSOURCES)
+
+$(TARGET): $(OBJS) tsptw-entities.a 
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LIBS) tsptw-entities.a
 
 all:	$(TARGET)
 
 clean:
-	rm -f $(OBJS) $(ENOBJECTS)
+	rm -f $(OBJS) $(ENOBJECTS) tsptw-entities.a
 
 .PHONY: clean
