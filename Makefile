@@ -23,16 +23,16 @@ TARGET=TSPTW
 
 tsptw-entities.a: $(ENSOURCES) $(ENHEADERS)
 		$(CXX) $(COMPILEFLAGS) $(ENSOURCES) 
-		ar -r tsptw-entities.a $(MOOBJECTS) 
+		ar -r tsptw-entities.a $(ENOBJECTS) 
 		ranlib tsptw-entities.a
 
 $(OBJS): $(MAINSOURCES)
 		 $(CXX) $(COMPILEFLAGS) $(MAINSOURCES)
 
 $(TARGET): $(OBJS) tsptw-entities.a 
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LIBS) tsptw-entities.a
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LIBS) tsptw-entities.a -o $(TARGET) 
 
-all:	$(TARGET)
+all: $(TARGET)
 
 clean:
 	rm -f $(OBJS) $(ENOBJECTS) tsptw-entities.a

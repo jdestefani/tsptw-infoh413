@@ -19,6 +19,8 @@ public:
 	bool InTimeWindowBoundsExcluded(unsigned int);
 	bool InTimeWindowUpperBoundIncluded(unsigned int);
 	bool InTimeWindowLowerBoundIncluded(unsigned int);
+	unsigned int GetLowerBound() const;
+	unsigned int GetUpperBound() const;
 
 private:
 	unsigned int lowerBound;

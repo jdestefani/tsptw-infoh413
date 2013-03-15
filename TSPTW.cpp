@@ -27,6 +27,7 @@ static int verbose_flag;
 int main (int argc, char **argv)
 {
 	int c;
+	char* inputFileName;
 
 	while (1)
 	{
@@ -89,6 +90,7 @@ int main (int argc, char **argv)
 
 		case 'f':
 			std::cout << "The instance will be read from " << optarg << std::endl;
+			inputFileName = optarg;
 			break;
 
 		case '?':
@@ -115,9 +117,17 @@ int main (int argc, char **argv)
 		putchar ('\n');
 	}
 
-       puts("Hello World!!!");
-       return EXIT_SUCCESS;
-       exit (0);
+
+	std::string inputFileString(inputFileName);
+	InstanceReader instanceReader(inputFileString);
+	if(instanceReader.OpenFile()){
+		instanceReader.ReadInformations();
+	}
+	instanceReader.PrintDistanceMatrix();
+	instanceReader.PrintTimeWindows();
+
+	return EXIT_SUCCESS;
+	exit (0);
 
 }
 

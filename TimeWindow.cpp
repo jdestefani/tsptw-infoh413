@@ -38,3 +38,11 @@ bool TimeWindow::InTimeWindowUpperBoundIncluded(unsigned int value) {
 bool TimeWindow::InTimeWindowLowerBoundIncluded(unsigned int value) {
 	return lowerBound <= value && value < upperBound;
 }
+
+unsigned int TimeWindow::GetLowerBound() const {
+	return lowerBound;
+}
+
+unsigned int TimeWindow::GetUpperBound() const {
+	return upperBound;
+}

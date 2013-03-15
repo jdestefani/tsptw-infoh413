@@ -24,19 +24,21 @@ public:
 	virtual ~InstanceReader();
 	bool OpenFile();
 	bool ReadInformations();
-	std::ifstream* getPtrInputFile() const;
-	void setPtrInputFile(std::ifstream* ptrInputFile);
+	void PrintDistanceMatrix();
+	void PrintTimeWindows();
+
+
 	const std::string& GetInputFileName() const;
 	void SetInputFileName(const std::string& sInputFileName);
 	unsigned int GetCities() const;
 	void SetCities(unsigned int unCityNumber);
-	const std::vector<TimeWindow>& getVecTimeWindows() const;
-	void setVecTimeWindows(const std::vector<TimeWindow>& vecTimeWindows);
-
+	const std::vector<TimeWindow>& GetVecTimeWindows() const;
+	const std::ifstream& GetIfInputFile() const;
+	const std::vector<std::vector<unsigned int> >& GetVecDistanceMatrix() const;
 
 private:
 	std::string m_sInputFileName;
-	std::ifstream* m_ptrInputFile;
+	std::ifstream m_ifInputFile;
 	unsigned int m_unCities;
 	std::vector<std::vector<unsigned int> > m_vecDistanceMatrix;
 	std::vector<TimeWindow> m_vecTimeWindows;
