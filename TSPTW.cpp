@@ -13,6 +13,7 @@
 #include <getopt.h>
 
 #include "InstanceReader.h"
+#include "HeuristicCore.h"
 
 #define FIRST_IMPROVEMENT_FLAG "first";
 #define BEST_IMPROVEMENT_FLAG "best";
@@ -28,6 +29,9 @@ int main (int argc, char **argv)
 {
 	int c;
 	char* inputFileName;
+	HeuristicCore::ENeighborhoodType neighborhoodType;
+	HeuristicCore::EInitFunction initFunction;
+	unsigned int runs;
 
 	while (1)
 	{
@@ -44,12 +48,15 @@ int main (int argc, char **argv)
 				{"exchange",  no_argument,       0, 'd'},
 				{"insert",  no_argument,       0, 'e'},
 				{"file",    required_argument, 0, 'f'},
+				{"random",     no_argument,       0, 'g'},
+				{"heuristic",  no_argument,       0, 'h'},
+				{"runs",  required_argument,       0, 'i'},
 				{0, 0, 0, 0}
 		};
 		/* getopt_long stores the option index here. */
 		int option_index = 0;
 
-		c = getopt_long (argc, argv, "ab:cde:f:",
+		c = getopt_long (argc, argv, "ab:cde:f:gh:i",
 				long_options, &option_index);
 
 		/* Detect the end of the options. */
@@ -78,19 +85,37 @@ int main (int argc, char **argv)
 
 		case 'c':
 			std::cout << "The exploring strategy will be transpose" << std::endl;
+			neighborhoodType = HeuristicCore::TRANSPOSE;
 			break;
 
 		case 'd':
 			std::cout << "The exploring strategy will be exchange" << std::endl;
+			neighborhoodType = HeuristicCore::EXCHANGE;
 			break;
 
 		case 'e':
 			std::cout << "The exploring strategy will be insert" << std::endl;
+			neighborhoodType = HeuristicCore::INSERT;
 			break;
 
 		case 'f':
 			std::cout << "The instance will be read from " << optarg << std::endl;
 			inputFileName = optarg;
+			break;
+
+		case 'g':
+			std::cout << "The initialization function will be random" << std::endl;
+			initFunction = HeuristicCore::RANDOM;
+			break;
+
+		case 'h':
+			std::cout << "The initialization function will be heuristic" << std::endl;
+			initFunction = HeuristicCore::HEURISTIC;
+			break;
+
+		case 'i':
+			std::cout << "The experiment will be executed " << optarg << "times" << std::endl;
+			runs = atoi(optarg);
 			break;
 
 		case '?':
@@ -125,6 +150,12 @@ int main (int argc, char **argv)
 	}
 	instanceReader.PrintDistanceMatrix();
 	instanceReader.PrintTimeWindows();
+
+	HeuristicCore simulationCore(instanceReader.GetVecDistanceMatrix(),
+								 instanceReader.GetVecTimeWindows(),
+								 initFunction,
+								 neighborhoodType);
+
 
 	return EXIT_SUCCESS;
 	exit (0);

@@ -4,7 +4,7 @@ COMPILEFLAGS = -c
 
 CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
 
-ENSOURCES=InstanceReader.cpp TimeWindow.cpp
+ENSOURCES=InstanceReader.cpp TimeWindow.cpp CandidateSolution.cpp HeuristicCore.cpp
 ENHEADERS=$(ENSOURCES:.cpp=.h)
 ENOBJECTS=$(ENSOURCES:.cpp=.o)
 
