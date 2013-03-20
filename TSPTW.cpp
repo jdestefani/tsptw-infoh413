@@ -31,6 +31,7 @@ int main (int argc, char **argv)
 	char* inputFileName;
 	HeuristicCore::ENeighborhoodType neighborhoodType;
 	HeuristicCore::EInitFunction initFunction;
+	HeuristicCore::ESolutionUpdate solutionUpdate;
 	unsigned int runs;
 
 	while (1)
@@ -76,11 +77,13 @@ int main (int argc, char **argv)
 			break;
 
 		case 'a':
-			std::cout << "The solver will run first-improvement heuristic" << std::endl;
+			std::cout << "The solver will use first-improvement solution update" << std::endl;
+			solutionUpdate = HeuristicCore::FIRST_IMPROVEMENT;
 			break;
 
 		case 'b':
-			std::cout << "The solver will run best-improvement heuristic" << std::endl;
+			std::cout << "The solver will use best-improvement solution update" << std::endl;
+			solutionUpdate = HeuristicCore::BEST_IMPROVEMENT;
 			break;
 
 		case 'c':
@@ -154,7 +157,8 @@ int main (int argc, char **argv)
 	HeuristicCore simulationCore(instanceReader.GetVecDistanceMatrix(),
 								 instanceReader.GetVecTimeWindows(),
 								 initFunction,
-								 neighborhoodType);
+								 neighborhoodType,
+								 solutionUpdate);
 
 
 	return EXIT_SUCCESS;

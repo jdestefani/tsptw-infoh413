@@ -10,21 +10,30 @@
 
 #include "CandidateSolution.h"
 #include <algorithm>
+#include <climits>
+#include <set>
 
 class HeuristicCore {
 public:
+
+	enum EInitFunction{
+			RANDOM,
+			HEURISTIC
+		};
 
 	enum ENeighborhoodType{
 		EXCHANGE,
 		TRANSPOSE,
 		INSERT
 		};
-	enum EInitFunction{
-		RANDOM,
-		HEURISTIC
+
+	enum ESolutionUpdate{
+		BEST_IMPROVEMENT,
+		FIRST_IMPROVEMENT
 	};
 
-	HeuristicCore(std::vector<std::vector<unsigned int> >&,std::vector<TimeWindow>&,unsigned int,EInitFunction,ENeighborhoodType);
+
+	HeuristicCore(std::vector<std::vector<unsigned int> >&,std::vector<TimeWindow>&,unsigned int,EInitFunction,ENeighborhoodType,ESolutionUpdate);
 	virtual ~HeuristicCore();
 
 	const CandidateSolution& GetCurrentSolution() const;
@@ -35,15 +44,19 @@ public:
 	void SetListSolutionNeighborhood(
 			const std::list<CandidateSolution>& listSolutionNeighborhood);
 
+	void IterativeImprovement();
 	void GenerateInitialSolution();
 	void ComputeNeighborhood();
+	void UpdateSolution();
 	void ComputeTourLengthAndConstraintsViolations(CandidateSolution);
+
 
 
 private:
 
 	EInitFunction m_eInitFunction;
 	ENeighborhoodType m_eNeighborhoodType;
+	ESolutionUpdate m_eSolutionUpdate;
 	double m_fSeed;
 	std::list<CandidateSolution> m_listSolutionNeighborhood;
 	CandidateSolution m_cCurrentSolution;
@@ -56,6 +69,8 @@ private:
 	void ComputeExchangeNeighborhood();
 	void ComputeTransposeNeighborhood();
 	void ComputeInsertNeighborhood();
+	void UpdateSolutionBestImprovement();
+	void UpdateSolutionFirstImprovement();
 
 };
 

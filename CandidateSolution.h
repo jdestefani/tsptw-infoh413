@@ -13,20 +13,25 @@
 class CandidateSolution {
 public:
 	CandidateSolution();
+	CandidateSolution(std::vector<unsigned int>&);
 	virtual ~CandidateSolution();
 
-	const std::list<unsigned int>& GetCityList() const;
-	void SetCityList(const std::list<unsigned int>& listCitylist);
-	unsigned int GetUnConstraintViolations() const;
-	void SetUnConstraintViolations(unsigned int unConstraintViolations);
-	unsigned int GetUnTourLength() const;
-	void SetUnTourLength(unsigned int unTourLength);
+	const std::vector<unsigned int>& GetTour() const;
+	void SetTour(const std::vector<unsigned int>& vecTour);
+	unsigned int GetConstraintViolations() const;
+	void SetConstraintViolations(unsigned int unConstraintViolations);
+	unsigned int GetTourLength() const;
+	void SetTourLength(unsigned int unTourLength);
 	friend std::ostream& operator<<(std::ostream& out, const CandidateSolution& solution);
 
+	bool IsTourEqual(const std::vector<unsigned int>& listCitylist);
+	void SwapSolutionComponents(unsigned int,unsigned int);
+	void InsertSolutionComponent(unsigned int);
 	void ComputeSolutionEvaluation();
 
+
 private:
-	std::list<unsigned int> m_listCitylist;
+	std::vector<unsigned int> m_vecTour;
 	unsigned int m_unTourLength;
 	unsigned int m_unConstraintViolations;
 	double m_fSolutionEvaluation;
