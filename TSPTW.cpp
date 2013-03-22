@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <time.h>
 
 #include "InstanceReader.h"
 #include "HeuristicCore.h"
@@ -32,7 +33,10 @@ int main (int argc, char **argv)
 	HeuristicCore::ENeighborhoodType neighborhoodType;
 	HeuristicCore::EInitFunction initFunction;
 	HeuristicCore::ESolutionUpdate solutionUpdate;
-	unsigned int runs;
+	unsigned int runs=1;
+	double seed=0.0f;
+	struct timespec *currTime;
+	unsigned int bestKnownSolution = INT_MAX;
 
 	while (1)
 	{
@@ -43,15 +47,17 @@ int main (int argc, char **argv)
 				{"brief",   no_argument,       &verbose_flag, 0},
 				/* These options don't set a flag.
                   We distinguish them by their indices. */
-				{"first",     no_argument,       0, 'a'},
-				{"best",  no_argument,       0, 'b'},
-				{"transpose",     no_argument,       0, 'c'},
-				{"exchange",  no_argument,       0, 'd'},
-				{"insert",  no_argument,       0, 'e'},
-				{"file",    required_argument, 0, 'f'},
-				{"random",     no_argument,       0, 'g'},
+				{"first-imp",     no_argument,       0, 'f'},
+				{"best-imp",  no_argument,       0, 'b'},
+				{"transpose",     no_argument,       0, 't'},
+				{"exchange",  no_argument,       0, 'e'},
+				{"insert",  no_argument,       0, 'n'},
+				{"input",    required_argument, 0, 'i'},
+				{"random",     no_argument,       0, 'd'},
 				{"heuristic",  no_argument,       0, 'h'},
-				{"runs",  required_argument,       0, 'i'},
+				{"runs",  required_argument,       0, 'r'},
+				{"seed",  optional_argument,       0, 's'},
+				{"known-best",  optional_argument,       0, 'k'},
 				{0, 0, 0, 0}
 		};
 		/* getopt_long stores the option index here. */
@@ -76,7 +82,7 @@ int main (int argc, char **argv)
 			printf ("\n");
 			break;
 
-		case 'a':
+		case 'f':
 			std::cout << "The solver will use first-improvement solution update" << std::endl;
 			solutionUpdate = HeuristicCore::FIRST_IMPROVEMENT;
 			break;
@@ -86,27 +92,27 @@ int main (int argc, char **argv)
 			solutionUpdate = HeuristicCore::BEST_IMPROVEMENT;
 			break;
 
-		case 'c':
+		case 't':
 			std::cout << "The exploring strategy will be transpose" << std::endl;
 			neighborhoodType = HeuristicCore::TRANSPOSE;
 			break;
 
-		case 'd':
+		case 'e':
 			std::cout << "The exploring strategy will be exchange" << std::endl;
 			neighborhoodType = HeuristicCore::EXCHANGE;
 			break;
 
-		case 'e':
+		case 'n':
 			std::cout << "The exploring strategy will be insert" << std::endl;
 			neighborhoodType = HeuristicCore::INSERT;
 			break;
 
-		case 'f':
+		case 'i':
 			std::cout << "The instance will be read from " << optarg << std::endl;
 			inputFileName = optarg;
 			break;
 
-		case 'g':
+		case 'd':
 			std::cout << "The initialization function will be random" << std::endl;
 			initFunction = HeuristicCore::RANDOM;
 			break;
@@ -116,9 +122,30 @@ int main (int argc, char **argv)
 			initFunction = HeuristicCore::HEURISTIC;
 			break;
 
-		case 'i':
+		case 'r':
 			std::cout << "The experiment will be executed " << optarg << "times" << std::endl;
 			runs = atoi(optarg);
+			break;
+
+		case 's':
+			if(optarg == NULL){
+				clock_gettime(CLOCK_MONOTONIC,currTime);
+				seed = currTime->tv_sec;
+			}
+			else{
+				seed = atoi(optarg);
+			}
+			std::cout << "The experiment seed will be " << seed << std::endl;
+			break;
+
+		case 's':
+			if(optarg == NULL){
+				std::cout << "No best solution submitted" << std::endl;
+				std::cout << "Omitting penalized relative percentage deviation computation" << std::endl;
+			}
+			else{
+				bestKnownSolution = atoi(optarg);
+			}
 			break;
 
 		case '?':
@@ -158,7 +185,8 @@ int main (int argc, char **argv)
 								 instanceReader.GetVecTimeWindows(),
 								 initFunction,
 								 neighborhoodType,
-								 solutionUpdate);
+								 solutionUpdate,
+								 seed);
 
 
 	return EXIT_SUCCESS;

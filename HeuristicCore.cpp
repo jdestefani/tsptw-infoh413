@@ -9,13 +9,16 @@
 
 
 HeuristicCore::HeuristicCore(std::vector<std::vector<unsigned int> >& vec_distance_matrix,std::vector<TimeWindow>& vec_time_windows,
-							unsigned int cities_number,EInitFunction init_function,ENeighborhoodType neighborhood_type,ESolutionUpdate solution_update){
+							unsigned int cities_number,EInitFunction init_function,ENeighborhoodType neighborhood_type,ESolutionUpdate solution_update,
+							double seed){
 	m_vecDistanceMatrix = vec_distance_matrix;
 	m_vecTimeWindows = vec_time_windows;
 	m_unCities = cities_number;
 	m_eInitFunction = init_function;
 	m_eNeighborhoodType = neighborhood_type;
 	m_eSolutionUpdate = solution_update;
+	m_fSeed = seed;
+	m_fRunTime = 0;
 }
 
 HeuristicCore::~HeuristicCore() {
@@ -49,13 +52,20 @@ void HeuristicCore::SetListSolutionNeighborhood(
 }
 
 void HeuristicCore::IterativeImprovement() {
+	struct timespec* m_sBeginTime;
+	struct timespec* m_sEndTime;
+
+
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,m_sBeginTime);
 	GenerateInitialSolution();
-	while(true/*! Local Optimum*/){
+	while(!IsLocalOptimum()){
 		/*1. Generate neighborhood*/
 		ComputeNeighborhood();
 		/*2. Select solution from neighborhood*/
 		UpdateSolution();
 	}
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,m_sEndTime);
+	m_fRunTime = m_sEndTime->tv_sec - m_sBeginTime->tv_sec;
 }
 
 void HeuristicCore::GenerateInitialSolution() {
@@ -98,6 +108,20 @@ void HeuristicCore::UpdateSolution() {
 			default:
 				break;
 		}
+}
+
+
+bool HeuristicCore::IsLocalOptimum() {
+	std::vector<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin();
+	while(itList != m_listSolutionNeighborhood.end()){
+		if((*itList).GetTourLength() < m_cCurrentSolution.GetTourLength()){
+			return false;
+		}
+		++itList;
+	}
+
+	return true;
+
 }
 
 void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution candidateSolution) {
@@ -153,6 +177,18 @@ void HeuristicCore::ComputeExchangeNeighborhood() {
 }
 
 void HeuristicCore::ComputeInsertNeighborhood() {
+	/*Erase all the neighborhood list*/
+	m_listSolutionNeighborhood.erase(m_listSolutionNeighborhood.begin(),m_listSolutionNeighborhood.end());
+	/*Possibly consider a differential update of the neighborhood*/
+
+	/*Compute all the possible swaps of an element with his successor*/
+	for(unsigned int i=1; i<m_cCurrentSolution.GetTour().size(); i++){
+		for(unsigned int j=0; j<m_cCurrentSolution.GetTour().size(); j++){
+			CandidateSolution neighborSolution(m_cCurrentSolution);
+			neighborSolution.InsertSolutionComponent(i,j);
+			m_listSolutionNeighborhood.push_back(neighborSolution);
+		}
+	}
 }
 
 void HeuristicCore::UpdateSolutionBestImprovement() {
@@ -171,6 +207,7 @@ void HeuristicCore::UpdateSolutionBestImprovement() {
 		m_cCurrentSolution((*itBest).GetTour());
 	}
 }
+
 
 void HeuristicCore::UpdateSolutionFirstImprovement() {
 	bool isEvaluationImproved = false;

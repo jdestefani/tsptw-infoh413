@@ -73,7 +73,19 @@ void CandidateSolution::SwapSolutionComponents(unsigned int firstIndex,unsigned 
 	m_vecTour.at(firstIndex) = swapVariable;
 }
 
-void CandidateSolution::InsertSolutionComponent(unsigned int unsignedInt) {
+void CandidateSolution::InsertSolutionComponent(unsigned int city_index, unsigned int insertion_position) {
+	unsigned int elementToInsert = m_vecTour.at(city_index);
+	if(insertion_position > city_index){
+		for(unsigned int i=city_index;i<insertion_position;i++){
+			m_vecTour.at(i) = m_vecTour.at(i+1);
+		}
+	}
+	else{
+		for(unsigned int i=insertion_position;i<city_index;i++){
+			m_vecTour.at(i) = m_vecTour.at(i+1);
+		}
+	}
+	m_vecTour.at(insertion_position) = elementToInsert;
 }
 
 /*std::ostream& CandidateSolution::operator<<(std::ostream& out,

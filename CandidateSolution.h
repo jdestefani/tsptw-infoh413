@@ -26,7 +26,7 @@ public:
 
 	bool IsTourEqual(const std::vector<unsigned int>& listCitylist);
 	void SwapSolutionComponents(unsigned int,unsigned int);
-	void InsertSolutionComponent(unsigned int);
+	void InsertSolutionComponent(unsigned int,unsigned int);
 	void ComputeSolutionEvaluation();
 
 

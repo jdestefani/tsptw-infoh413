@@ -8,10 +8,13 @@
 #ifndef HEURISTICCORE_H_
 #define HEURISTICCORE_H_
 
-#include "CandidateSolution.h"
 #include <algorithm>
 #include <climits>
 #include <set>
+#include <time.h>
+
+#include "CandidateSolution.h"
+
 
 class HeuristicCore {
 public:
@@ -33,7 +36,8 @@ public:
 	};
 
 
-	HeuristicCore(std::vector<std::vector<unsigned int> >&,std::vector<TimeWindow>&,unsigned int,EInitFunction,ENeighborhoodType,ESolutionUpdate);
+	HeuristicCore(std::vector<std::vector<unsigned int> >&,std::vector<TimeWindow>&,unsigned int,
+				  EInitFunction,ENeighborhoodType,ESolutionUpdate,double);
 	virtual ~HeuristicCore();
 
 	const CandidateSolution& GetCurrentSolution() const;
@@ -49,8 +53,7 @@ public:
 	void ComputeNeighborhood();
 	void UpdateSolution();
 	void ComputeTourLengthAndConstraintsViolations(CandidateSolution);
-
-
+	bool IsLocalOptimum();
 
 private:
 
@@ -63,6 +66,7 @@ private:
 	unsigned int m_unCities;
 	std::vector<std::vector<unsigned int> >& m_vecDistanceMatrix;
 	std::vector<TimeWindow>& m_vecTimeWindows;
+	double m_fRunTime;
 
 	void GenerateRandomInitialSolution();
 	void GenerateHeuristicInitialSolution();
