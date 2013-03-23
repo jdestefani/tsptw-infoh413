@@ -12,19 +12,20 @@
 
 class Writer {
 public:
-	Writer();
+	Writer(std::string,unsigned int);
 	virtual ~Writer();
 
 	void OpenRFile();
 	void OpenTextResults();
 	void FlushRFile();
 	void FlushTextResults();
-	void AddData(double,unsigned int,double);
-	double ComputePRDP(double,unsigned int);
+	void AddData(double,unsigned int,unsigned int,double);
+	double ComputePRDP(unsigned int,unsigned int);
 
 private:
 	std::string m_sInstanceName;
 	unsigned int m_unKnownBest;
+	std::list<double> m_listSeeds;
 	std::list<unsigned int> m_listBestSolutions;
 	std::list<unsigned int> m_listConstraintViolations;
 	std::list<double> m_listCpuRunTimes;

@@ -14,7 +14,7 @@
 #include <time.h>
 
 #include "CandidateSolution.h"
-
+#include "Writer.h"
 
 class HeuristicCore {
 public:
@@ -37,7 +37,7 @@ public:
 
 
 	HeuristicCore(std::vector<std::vector<unsigned int> >&,std::vector<TimeWindow>&,unsigned int,
-				  EInitFunction,ENeighborhoodType,ESolutionUpdate,double);
+				  EInitFunction,ENeighborhoodType,ESolutionUpdate,double,unsigned int,std::string,unsigned int);
 	virtual ~HeuristicCore();
 
 	const CandidateSolution& GetCurrentSolution() const;
@@ -48,6 +48,7 @@ public:
 	void SetListSolutionNeighborhood(
 			const std::list<CandidateSolution>& listSolutionNeighborhood);
 
+	void Run();
 	void IterativeImprovement();
 	void GenerateInitialSolution();
 	void ComputeNeighborhood();
@@ -61,8 +62,12 @@ private:
 	ENeighborhoodType m_eNeighborhoodType;
 	ESolutionUpdate m_eSolutionUpdate;
 	double m_fSeed;
+	unsigned int m_unRuns;
+	Writer m_wriResultsWriter;
+
 	std::list<CandidateSolution> m_listSolutionNeighborhood;
 	CandidateSolution m_cCurrentSolution;
+	std::vector<unsigned int> m_vecTourDistances;
 	unsigned int m_unCities;
 	std::vector<std::vector<unsigned int> >& m_vecDistanceMatrix;
 	std::vector<TimeWindow>& m_vecTimeWindows;
@@ -75,6 +80,8 @@ private:
 	void ComputeInsertNeighborhood();
 	void UpdateSolutionBestImprovement();
 	void UpdateSolutionFirstImprovement();
+	void UpdateListTourDistances();
+	void ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int,unsigned int)
 
 };
 

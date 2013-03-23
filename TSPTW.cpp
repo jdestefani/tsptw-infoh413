@@ -138,10 +138,11 @@ int main (int argc, char **argv)
 			std::cout << "The experiment seed will be " << seed << std::endl;
 			break;
 
-		case 's':
+		case 'k':
 			if(optarg == NULL){
 				std::cout << "No best solution submitted" << std::endl;
 				std::cout << "Omitting penalized relative percentage deviation computation" << std::endl;
+				bestKnownSolution = INT_MAX;
 			}
 			else{
 				bestKnownSolution = atoi(optarg);
@@ -183,10 +184,14 @@ int main (int argc, char **argv)
 
 	HeuristicCore simulationCore(instanceReader.GetVecDistanceMatrix(),
 								 instanceReader.GetVecTimeWindows(),
+								 instanceReader.GetCities(),
 								 initFunction,
 								 neighborhoodType,
 								 solutionUpdate,
-								 seed);
+								 seed,
+								 runs,
+								 inputFileString,
+								 bestKnownSolution);
 
 
 	return EXIT_SUCCESS;

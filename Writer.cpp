@@ -7,7 +7,9 @@
 
 #include "Writer.h"
 
-Writer::Writer() {
+Writer::Writer(std::string filename,unsigned int known_best) {
+	m_sInstanceName = filename.substr(0,filename.find_last_of('.'));
+	m_unKnownBest = known_best;
 	// TODO Auto-generated constructor stub
 
 }
@@ -42,13 +44,14 @@ void Writer::FlushRFile() {
 void Writer::FlushTextResults() {
 }
 
-void Writer::AddData(double best_tour_length, unsigned int constraint_violations, double cpu_time) {
+void Writer::AddData(double seed,unsigned int best_tour_length, unsigned int constraint_violations, double cpu_time) {
+	m_listSeeds.push_back(seed);
 	m_listBestSolutions.push_back(best_tour_length);
 	m_listConstraintViolations.push_back(constraint_violations);
 	m_listCpuRunTimes.push_back(cpu_time);
 	m_listPenalizedRelativePercentageDeviations(ComputePRDP(best_tour_length,constraint_violations));
 }
 
-double Writer::ComputePRDP(double best_tour_length, unsigned int constraint_violations) {
+double Writer::ComputePRDP(unsigned int best_tour_length, unsigned int constraint_violations) {
 	return 100*(((best_tour_length+constraint_violations)-m_unKnownBest)/m_unKnownBest);
 }
