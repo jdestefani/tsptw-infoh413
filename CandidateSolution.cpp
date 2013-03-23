@@ -10,14 +10,14 @@
 static const double CONSTRAINT_VIOLATION_PENALTY=10e4;
 
 CandidateSolution::CandidateSolution() {
-	m_vecTour.reserve(1)
+	m_vecTour.reserve(1);
 	m_unTourLength = 0;
 	m_unConstraintViolations = 0;
 	m_fSolutionEvaluation = 0.0f;
 }
 
-CandidateSolution::CandidateSolution(std::vector<unsigned int>& tour) {
-	m_vecTour = tour;
+CandidateSolution::CandidateSolution(std::vector<unsigned int>& tour):
+	m_vecTour(tour){
 	m_unTourLength = 0;
 	m_unConstraintViolations = 0;
 	m_fSolutionEvaluation = 0.0f;
@@ -33,6 +33,10 @@ const std::vector<unsigned int>& CandidateSolution::GetTour() const {
 
 void CandidateSolution::SetTour(const std::vector<unsigned int>& vecTour) {
 	m_vecTour = vecTour;
+	/*Reset information concerning the tour*/
+	m_unTourLength = 0;
+	m_unConstraintViolations = 0;
+	m_fSolutionEvaluation = 0.0f;
 }
 
 unsigned int CandidateSolution::GetConstraintViolations() const {
@@ -68,24 +72,28 @@ bool CandidateSolution::IsTourEqual(const std::vector<unsigned int>& external_to
 }
 
 void CandidateSolution::SwapSolutionComponents(unsigned int firstIndex,unsigned int secondIndex) {
-	unsigned int swapVariable = m_vecTour.at(secondIndex);
-	m_vecTour.at(secondIndex) = m_vecTour.at(firstIndex);
-	m_vecTour.at(firstIndex) = swapVariable;
+	if(firstIndex != secondIndex){
+		unsigned int swapVariable = m_vecTour.at(secondIndex);
+		m_vecTour.at(secondIndex) = m_vecTour.at(firstIndex);
+		m_vecTour.at(firstIndex) = swapVariable;
+	}
 }
 
 void CandidateSolution::InsertSolutionComponent(unsigned int city_index, unsigned int insertion_position) {
-	unsigned int elementToInsert = m_vecTour.at(city_index);
-	if(insertion_position > city_index){
-		for(unsigned int i=city_index;i<insertion_position;i++){
-			m_vecTour.at(i) = m_vecTour.at(i+1);
+	if(city_index != insertion_position){
+		unsigned int elementToInsert = m_vecTour.at(city_index);
+		if(insertion_position > city_index){
+			for(unsigned int i=city_index;i<insertion_position;i++){
+				m_vecTour.at(i) = m_vecTour.at(i+1);
+			}
 		}
-	}
-	else{
-		for(unsigned int i=insertion_position;i<city_index;i++){
-			m_vecTour.at(i) = m_vecTour.at(i+1);
+		else{
+			for(unsigned int i=insertion_position;i<city_index;i++){
+				m_vecTour.at(i) = m_vecTour.at(i+1);
+			}
 		}
+		m_vecTour.at(insertion_position) = elementToInsert;
 	}
-	m_vecTour.at(insertion_position) = elementToInsert;
 }
 
 /*std::ostream& CandidateSolution::operator<<(std::ostream& out,

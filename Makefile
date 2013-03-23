@@ -2,11 +2,15 @@ CXX = g++
 
 COMPILEFLAGS = -c
 
-CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
+CXXFLAGS = -O2 -g -Wall -fmessage-length=0 -lrt
 
-ENSOURCES=InstanceReader.cpp TimeWindow.cpp CandidateSolution.cpp HeuristicCore.cpp
-ENHEADERS=$(ENSOURCES:.cpp=.h)
-ENOBJECTS=$(ENSOURCES:.cpp=.o)
+MOSOURCES= TimeWindow.cpp CandidateSolution.cpp InstanceReader.cpp Writer.cpp HeuristicCore.cpp
+MOHEADERS=$(MOSOURCES:.cpp=.h)
+MOOBJECTS=$(MOSOURCES:.cpp=.o)
+
+#DASOURCES= TimeWindow.cpp CandidateSolution.cpp 
+#DAHEADERS=$(DASOURCES:.cpp=.h)
+#DAOBJECTS=$(DASOURCES:.cpp=.o)
 
 MAINSOURCES=TSPTW.cpp
 
@@ -21,20 +25,25 @@ TARGET=TSPTW
 #%.o: %.cpp 
 #	$(CXX) $(COMPILEFLAGS) $< $(DIRFLAG)
 
-tsptw-entities.a: $(ENSOURCES) $(ENHEADERS)
-		$(CXX) $(COMPILEFLAGS) $(ENSOURCES) 
-		ar -r tsptw-entities.a $(ENOBJECTS) 
-		ranlib tsptw-entities.a
+#tsptw-datamodels.a: $(DASOURCES) $(DAHEADERS)
+#		$(CXX) $(COMPILEFLAGS) $(DASOURCES) 
+#		ar -r tsptw-datamodels.a $(DAOBJECTS) 
+#		ranlib tsptw-datamodels.a
+
+tsptw-modules.a: $(MOSOURCES) $(MOHEADERS)
+		$(CXX) $(COMPILEFLAGS) $(MOSOURCES)  
+		ar -r tsptw-modules.a $(MOOBJECTS) 
+		ranlib tsptw-modules.a
 
 $(OBJS): $(MAINSOURCES)
 		 $(CXX) $(COMPILEFLAGS) $(MAINSOURCES)
 
-$(TARGET): $(OBJS) tsptw-entities.a 
-	$(CXX) $(CXXFLAGS) $(OBJS) $(LIBS) tsptw-entities.a -o $(TARGET) 
+$(TARGET): tsptw-modules.a $(OBJS) 
+	$(CXX) $(CXXFLAGS) $(OBJS) tsptw-modules.a -o $(TARGET) 
 
 all: $(TARGET)
 
 clean:
-	rm -f $(OBJS) $(ENOBJECTS) tsptw-entities.a
+	rm -f $(OBJS) $(DAOBJECTS) $(MOOBJECTS) tsptw-datamodels.a tsptw-modules.a
 
 .PHONY: clean

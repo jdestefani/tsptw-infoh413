@@ -8,7 +8,7 @@
 #ifndef CANDIDATESOLUTION_H_
 #define CANDIDATESOLUTION_H_
 
-#include <list>
+#include <vector>
 
 class CandidateSolution {
 public:
@@ -22,7 +22,7 @@ public:
 	void SetConstraintViolations(unsigned int unConstraintViolations);
 	unsigned int GetTourLength() const;
 	void SetTourLength(unsigned int unTourLength);
-	friend std::ostream& operator<<(std::ostream& out, const CandidateSolution& solution);
+	//friend std::ostream& operator<<(std::ostream& out, const CandidateSolution& solution);
 
 	bool IsTourEqual(const std::vector<unsigned int>& listCitylist);
 	void SwapSolutionComponents(unsigned int,unsigned int);

@@ -13,6 +13,7 @@
 #include <set>
 #include <time.h>
 
+#include "TimeWindow.h"
 #include "CandidateSolution.h"
 #include "Writer.h"
 
@@ -36,8 +37,16 @@ public:
 	};
 
 
-	HeuristicCore(std::vector<std::vector<unsigned int> >&,std::vector<TimeWindow>&,unsigned int,
-				  EInitFunction,ENeighborhoodType,ESolutionUpdate,double,unsigned int,std::string,unsigned int);
+	HeuristicCore(std::vector<std::vector<unsigned int> >&,
+				  std::vector<TimeWindow>&,unsigned int,
+				  EInitFunction,
+				  ENeighborhoodType,
+				  ESolutionUpdate,
+				  double,
+				  unsigned int,
+				  std::string,
+				  unsigned int);
+
 	virtual ~HeuristicCore();
 
 	const CandidateSolution& GetCurrentSolution() const;
@@ -81,7 +90,7 @@ private:
 	void UpdateSolutionBestImprovement();
 	void UpdateSolutionFirstImprovement();
 	void UpdateListTourDistances();
-	void ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int,unsigned int)
+	void ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int,unsigned int);
 
 };
 

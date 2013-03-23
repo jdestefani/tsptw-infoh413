@@ -22,6 +22,16 @@
 #define EXCHANGE_FLAG "exchange";
 #define INSERT_FLAG "insert";
 
+#define DEFAULT_INIT_FUNCTION 0;
+#define DEFAULT_NEIGHBORHOOD_TYPE 0;
+#define DEFAULT_SOLUTION_UPDATE 0;
+#define DEFAULT_RUNS 1;
+#define DEFAULT_SEED 0.0f;
+#define DEFAULT_BEST_KNOWN_SOLUTION INT_MAX;
+
+#define ERROR_CODE_PIVOTING_RULE -2;
+#define ERROR_CODE_NEIGHBORHOOD -3;
+
 /* Flag set by ‘--verbose’. */
 static int verbose_flag;
 
@@ -30,14 +40,17 @@ int main (int argc, char **argv)
 {
 	int c;
 	char* inputFileName;
-	HeuristicCore::ENeighborhoodType neighborhoodType;
-	HeuristicCore::EInitFunction initFunction;
-	HeuristicCore::ESolutionUpdate solutionUpdate;
-	unsigned int runs=1;
-	double seed=0.0f;
+	HeuristicCore::ENeighborhoodType neighborhoodType=DEFAULT_NEIGHBORHOOD_TYPE;
+	HeuristicCore::EInitFunction initFunction=DEFAULT_INIT_FUNCTION;
+	HeuristicCore::ESolutionUpdate solutionUpdate=DEFAULT_SOLUTION_UPDATE;
+	unsigned int runs=DEFAULT_RUNS;
+	double seed=DEFAULT_SEED;
 	struct timespec *currTime;
-	unsigned int bestKnownSolution = INT_MAX;
+	unsigned int bestKnownSolution = DEFAULT_BEST_KNOWN_SOLUTION;
+	bool setPivotingRule=false;
+	bool setNeighborhood=false;
 
+	std::cout << "Solver parameters:" << std::endl;
 	while (1)
 	{
 		static struct option long_options[] =
@@ -83,28 +96,63 @@ int main (int argc, char **argv)
 			break;
 
 		case 'f':
-			std::cout << "The solver will use first-improvement solution update" << std::endl;
-			solutionUpdate = HeuristicCore::FIRST_IMPROVEMENT;
+			if(!setPivotingRule){
+				std::cout << "\tPivoting rule: First Improvement" << std::endl;
+				solutionUpdate = HeuristicCore::FIRST_IMPROVEMENT;
+				setPivotingRule=true;
+			}
+			else{
+				std::cerr << "Error: Multiple pivoting rule chosen." << std::endl;
+				exit(0);
+			}
 			break;
 
 		case 'b':
-			std::cout << "The solver will use best-improvement solution update" << std::endl;
-			solutionUpdate = HeuristicCore::BEST_IMPROVEMENT;
+			if(!setPivotingRule){
+				std::cout << "\tPivoting rule: Best Improvement" << std::endl;
+				solutionUpdate = HeuristicCore::BEST_IMPROVEMENT;
+				setPivotingRule=true;
+			}
+			else{
+				std::cerr << "Error: Multiple pivoting rule chosen." << std::endl;
+				exit(0);
+			}
 			break;
 
 		case 't':
-			std::cout << "The exploring strategy will be transpose" << std::endl;
-			neighborhoodType = HeuristicCore::TRANSPOSE;
+			if(!setNeighborhood){
+				std::cout << "\tNeighborhood: Transpose" << std::endl;
+				neighborhoodType = HeuristicCore::TRANSPOSE;
+				setNeighborhood = true;
+			}
+			else{
+				std::cerr << "Error: Multiple neighborhood type chosen." << std::endl;
+				exit(0);
+			}
 			break;
 
 		case 'e':
-			std::cout << "The exploring strategy will be exchange" << std::endl;
-			neighborhoodType = HeuristicCore::EXCHANGE;
+			if(!setNeighborhood){
+				std::cout << "\tNeighborhood: Exchange" << std::endl;
+				neighborhoodType = HeuristicCore::EXCHANGE;
+				setNeighborhood = true;
+			}
+			else{
+				std::cerr << "Error: Multiple neighborhood type chosen." << std::endl;
+				exit(0);
+			}
 			break;
 
 		case 'n':
-			std::cout << "The exploring strategy will be insert" << std::endl;
-			neighborhoodType = HeuristicCore::INSERT;
+			if(!setNeighborhood){
+				std::cout << "\tNeighborhood: Insert" << std::endl;
+				neighborhoodType = HeuristicCore::INSERT;
+				setNeighborhood = true;
+			}
+			else{
+				std::cerr << "Error: Multiple neighborhood type chosen." << std::endl;
+				exit(0);
+			}
 			break;
 
 		case 'i':
@@ -182,7 +230,7 @@ int main (int argc, char **argv)
 	instanceReader.PrintDistanceMatrix();
 	instanceReader.PrintTimeWindows();
 
-	HeuristicCore simulationCore(instanceReader.GetVecDistanceMatrix(),
+	/*HeuristicCore simulationCore(instanceReader.GetVecDistanceMatrix(),
 								 instanceReader.GetVecTimeWindows(),
 								 instanceReader.GetCities(),
 								 initFunction,
@@ -192,11 +240,35 @@ int main (int argc, char **argv)
 								 runs,
 								 inputFileString,
 								 bestKnownSolution);
-
+*/
 
 	return EXIT_SUCCESS;
 	exit (0);
 
 }
 
+static void version(void)
+{
+  printf ("%s", program_invocation_short_name);
+  printf("\n\n"
+"Copyright (C) 2009\n"
+"Manuel Lopez-Ibanez (manuel.lopez-ibanez@ulb.ac.be) and\n"
+"Christian Blum (cblum@lsi.upc.edu)\n"
+"\n"
+"This is free software, and you are welcome to redistribute it under certain\n"
+"conditions.  See the GNU General Public License for details. There is NO   \n"
+"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+"\n"        );
+}
+
+static void usage(void)
+{
+  printf("\n"
+         "Usage: %s INSTANCE_FILE SOLUTION_FILE\n\n", program_invocation_short_name);
+
+    printf(
+"Reads an instance file and a file with a permutation (from 1 to N, that is, not containing the depot) and evaluates the solution.\n"
+"\n");
+    version ();
+}
 

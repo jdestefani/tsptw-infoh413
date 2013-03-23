@@ -9,6 +9,8 @@
 #define WRITER_H_
 
 #include <list>
+#include <string>
+#include <fstream>
 
 class Writer {
 public:

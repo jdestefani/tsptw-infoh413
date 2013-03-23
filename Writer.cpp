@@ -49,7 +49,7 @@ void Writer::AddData(double seed,unsigned int best_tour_length, unsigned int con
 	m_listBestSolutions.push_back(best_tour_length);
 	m_listConstraintViolations.push_back(constraint_violations);
 	m_listCpuRunTimes.push_back(cpu_time);
-	m_listPenalizedRelativePercentageDeviations(ComputePRDP(best_tour_length,constraint_violations));
+	m_listPenalizedRelativePercentageDeviations.push_back(ComputePRDP(best_tour_length,constraint_violations));
 }
 
 double Writer::ComputePRDP(unsigned int best_tour_length, unsigned int constraint_violations) {
