@@ -32,6 +32,8 @@
 #define ERROR_CODE_PIVOTING_RULE -2;
 #define ERROR_CODE_NEIGHBORHOOD -3;
 
+void version(void);
+void usage(void);
 /* Flag set by ‘--verbose’. */
 static int verbose_flag;
 
@@ -47,6 +49,7 @@ int main (int argc, char **argv)
 	double seed=DEFAULT_SEED;
 	struct timespec *currTime;
 	unsigned int bestKnownSolution = DEFAULT_BEST_KNOWN_SOLUTION;
+	bool setInitFunction=false;
 	bool setPivotingRule=false;
 	bool setNeighborhood=false;
 
@@ -94,6 +97,31 @@ int main (int argc, char **argv)
 				printf (" with arg %s", optarg);
 			printf ("\n");
 			break;
+
+		case 'd':
+			if(!setInitFunction){
+				std::cout << "\tInitialization function: Random" << std::endl;
+				initFunction = HeuristicCore::RANDOM;
+				setInitFunction=true;
+			}
+			else{
+				std::cerr << "Error: Multiple initialization function chosen." << std::endl;
+				exit(0);
+			}
+			break;
+
+		case 'h':
+			if(!setInitFunction){
+				std::cout << "The initialization function will be heuristic" << std::endl;
+				initFunction = HeuristicCore::HEURISTIC;
+				setInitFunction = true;
+			}
+			else{
+				std::cerr << "Error: Multiple initialization function chosen." << std::endl;
+				exit(0);
+			}
+			break;
+
 
 		case 'f':
 			if(!setPivotingRule){
@@ -158,21 +186,15 @@ int main (int argc, char **argv)
 		case 'i':
 			std::cout << "The instance will be read from " << optarg << std::endl;
 			inputFileName = optarg;
-			break;
-
-		case 'd':
-			std::cout << "The initialization function will be random" << std::endl;
-			initFunction = HeuristicCore::RANDOM;
-			break;
-
-		case 'h':
-			std::cout << "The initialization function will be heuristic" << std::endl;
-			initFunction = HeuristicCore::HEURISTIC;
+			std::cout << "Instance: " << inputFileName << std::endl;
 			break;
 
 		case 'r':
-			std::cout << "The experiment will be executed " << optarg << "times" << std::endl;
-			runs = atoi(optarg);
+			if(optarg != NULL){
+				std::cout << "The experiment will be executed " << optarg << "times" << std::endl;
+				runs = atoi(optarg);
+			}
+			std::cout << "Runs: " << runs << std::endl;
 			break;
 
 		case 's':
@@ -183,18 +205,19 @@ int main (int argc, char **argv)
 			else{
 				seed = atoi(optarg);
 			}
-			std::cout << "The experiment seed will be " << seed << std::endl;
+			std::cout << "Seed: " << seed << std::endl;
 			break;
 
 		case 'k':
 			if(optarg == NULL){
-				std::cout << "No best solution submitted" << std::endl;
-				std::cout << "Omitting penalized relative percentage deviation computation" << std::endl;
+				//std::cout << "No best solution submitted" << std::endl;
+				//std::cout << "Omitting penalized relative percentage deviation computation" << std::endl;
 				bestKnownSolution = INT_MAX;
 			}
 			else{
 				bestKnownSolution = atoi(optarg);
 			}
+			std::cout << "Best known solution: " << bestKnownSolution << std::endl;
 			break;
 
 		case '?':
@@ -213,14 +236,19 @@ int main (int argc, char **argv)
 		puts ("verbose flag is set");
 
 	/* Print any remaining command line arguments (not options). */
-	if (optind < argc)
+	/*if (optind < argc)
 	{
 		printf ("non-option ARGV-elements: ");
 		while (optind < argc)
 			printf ("%s ", argv[optind++]);
 		putchar ('\n');
-	}
+	}*/
 
+	if (optind < argc)
+	{
+		usage();
+		exit(0);
+	}
 
 	std::string inputFileString(inputFileName);
 	InstanceReader instanceReader(inputFileString);
@@ -247,28 +275,32 @@ int main (int argc, char **argv)
 
 }
 
-static void version(void)
+void version(void)
 {
-  printf ("%s", program_invocation_short_name);
-  printf("\n\n"
-"Copyright (C) 2009\n"
-"Manuel Lopez-Ibanez (manuel.lopez-ibanez@ulb.ac.be) and\n"
-"Christian Blum (cblum@lsi.upc.edu)\n"
-"\n"
-"This is free software, and you are welcome to redistribute it under certain\n"
-"conditions.  See the GNU General Public License for details. There is NO   \n"
-"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
-"\n"        );
+	std::cout << "\n\n";
+	std::cout << "Jacopo De Stefani (jacopo.de.stefani@ulb.ac.be)\n";
+	std::cout << "This is free software, and you are welcome to redistribute it under certain\n";
+	std::cout << "conditions.  See the GNU General Public License for details. There is NO   \n";
+	std::cout << "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n";
+	std::cout << "\n";
 }
 
-static void usage(void)
+void usage(void)
 {
-  printf("\n"
-         "Usage: %s INSTANCE_FILE SOLUTION_FILE\n\n", program_invocation_short_name);
-
-    printf(
-"Reads an instance file and a file with a permutation (from 1 to N, that is, not containing the depot) and evaluates the solution.\n"
-"\n");
-    version ();
+  std::cout << "\nUsage: TSPTW [OPTIONS]...\n\n";
+  std::cout << "Flag \t Argument \t Description";
+  std::cout << "-d,--random \t [No] Generate random initial solution.\n";
+  std::cout << "-h,--heuristic\t [No] Generate initial solution using heuristic.\n";
+  std::cout << "-f,--first-imp \t [No] Use first improvement pivoting rule.\n";
+  std::cout << "-b,--best-imp \t [No] Use best improvement pivoting rule.\n";
+  std::cout << "-t,--transpose \t [No] Use transpose neighborhood.\n";
+  std::cout << "-e,--exchange \t [No] Use exchange neighborhood.\n";
+  std::cout << "-n,--insert \t [No] Use insert neighborhood.\n";
+  std::cout << "-i,--input\t [Req,Path] Path to instance to be given as input to the program\n";
+  std::cout << "-r,--runs\t [Opt,Runs] Number of runs of the algorithm. 1 if omitted.\n";
+  std::cout << "-s,--seed\t [Opt,Seed] Seed for the random number generator of the algorithm. System time if omitted.\n";
+  std::cout << "-k,--known-best\t [Opt,Best] Best known solution for the analyzed instance. INT_MAX if omitted.\n";
+  version();
 }
+
 
