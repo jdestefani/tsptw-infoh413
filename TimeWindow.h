@@ -12,19 +12,47 @@
 
 class TimeWindow {
 public:
-	TimeWindow();
-	TimeWindow(unsigned int,unsigned int);
-	virtual ~TimeWindow();
-	bool InTimeWindowBoundsIncluded(unsigned int);
-	bool InTimeWindowBoundsExcluded(unsigned int);
-	bool InTimeWindowUpperBoundIncluded(unsigned int);
-	bool InTimeWindowLowerBoundIncluded(unsigned int);
-	unsigned int GetLowerBound() const;
-	unsigned int GetUpperBound() const;
+
+	TimeWindow() : m_unLowerBound(0),
+				   m_unUpperBound(0){
+	}
+
+	TimeWindow(unsigned int lower_bound, unsigned int upper_bound) : m_unLowerBound(lower_bound),
+																	 m_unUpperBound(upper_bound){
+		assert(upper_bound > lower_bound);
+	}
+
+	~TimeWindow() {
+		// TODO Auto-generated destructor stub
+	}
+
+	inline bool InTimeWindowBoundsIncluded(unsigned int value) {
+		return m_unLowerBound <= value && value <= m_unUpperBound;
+	}
+
+	inline bool InTimeWindowBoundsExcluded(unsigned int value) {
+		return m_unLowerBound < value && value < m_unUpperBound;
+	}
+
+	inline bool InTimeWindowUpperBoundIncluded(unsigned int value) {
+		return m_unLowerBound < value && value <= m_unUpperBound;
+	}
+
+	inline bool InTimeWindowm_unLowerBoundIncluded(unsigned int value) {
+		return m_unLowerBound <= value && value < m_unUpperBound;
+	}
+
+	inline unsigned int GetLowerBound() const {
+		return m_unLowerBound;
+	}
+
+	inline unsigned int GetUpperBound() const {
+		return m_unUpperBound;
+	}
 
 private:
-	unsigned int lowerBound;
-	unsigned int upperBound;
+	unsigned int m_unLowerBound;
+	unsigned int m_unUpperBound;
 };
 
 #endif /* TIMEWINDOW_H_ */

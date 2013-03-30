@@ -9,51 +9,8 @@
 
 static const double CONSTRAINT_VIOLATION_PENALTY=10e4;
 
-CandidateSolution::CandidateSolution() {
-	m_vecTour.reserve(1);
-	m_unTourLength = 0;
-	m_unConstraintViolations = 0;
-	m_fSolutionEvaluation = 0.0f;
-}
-
-CandidateSolution::CandidateSolution(std::vector<unsigned int>& tour):
-	m_vecTour(tour){
-	m_unTourLength = 0;
-	m_unConstraintViolations = 0;
-	m_fSolutionEvaluation = 0.0f;
-}
-
 CandidateSolution::~CandidateSolution() {
 	// TODO Auto-generated destructor stub
-}
-
-const std::vector<unsigned int>& CandidateSolution::GetTour() const {
-	return m_vecTour;
-}
-
-void CandidateSolution::SetTour(const std::vector<unsigned int>& vecTour) {
-	m_vecTour = vecTour;
-	/*Reset information concerning the tour*/
-	m_unTourLength = 0;
-	m_unConstraintViolations = 0;
-	m_fSolutionEvaluation = 0.0f;
-}
-
-unsigned int CandidateSolution::GetConstraintViolations() const {
-	return m_unConstraintViolations;
-}
-
-void CandidateSolution::SetConstraintViolations(
-		unsigned int unConstraintViolations) {
-	m_unConstraintViolations = unConstraintViolations;
-}
-
-unsigned int CandidateSolution::GetTourLength() const {
-	return m_unTourLength;
-}
-
-void CandidateSolution::SetTourLength(unsigned int unTourLength) {
-	m_unTourLength = unTourLength;
 }
 
 bool CandidateSolution::IsTourEqual(const std::vector<unsigned int>& external_tour) {
@@ -96,17 +53,20 @@ void CandidateSolution::InsertSolutionComponent(unsigned int city_index, unsigne
 	}
 }
 
-/*std::ostream& CandidateSolution::operator<<(std::ostream& out,
-		const CandidateSolution& solution) {
-	out << "Tour:";
-	for(std::list<unsigned int>::iterator itList=m_listCitylist.begin(); itList != m_listCitylist.end(); ++itList){
-		out << (*itList) << "";
+std::string CandidateSolution::ToString() {
+	std::stringstream outputString;
+	outputString << "Tour: ";
+	for(unsigned int i = 0; i < m_vecTour.size(); i++){
+		outputString << m_vecTour.at(i) << " ";
 	}
-	return out << std::endl;
- }*/
+	outputString << std::endl;
+	outputString << "Constraint Violations: " << m_unConstraintViolations << std::endl;
+	outputString << "Total travel time: " << m_unTourDuration << std::endl;
+	return outputString.str();
+ }
 
 void CandidateSolution::ComputeSolutionEvaluation() {
-	m_fSolutionEvaluation = m_unTourLength + CONSTRAINT_VIOLATION_PENALTY*m_unConstraintViolations;
+	m_fSolutionEvaluation = m_unTourDuration + CONSTRAINT_VIOLATION_PENALTY*m_unConstraintViolations;
 }
 
 

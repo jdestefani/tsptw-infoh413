@@ -12,6 +12,7 @@
 #include <climits>
 #include <set>
 #include <time.h>
+#include <iostream>
 
 #include "TimeWindow.h"
 #include "CandidateSolution.h"
@@ -36,28 +37,64 @@ public:
 		FIRST_IMPROVEMENT
 	};
 
+	HeuristicCore(std::vector<std::vector<unsigned int> >& vec_distance_matrix,
+								 std::vector<TimeWindow>& vec_time_windows,
+								 unsigned int cities_number,
+								 EInitFunction init_function,
+								 ENeighborhoodType neighborhood_type,
+								 ESolutionUpdate solution_update,
+								 double seed,
+								 unsigned int runs,
+								 std::string input_filename,
+								 unsigned int best_known_solution):
 
-	HeuristicCore(std::vector<std::vector<unsigned int> >&,
-				  std::vector<TimeWindow>&,unsigned int,
-				  EInitFunction,
-				  ENeighborhoodType,
-				  ESolutionUpdate,
-				  double,
-				  unsigned int,
-				  std::string,
-				  unsigned int);
+								 m_vecDistanceMatrix(vec_distance_matrix),
+								 m_vecTimeWindows(vec_time_windows),
+								 m_unCities(cities_number),
+								 m_eInitFunction(init_function),
+								 m_eNeighborhoodType(neighborhood_type),
+								 m_eSolutionUpdate(solution_update),
+								 m_fSeed(seed),
+								 m_fRunTime(0),
+								 m_unRuns(runs),
+								 m_wriResultsWriter(input_filename,best_known_solution){
+		//m_vecDistanceMatrix = vec_distance_matrix;
+		//m_vecTimeWindows = vec_time_windows;
 
-	virtual ~HeuristicCore();
+		//m_wriResultsWriter(input_filename,best_known_solution);
+	}
 
-	const CandidateSolution& GetCurrentSolution() const;
-	void SetCurrentSolution(const CandidateSolution& cCurrentSolution);
-	ENeighborhoodType GetNeighborhoodType() const;
-	void SetNeighborhoodType(ENeighborhoodType eNeighborhoodType);
-	const std::list<CandidateSolution>& GetListSolutionNeighborhood() const;
-	void SetListSolutionNeighborhood(
-			const std::list<CandidateSolution>& listSolutionNeighborhood);
+	~HeuristicCore() {
+		// TODO Auto-generated destructor stub
+	}
+
+	inline const CandidateSolution& GetCurrentSolution() const {
+		return m_cCurrentSolution;
+	}
+
+	inline void SetCurrentSolution(
+			const CandidateSolution& cCurrentSolution) {
+		m_cCurrentSolution = cCurrentSolution;
+	}
+
+	inline HeuristicCore::ENeighborhoodType GetNeighborhoodType() const {
+		return m_eNeighborhoodType;
+	}
+
+	inline void SetNeighborhoodType(ENeighborhoodType eNeighborhoodType) {
+		m_eNeighborhoodType = eNeighborhoodType;
+	}
+
+	inline const std::list<CandidateSolution>& GetListSolutionNeighborhood() const {
+		return m_listSolutionNeighborhood;
+	}
+
+	inline void SetListSolutionNeighborhood(const std::list<CandidateSolution>& listSolutionNeighborhood) {
+		m_listSolutionNeighborhood = listSolutionNeighborhood;
+	}
 
 	void Run();
+	void TestFunction();
 	void IterativeImprovement();
 	void GenerateInitialSolution();
 	void ComputeNeighborhood();

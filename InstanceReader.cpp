@@ -7,51 +7,13 @@
 
 #include "InstanceReader.h"
 
-InstanceReader::InstanceReader(std::string file_name) {
-	m_sInputFileName = file_name;
-	m_unCities = 0;
-}
+static const unsigned int CITIES_NUMBER_TOKENS=1;
+static const unsigned int TIME_WINDOW_TOKENS=2;
 
-InstanceReader::InstanceReader() {
-	m_sInputFileName = "";
-	m_unCities = 0;
-}
 
-InstanceReader::~InstanceReader() {
-	m_ifInputFile.close();
-}
-
-const std::string& InstanceReader::GetInputFileName() const {
-	return m_sInputFileName;
-}
-
-void InstanceReader::SetInputFileName(const std::string& sInputFileName) {
-	m_sInputFileName = sInputFileName;
-}
-
-unsigned int InstanceReader::GetCities() const {
-	return m_unCities;
-}
-
-void InstanceReader::SetCities(unsigned int unCityNumber) {
-	m_unCities = unCityNumber;
-}
-
-const std::vector<TimeWindow>& InstanceReader::GetVecTimeWindows() const {
-	return m_vecTimeWindows;
-}
-
-const std::ifstream& InstanceReader::GetIfInputFile() const {
-	return m_ifInputFile;
-}
-
-const std::vector<std::vector<unsigned int> >& InstanceReader::GetVecDistanceMatrix() const {
-	return m_vecDistanceMatrix;
-}
 
 bool InstanceReader::OpenFile() {
 	m_ifInputFile.open(m_sInputFileName.c_str());
-	std::cout << "File opened?" << !m_ifInputFile.fail() << std::endl;
 	if (m_ifInputFile.fail()) {
 		return false;
 	}
@@ -66,32 +28,49 @@ bool InstanceReader::ReadInformations() {
 	std::vector<unsigned int> currCityDistances;
 
 	while(!m_ifInputFile.eof()){
+		/*Read file line by line and split the string using space as separator*/
 		std::getline(m_ifInputFile,currLine);
 		std::stringstream splitStream(currLine);
 
-		//std::cout << readLines << ".\t" << currLine << std::endl;
 		while(splitStream >> tempBuff){
 			tokens.push_back(tempBuff);
 		}
-		//std::cout << readLines << ".\t" << tokens.size() << std::endl;
 
 		if(tokens.size() > 0){
+			/* The first line in the file corresponds to the number of cities */
 			if(readLines == 0){
-				//Read number of cities
-				m_unCities = atoi(tokens.at(0).c_str());
-			}
-			else if(0 < readLines && readLines < m_unCities + 1 ){
-				//Read distances
-				for(unsigned int i = 0;i < m_unCities;i++){
-					currCityDistances.push_back(atoi(tokens.at(i).c_str()));
+				if(tokens.size() == CITIES_NUMBER_TOKENS){
+					m_unCities = atoi(tokens.at(0).c_str());
 				}
-				m_vecDistanceMatrix.push_back(currCityDistances);
-				currCityDistances.erase(currCityDistances.begin(),currCityDistances.end());
+				else{
+					std::cerr << "Line " << readLines << ": Wrong instance file structure -> Error in cities' number" << std::endl;
+					return false;
+				}
 			}
+			/* The following <m_unCities> lines in the file correspond to the rows of the distance matrix */
+			else if(0 < readLines && readLines < m_unCities + 1 ){
+				if(tokens.size() == m_unCities){
+					for(unsigned int i = 0;i < m_unCities;i++){
+						currCityDistances.push_back(atoi(tokens.at(i).c_str()));
+					}
+					m_vecDistanceMatrix.push_back(currCityDistances);
+					currCityDistances.erase(currCityDistances.begin(),currCityDistances.end());
+				}
+				else{
+					std::cerr << "Line " << readLines << ": Wrong instance file structure -> Missing cities' distances" << std::endl;
+					return false;
+				}
+			}
+			/* The following <m_unCities> lines in the file correspond to the rows of the distance matrix */
 			else if(readLines > m_unCities + 1){
-				//Read time window
-				TimeWindow currTimeWindow(atoi(tokens.at(0).c_str()),atoi(tokens.at(1).c_str()));
-				m_vecTimeWindows.push_back(currTimeWindow);
+				if(tokens.size() == TIME_WINDOW_TOKENS){
+					TimeWindow currTimeWindow(atoi(tokens.at(0).c_str()),atoi(tokens.at(1).c_str()));
+					m_vecTimeWindows.push_back(currTimeWindow);
+				}
+				else{
+					std::cerr << "Line " << readLines << ": Wrong instance file structure -> Wrong time window structure" << std::endl;
+					return false;
+				}
 			}
 			tokens.erase(tokens.begin(),tokens.end());
 		}

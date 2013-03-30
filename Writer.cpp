@@ -10,12 +10,16 @@
 Writer::Writer(std::string filename,unsigned int known_best) {
 	m_sInstanceName = filename.substr(0,filename.find_last_of('.'));
 	m_unKnownBest = known_best;
-	// TODO Auto-generated constructor stub
 
 }
 
 Writer::~Writer() {
-	// TODO Auto-generated destructor stub
+	if(m_ofsRResults.is_open()){
+		m_ofsRResults.close();
+	}
+	if(m_ofsTextResults.is_open()){
+		m_ofsTextResults.close();
+	}
 }
 
 void Writer::OpenRFile() {
@@ -37,21 +41,19 @@ void Writer::OpenTextResults() {
 }
 
 void Writer::FlushRFile() {
-	m_ofsRResults << "Run\tConstraintViolations\tDuration\tPRPD" << std::endl;
+	m_ofsRResults << "Run\tCV\tCpuTime\tPRPD" << std::endl;
 	/*Flush results*/
+	for(std::list<SResultsData>::iterator itList=m_listResults.begin(); itList != m_listResults.end(); ++itList){
+		m_ofsRResults << (*itList).seed << "\t" << (*itList).constraintViolations << "\t" << (*itList).cpuRunTime << "\t" << (*itList).ComputePRDP(m_unKnownBest) << std::endl;
+	}
+
 }
 
 void Writer::FlushTextResults() {
 }
 
 void Writer::AddData(double seed,unsigned int best_tour_length, unsigned int constraint_violations, double cpu_time) {
-	m_listSeeds.push_back(seed);
-	m_listBestSolutions.push_back(best_tour_length);
-	m_listConstraintViolations.push_back(constraint_violations);
-	m_listCpuRunTimes.push_back(cpu_time);
-	m_listPenalizedRelativePercentageDeviations.push_back(ComputePRDP(best_tour_length,constraint_violations));
+	m_listResults.push_back(SResultsData(seed,best_tour_length,constraint_violations,cpu_time));
 }
 
-double Writer::ComputePRDP(unsigned int best_tour_length, unsigned int constraint_violations) {
-	return 100*(((best_tour_length+constraint_violations)-m_unKnownBest)/m_unKnownBest);
-}
+

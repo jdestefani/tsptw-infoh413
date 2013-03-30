@@ -14,6 +14,7 @@
 
 class Writer {
 public:
+
 	Writer(std::string,unsigned int);
 	virtual ~Writer();
 
@@ -22,16 +23,32 @@ public:
 	void FlushRFile();
 	void FlushTextResults();
 	void AddData(double,unsigned int,unsigned int,double);
-	double ComputePRDP(unsigned int,unsigned int);
+
 
 private:
+
+	struct SResultsData{
+				double seed;
+				unsigned int bestSolution;
+				unsigned int constraintViolations;
+				double cpuRunTime;
+
+				SResultsData(double seed, unsigned int best_solution, unsigned int cv, double cpu_runtime):
+					seed(seed),
+					bestSolution(best_solution),
+					constraintViolations(cv),
+					cpuRunTime(cpu_runtime){
+
+				}
+
+				double ComputePRDP(unsigned int known_best){
+					return 100*(((bestSolution+constraintViolations)-known_best)/known_best);
+				}
+	};
+
 	std::string m_sInstanceName;
 	unsigned int m_unKnownBest;
-	std::list<double> m_listSeeds;
-	std::list<unsigned int> m_listBestSolutions;
-	std::list<unsigned int> m_listConstraintViolations;
-	std::list<double> m_listCpuRunTimes;
-	std::list<double> m_listPenalizedRelativePercentageDeviations;
+	std::list<SResultsData> m_listResults;
 	std::ofstream m_ofsRResults;
 	std::ofstream m_ofsTextResults;
 };

@@ -4,7 +4,7 @@ COMPILEFLAGS = -c
 
 CXXFLAGS = -O2 -g -Wall -fmessage-length=0 -lrt
 
-MOSOURCES= TimeWindow.cpp CandidateSolution.cpp InstanceReader.cpp Writer.cpp HeuristicCore.cpp
+MOSOURCES=CandidateSolution.cpp InstanceReader.cpp Writer.cpp HeuristicCore.cpp
 MOHEADERS=$(MOSOURCES:.cpp=.h)
 MOOBJECTS=$(MOSOURCES:.cpp=.o)
 

@@ -7,64 +7,6 @@
 
 #include "HeuristicCore.h"
 
-
-HeuristicCore::HeuristicCore(std::vector<std::vector<unsigned int> >& vec_distance_matrix,
-							 std::vector<TimeWindow>& vec_time_windows,
-							 unsigned int cities_number,
-							 EInitFunction init_function,
-							 ENeighborhoodType neighborhood_type,
-							 ESolutionUpdate solution_update,
-							 double seed,
-							 unsigned int runs,
-							 std::string input_filename,
-							 unsigned int best_known_solution):
-							 m_vecDistanceMatrix(vec_distance_matrix),
-							 m_vecTimeWindows(vec_time_windows),
-							 m_wriResultsWriter(input_filename,best_known_solution)
-							{
-	//m_vecDistanceMatrix = vec_distance_matrix;
-	//m_vecTimeWindows = vec_time_windows;
-	m_unCities = cities_number;
-	m_eInitFunction = init_function;
-	m_eNeighborhoodType = neighborhood_type;
-	m_eSolutionUpdate = solution_update;
-	m_fSeed = seed;
-	m_fRunTime = 0;
-	m_unRuns = runs;
-	//m_wriResultsWriter(input_filename,best_known_solution);
-}
-
-HeuristicCore::~HeuristicCore() {
-	// TODO Auto-generated destructor stub
-}
-
-const CandidateSolution& HeuristicCore::GetCurrentSolution() const {
-	return m_cCurrentSolution;
-}
-
-void HeuristicCore::SetCurrentSolution(
-		const CandidateSolution& cCurrentSolution) {
-	m_cCurrentSolution = cCurrentSolution;
-}
-
-HeuristicCore::ENeighborhoodType HeuristicCore::GetNeighborhoodType() const {
-	return m_eNeighborhoodType;
-}
-
-void HeuristicCore::SetNeighborhoodType(ENeighborhoodType eNeighborhoodType) {
-	m_eNeighborhoodType = eNeighborhoodType;
-}
-
-const std::list<CandidateSolution>& HeuristicCore::GetListSolutionNeighborhood() const {
-	return m_listSolutionNeighborhood;
-}
-
-void HeuristicCore::SetListSolutionNeighborhood(
-		const std::list<CandidateSolution>& listSolutionNeighborhood) {
-	m_listSolutionNeighborhood = listSolutionNeighborhood;
-}
-
-
 /*
       METHOD:         Run the chosen algorithm for the desired number of runs.
       INPUT:          none
@@ -98,7 +40,7 @@ void HeuristicCore::IterativeImprovement() {
 	}
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,m_sEndTime);
 	m_fRunTime = m_sEndTime->tv_sec - m_sBeginTime->tv_sec;
-	m_wriResultsWriter.AddData(m_fSeed,m_cCurrentSolution.GetTourLength(),m_cCurrentSolution.GetConstraintViolations(),m_fRunTime);
+	m_wriResultsWriter.AddData(m_fSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_fRunTime);
 }
 
 
@@ -177,7 +119,7 @@ void HeuristicCore::UpdateSolution() {
 bool HeuristicCore::IsLocalOptimum() {
 	std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin();
 	while(itList != m_listSolutionNeighborhood.end()){
-		if((*itList).GetTourLength() < m_cCurrentSolution.GetTourLength()){
+		if((*itList).GetTourDuration() < m_cCurrentSolution.GetTourDuration()){
 			return false;
 		}
 		++itList;
@@ -210,7 +152,7 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution 
 		timeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(i+1));
 	}
 	/*Complete Tour*/
-	candidateSolution.SetTourLength(candidateSolution.GetTourLength()+m_vecDistanceMatrix.at(candidateSolution.GetTour().at(candidateSolution.GetTour().size())).at(candidateSolution.GetTour().at(0)));
+	candidateSolution.SetTourDuration(candidateSolution.GetTourDuration()+m_vecDistanceMatrix.at(candidateSolution.GetTour().at(candidateSolution.GetTour().size())).at(candidateSolution.GetTour().at(0)));
 
 }
 
@@ -276,12 +218,12 @@ void HeuristicCore::ComputeInsertNeighborhood() {
 
 void HeuristicCore::UpdateSolutionBestImprovement() {
 
-	unsigned int bestTourLength = m_cCurrentSolution.GetTourLength();
+	unsigned int bestTourLength = m_cCurrentSolution.GetTourDuration();
 	std::list<CandidateSolution>::iterator itBest = m_listSolutionNeighborhood.begin();
 
 	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
-		if((*itList).GetTourLength() < bestTourLength){
-			bestTourLength = (*itList).GetTourLength();
+		if((*itList).GetTourDuration() < bestTourLength){
+			bestTourLength = (*itList).GetTourDuration();
 			itBest = itList;
 		}
 	}
@@ -299,7 +241,7 @@ void HeuristicCore::UpdateSolutionFirstImprovement() {
 
 	std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin();
 	while(!isEvaluationImproved && itList != m_listSolutionNeighborhood.end()){
-		if((*itList).GetTourLength() < m_cCurrentSolution.GetTourLength()){
+		if((*itList).GetTourDuration() < m_cCurrentSolution.GetTourDuration()){
 			isEvaluationImproved = true;
 		}
 		else{
@@ -321,6 +263,11 @@ void HeuristicCore::UpdateListTourDistances() {
 	m_vecTourDistances.at(i) = m_vecDistanceMatrix.at(m_cCurrentSolution.GetTour().at(i)).at(m_cCurrentSolution.GetTour().at(0));
 }
 
+void HeuristicCore::TestFunction() {
+	GenerateRandomInitialSolution();
+	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
+	std::cout << m_cCurrentSolution;
+}
 
 /*
       METHOD:         Method used to compute the tour length and the number of the constraint violations based on the built solutions.
@@ -329,7 +276,7 @@ void HeuristicCore::UpdateListTourDistances() {
       (SIDE)EFFECTS:  Store the computed values in the corresponding attributes of the candidateSolution object passed as parameter.
 */
 void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int i, unsigned int j) {
-	unsigned int currentTourLength = m_cCurrentSolution.GetTourLength();
+	unsigned int currentTourLength = m_cCurrentSolution.GetTourDuration();
 	unsigned int distanceAccumulator = 0;
 	switch (m_eNeighborhoodType) {
 			case EXCHANGE:
