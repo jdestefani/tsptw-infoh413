@@ -136,23 +136,42 @@ bool HeuristicCore::IsLocalOptimum() {
       OUTPUT:         none
       (SIDE)EFFECTS:  Store the computed values in the corresponding attributes of the candidateSolution object passed as parameter.
 */
-void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution candidateSolution) {
-	unsigned int timeAccumulator = 0;
+void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution& candidateSolution) {
+	unsigned int travelTimeAccumulator = 0;
+	unsigned int arrivalTimeAccumulator = 0;
+	unsigned int i=0;
+
 	/**Compute Tour Length*/
-	for(unsigned int i=0; i<candidateSolution.GetTour().size()-1;i++){
+	for(; i<candidateSolution.GetTour().size();i++){
 		/**Compute Constraint Violations and Waiting Times*/
-		/*Delay the current travelling agent until the time window starts*/
-		if(timeAccumulator < (m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetLowerBound())){
-			timeAccumulator = m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetLowerBound();
+		/*If the agent arrives in a city before the corresponding time window, delay it until the time window starts*/
+		if(arrivalTimeAccumulator < (m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetLowerBound())){
+			arrivalTimeAccumulator = m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetLowerBound();
 		}
-		/*If the window is not meet, add a constraint violation*/
-		else if(timeAccumulator > (m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetUpperBound())){
+		/*If the window constraint is not met, add a constraint violation*/
+		else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetUpperBound())){
 			candidateSolution.SetConstraintViolations(candidateSolution.GetConstraintViolations()+1);
 		}
-		timeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(i+1));
+		if(i < candidateSolution.GetTour().size()-1 ){
+			arrivalTimeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(i+1));
+			travelTimeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(i+1));
+		}
+		else{
+			arrivalTimeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(0));
+			travelTimeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(0));
+		}
 	}
 	/*Complete Tour*/
-	candidateSolution.SetTourDuration(candidateSolution.GetTourDuration()+m_vecDistanceMatrix.at(candidateSolution.GetTour().at(candidateSolution.GetTour().size())).at(candidateSolution.GetTour().at(0)));
+	/*If the agent arrives in a city before the corresponding time window, delay it until the time window starts*/
+	if(arrivalTimeAccumulator < (m_vecTimeWindows.at(candidateSolution.GetTour().at(0)).GetLowerBound())){
+		arrivalTimeAccumulator = m_vecTimeWindows.at(candidateSolution.GetTour().at(0)).GetLowerBound();
+	}
+	/*If the window constraint is not met, add a constraint violation*/
+	else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(candidateSolution.GetTour().at(0)).GetUpperBound())){
+		candidateSolution.SetConstraintViolations(candidateSolution.GetConstraintViolations()+1);
+	}
+
+	candidateSolution.SetTourDuration(travelTimeAccumulator);
 
 }
 
@@ -166,7 +185,11 @@ void HeuristicCore::GenerateRandomInitialSolution() {
 		m_vecTourDistances.push_back(0);
 	}
 	std::random_shuffle(++currentTour.begin(),currentTour.end());
+	std::cout << "Tour length: " << currentTour.size() << std::endl;
 	m_cCurrentSolution.SetTour(currentTour);
+}
+
+void HeuristicCore::GenerateHeuristicInitialSolution() {
 }
 
 void HeuristicCore::ComputeTransposeNeighborhood() {
@@ -190,7 +213,7 @@ void HeuristicCore::ComputeExchangeNeighborhood() {
 	/*Possibly consider a differential update of the neighborhood*/
 
 	/*Compute all the possible swaps of an element with his successor*/
-	for(unsigned int i=1; i<m_cCurrentSolution.GetTour().size(); i++){
+	for(unsigned int i=2; i<m_cCurrentSolution.GetTour().size(); i++){
 		for(unsigned int j=1; j<i; j++){
 			CandidateSolution neighborSolution(m_cCurrentSolution);
 			neighborSolution.SwapSolutionComponents(j,i);
@@ -263,11 +286,7 @@ void HeuristicCore::UpdateListTourDistances() {
 	m_vecTourDistances.at(i) = m_vecDistanceMatrix.at(m_cCurrentSolution.GetTour().at(i)).at(m_cCurrentSolution.GetTour().at(0));
 }
 
-void HeuristicCore::TestFunction() {
-	GenerateRandomInitialSolution();
-	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
-	std::cout << m_cCurrentSolution;
-}
+
 
 /*
       METHOD:         Method used to compute the tour length and the number of the constraint violations based on the built solutions.
@@ -310,3 +329,23 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsign
 		candidateSolution.SetTourLength(candidateSolution.GetTourLength()+m_vecDistanceMatrix.at(candidateSolution.GetTour().at(candidateSolution.GetTour().size())).at(candidateSolution.GetTour().at(0)));
 */
 }
+
+void HeuristicCore::TestFunction() {
+	std::cout << "Cities: " << m_unCities << std::endl;
+	std::cout << "Distance matrix: " << m_vecDistanceMatrix.size() << " x " << m_vecDistanceMatrix.at(80).size() << std::endl;
+	std::cout << "Time windows: " << m_vecTimeWindows.size() << std::endl;
+	GenerateRandomInitialSolution();
+	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
+	ComputeTransposeNeighborhood();
+	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
+	ComputeExchangeNeighborhood();
+	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
+	ComputeInsertNeighborhood();
+	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
+//	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
+//		std::cout << (*itList) << std::endl;
+//	}
+	//std::cout << m_cCurrentSolution;
+}
+
+

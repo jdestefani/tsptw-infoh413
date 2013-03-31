@@ -47,12 +47,15 @@ int main (int argc, char **argv)
 	HeuristicCore::EInitFunction initFunction=DEFAULT_INIT_FUNCTION;
 	HeuristicCore::ESolutionUpdate solutionUpdate=DEFAULT_SOLUTION_UPDATE;
 	unsigned int runs=DEFAULT_RUNS;
-	double seed=DEFAULT_SEED;
 	struct timespec *currTime;
+	double seed=DEFAULT_SEED;
 	unsigned int bestKnownSolution = DEFAULT_BEST_KNOWN_SOLUTION;
 	bool setInitFunction=false;
 	bool setPivotingRule=false;
 	bool setNeighborhood=false;
+
+	clock_gettime(CLOCK_MONOTONIC,currTime);
+	seed = currTime->tv_sec;
 
 	std::cout << std::endl;
 	if(argc > 1){
@@ -318,18 +321,19 @@ int main (int argc, char **argv)
 	InstanceReader instanceReader(inputFileName);
 	if(instanceReader.OpenFile()){
 		if(instanceReader.ReadInformations()){
-			instanceReader.PrintDistanceMatrix();
-			instanceReader.PrintTimeWindows();
-			/*HeuristicCore simulationCore(instanceReader.GetVecDistanceMatrix(),
-										 instanceReader.GetVecTimeWindows(),
+			//instanceReader.PrintDistanceMatrix();
+			//instanceReader.PrintTimeWindows();
+			HeuristicCore simulationCore(instanceReader.GetDistanceMatrix(),
+										 instanceReader.GetTimeWindows(),
 										 instanceReader.GetCities(),
 										 initFunction,
 										 neighborhoodType,
 										 solutionUpdate,
 										 seed,
 										 runs,
-										 inputFileString,
-										 bestKnownSolution);*/
+										 inputFileName,
+										 bestKnownSolution);
+			simulationCore.TestFunction();
 			return EXIT_SUCCESS;
 			exit(0);
 		}

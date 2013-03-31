@@ -62,7 +62,7 @@ bool InstanceReader::ReadInformations() {
 				}
 			}
 			/* The following <m_unCities> lines in the file correspond to the rows of the distance matrix */
-			else if(readLines > m_unCities + 1){
+			else if(readLines >= m_unCities + 1){
 				if(tokens.size() == TIME_WINDOW_TOKENS){
 					TimeWindow currTimeWindow(atoi(tokens.at(0).c_str()),atoi(tokens.at(1).c_str()));
 					m_vecTimeWindows.push_back(currTimeWindow);

@@ -37,27 +37,27 @@ public:
 		FIRST_IMPROVEMENT
 	};
 
-	HeuristicCore(std::vector<std::vector<unsigned int> >& vec_distance_matrix,
-								 std::vector<TimeWindow>& vec_time_windows,
-								 unsigned int cities_number,
-								 EInitFunction init_function,
-								 ENeighborhoodType neighborhood_type,
-								 ESolutionUpdate solution_update,
-								 double seed,
-								 unsigned int runs,
-								 std::string input_filename,
-								 unsigned int best_known_solution):
+	HeuristicCore(const std::vector<std::vector<unsigned int> >& vec_distance_matrix,
+				  const std::vector<TimeWindow>& vec_time_windows,
+				  unsigned int cities_number,
+				  EInitFunction init_function,
+				  ENeighborhoodType neighborhood_type,
+				  ESolutionUpdate solution_update,
+				  double seed,
+				  unsigned int runs,
+				  std::string input_filename,
+				  unsigned int best_known_solution):
 
-								 m_vecDistanceMatrix(vec_distance_matrix),
-								 m_vecTimeWindows(vec_time_windows),
-								 m_unCities(cities_number),
-								 m_eInitFunction(init_function),
-								 m_eNeighborhoodType(neighborhood_type),
-								 m_eSolutionUpdate(solution_update),
-								 m_fSeed(seed),
-								 m_fRunTime(0),
-								 m_unRuns(runs),
-								 m_wriResultsWriter(input_filename,best_known_solution){
+				  m_vecDistanceMatrix(vec_distance_matrix),
+				  m_vecTimeWindows(vec_time_windows),
+				  m_unCities(cities_number),
+				  m_eInitFunction(init_function),
+				  m_eNeighborhoodType(neighborhood_type),
+				  m_eSolutionUpdate(solution_update),
+				  m_fSeed(seed),
+				  m_fRunTime(0),
+				  m_unRuns(runs),
+				 m_wriResultsWriter(input_filename,best_known_solution){
 		//m_vecDistanceMatrix = vec_distance_matrix;
 		//m_vecTimeWindows = vec_time_windows;
 
@@ -99,7 +99,7 @@ public:
 	void GenerateInitialSolution();
 	void ComputeNeighborhood();
 	void UpdateSolution();
-	void ComputeTourLengthAndConstraintsViolations(CandidateSolution);
+	void ComputeTourLengthAndConstraintsViolations(CandidateSolution&);
 	bool IsLocalOptimum();
 
 private:
@@ -115,8 +115,8 @@ private:
 	CandidateSolution m_cCurrentSolution;
 	std::vector<unsigned int> m_vecTourDistances;
 	unsigned int m_unCities;
-	std::vector<std::vector<unsigned int> >& m_vecDistanceMatrix;
-	std::vector<TimeWindow>& m_vecTimeWindows;
+	const std::vector<std::vector<unsigned int> >& m_vecDistanceMatrix;
+	const std::vector<TimeWindow>& m_vecTimeWindows;
 	double m_fRunTime;
 
 	void GenerateRandomInitialSolution();
