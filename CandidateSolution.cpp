@@ -45,8 +45,8 @@ void CandidateSolution::InsertSolutionComponent(unsigned int city_index, unsigne
 			}
 		}
 		else{
-			for(unsigned int i=insertion_position;i<city_index;i++){
-				m_vecTour.at(i) = m_vecTour.at(i+1);
+			for(unsigned int i=city_index;i>insertion_position;i--){
+				m_vecTour.at(i) = m_vecTour.at(i-1);
 			}
 		}
 		m_vecTour.at(insertion_position) = elementToInsert;

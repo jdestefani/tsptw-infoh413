@@ -17,25 +17,10 @@
 #include "TimeWindow.h"
 #include "CandidateSolution.h"
 #include "Writer.h"
+#include "CommonDefs.h"
 
 class HeuristicCore {
 public:
-
-	enum EInitFunction{
-			RANDOM,
-			HEURISTIC
-		};
-
-	enum ENeighborhoodType{
-		EXCHANGE,
-		TRANSPOSE,
-		INSERT
-		};
-
-	enum ESolutionUpdate{
-		BEST_IMPROVEMENT,
-		FIRST_IMPROVEMENT
-	};
 
 	HeuristicCore(const std::vector<std::vector<unsigned int> >& vec_distance_matrix,
 				  const std::vector<TimeWindow>& vec_time_windows,
@@ -57,7 +42,7 @@ public:
 				  m_fSeed(seed),
 				  m_fRunTime(0),
 				  m_unRuns(runs),
-				 m_wriResultsWriter(input_filename,best_known_solution){
+				  m_wriResultsWriter(input_filename,best_known_solution,neighborhood_type,solution_update){
 		//m_vecDistanceMatrix = vec_distance_matrix;
 		//m_vecTimeWindows = vec_time_windows;
 
@@ -77,7 +62,7 @@ public:
 		m_cCurrentSolution = cCurrentSolution;
 	}
 
-	inline HeuristicCore::ENeighborhoodType GetNeighborhoodType() const {
+	inline ENeighborhoodType GetNeighborhoodType() const {
 		return m_eNeighborhoodType;
 	}
 

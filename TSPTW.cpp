@@ -15,6 +15,7 @@
 
 #include "InstanceReader.h"
 #include "HeuristicCore.h"
+#include "CommonDefs.h"
 
 #define FIRST_IMPROVEMENT_FLAG "first";
 #define BEST_IMPROVEMENT_FLAG "best";
@@ -22,9 +23,9 @@
 #define EXCHANGE_FLAG "exchange";
 #define INSERT_FLAG "insert";
 
-#define DEFAULT_INIT_FUNCTION HeuristicCore::RANDOM;
-#define DEFAULT_NEIGHBORHOOD_TYPE HeuristicCore::INSERT;
-#define DEFAULT_SOLUTION_UPDATE HeuristicCore::BEST_IMPROVEMENT;
+#define DEFAULT_INIT_FUNCTION RANDOM;
+#define DEFAULT_NEIGHBORHOOD_TYPE INSERT;
+#define DEFAULT_SOLUTION_UPDATE BEST_IMPROVEMENT;
 #define DEFAULT_RUNS 1;
 #define DEFAULT_SEED 0.0f;
 #define DEFAULT_BEST_KNOWN_SOLUTION INT_MAX;
@@ -43,19 +44,20 @@ int main (int argc, char **argv)
 
 	int c;
 	char* inputFileName=NULL;
-	HeuristicCore::ENeighborhoodType neighborhoodType=DEFAULT_NEIGHBORHOOD_TYPE;
-	HeuristicCore::EInitFunction initFunction=DEFAULT_INIT_FUNCTION;
-	HeuristicCore::ESolutionUpdate solutionUpdate=DEFAULT_SOLUTION_UPDATE;
+	ENeighborhoodType neighborhoodType=DEFAULT_NEIGHBORHOOD_TYPE;
+	EInitFunction initFunction=DEFAULT_INIT_FUNCTION;
+	ESolutionUpdate solutionUpdate=DEFAULT_SOLUTION_UPDATE;
 	unsigned int runs=DEFAULT_RUNS;
-	struct timespec *currTime;
-	double seed=DEFAULT_SEED;
+	struct timespec currTime;
+	clock_gettime(CLOCK_MONOTONIC,&currTime);
+	double seed = currTime.tv_sec;
+	//double seed = 1717;
 	unsigned int bestKnownSolution = DEFAULT_BEST_KNOWN_SOLUTION;
 	bool setInitFunction=false;
 	bool setPivotingRule=false;
 	bool setNeighborhood=false;
 
-	clock_gettime(CLOCK_MONOTONIC,currTime);
-	seed = currTime->tv_sec;
+
 
 	std::cout << std::endl;
 	if(argc > 1){
@@ -105,7 +107,7 @@ int main (int argc, char **argv)
 
 			case 'd':
 				if(!setInitFunction){
-					initFunction = HeuristicCore::RANDOM;
+					initFunction = RANDOM;
 					setInitFunction=true;
 				}
 				else{
@@ -117,7 +119,7 @@ int main (int argc, char **argv)
 
 			case 'h':
 				if(!setInitFunction){
-					initFunction = HeuristicCore::HEURISTIC;
+					initFunction = HEURISTIC;
 					setInitFunction = true;
 				}
 				else{
@@ -130,7 +132,7 @@ int main (int argc, char **argv)
 
 			case 'f':
 				if(!setPivotingRule){
-					solutionUpdate = HeuristicCore::FIRST_IMPROVEMENT;
+					solutionUpdate = FIRST_IMPROVEMENT;
 					setPivotingRule=true;
 				}
 				else{
@@ -142,7 +144,7 @@ int main (int argc, char **argv)
 
 			case 'b':
 				if(!setPivotingRule){
-					solutionUpdate = HeuristicCore::BEST_IMPROVEMENT;
+					solutionUpdate = BEST_IMPROVEMENT;
 					setPivotingRule=true;
 				}
 				else{
@@ -154,7 +156,7 @@ int main (int argc, char **argv)
 
 			case 't':
 				if(!setNeighborhood){
-					neighborhoodType = HeuristicCore::TRANSPOSE;
+					neighborhoodType = TRANSPOSE;
 					setNeighborhood = true;
 				}
 				else{
@@ -166,8 +168,7 @@ int main (int argc, char **argv)
 
 			case 'e':
 				if(!setNeighborhood){
-					std::cout << "\tNeighborhood: Exchange" << std::endl;
-					neighborhoodType = HeuristicCore::EXCHANGE;
+					neighborhoodType = EXCHANGE;
 					setNeighborhood = true;
 				}
 				else{
@@ -179,7 +180,7 @@ int main (int argc, char **argv)
 
 			case 'n':
 				if(!setNeighborhood){
-					neighborhoodType = HeuristicCore::INSERT;
+					neighborhoodType = INSERT;
 					setNeighborhood = true;
 				}
 				else{
@@ -208,12 +209,8 @@ int main (int argc, char **argv)
 				break;
 
 			case 's':
-				if(optarg == NULL){
-					clock_gettime(CLOCK_MONOTONIC,currTime);
-					seed = currTime->tv_sec;
-				}
-				else{
-					seed = atoi(optarg);
+				if(optarg != NULL){
+					seed = atol(optarg);
 				}
 
 				break;
@@ -273,10 +270,10 @@ int main (int argc, char **argv)
 
 	std::cout << "\tInitialization function: ";
 	switch (initFunction) {
-	case HeuristicCore::RANDOM:
+	case RANDOM:
 		std::cout << "Random" << std::endl;
 		break;
-	case HeuristicCore::HEURISTIC:
+	case HEURISTIC:
 		std::cout << "Heuristic" << std::endl;
 		break;
 	default:
@@ -286,13 +283,13 @@ int main (int argc, char **argv)
 
 	std::cout << "\tNeighborhood: ";
 	switch (neighborhoodType) {
-	case HeuristicCore::EXCHANGE:
+	case EXCHANGE:
 		std::cout << "Exchange" << std::endl;
 		break;
-	case HeuristicCore::TRANSPOSE:
+	case TRANSPOSE:
 		std::cout << "Transpose" << std::endl;
 		break;
-	case HeuristicCore::INSERT:
+	case INSERT:
 		std::cout << "Insert" << std::endl;
 		break;
 	default:
@@ -302,10 +299,10 @@ int main (int argc, char **argv)
 
 	std::cout << "\tPivoting rule: ";
 	switch (solutionUpdate) {
-	case HeuristicCore::BEST_IMPROVEMENT:
+	case BEST_IMPROVEMENT:
 		std::cout << "Best improvement" << std::endl;
 		break;
-	case HeuristicCore::FIRST_IMPROVEMENT:
+	case FIRST_IMPROVEMENT:
 		std::cout << "First improvement" << std::endl;
 		break;
 	default:

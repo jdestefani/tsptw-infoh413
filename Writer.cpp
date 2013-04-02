@@ -7,24 +7,17 @@
 
 #include "Writer.h"
 
-Writer::Writer(std::string filename,unsigned int known_best) {
-	m_sInstanceName = filename.substr(0,filename.find_last_of('.'));
-	m_unKnownBest = known_best;
-
-}
-
-Writer::~Writer() {
-	if(m_ofsRResults.is_open()){
-		m_ofsRResults.close();
-	}
-	if(m_ofsTextResults.is_open()){
-		m_ofsTextResults.close();
-	}
-}
+const std::string Writer::PIVOTING_RULE_BEST_IMPROVEMENT="best";
+const std::string Writer::PIVOTING_RULE_FIRST_IMPROVEMENT="first";
+const std::string Writer::NEIGHBORHOOD_TYPE_INSERT="insert";
+const std::string Writer::NEIGHBORHOOD_TYPE_TRANSPOSE="transpose";
+const std::string Writer::NEIGHBORHOOD_TYPE_EXCHANGE="exchange";
+const std::string Writer::SEPARATOR=".";
 
 void Writer::OpenRFile() {
 	// data file
-	m_ofsRResults.open(m_sInstanceName.append(".r").c_str());
+	std::cout << "Filename:" << m_sOutputFileName << std::endl;
+	m_ofsRResults.open(m_sOutputFileName.c_str());
 	//LOG << "Opening " << m_sStatsFileName << std::endl;
 	if (m_ofsRResults.fail()) {
 		return;
@@ -33,7 +26,7 @@ void Writer::OpenRFile() {
 
 void Writer::OpenTextResults() {
 	// data file
-	m_ofsTextResults.open(m_sInstanceName.append(".txt").c_str());
+	m_ofsTextResults.open(m_sOutputFileName.append(".txt").c_str());
 	//LOG << "Opening " << m_sStatsFileName << std::endl;
 	if (m_ofsTextResults.fail()) {
 		return;

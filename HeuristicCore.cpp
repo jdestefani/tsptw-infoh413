@@ -14,9 +14,15 @@
       (SIDE)EFFECTS:  Modifies the state of the class
 */
 void HeuristicCore::Run() {
+	struct timespec currTime;
+
+	m_wriResultsWriter.OpenRFile();
 	for(unsigned int i=0; i<m_unRuns;i++){
+		clock_gettime(CLOCK_MONOTONIC,&currTime);
+		m_fSeed = currTime.tv_sec;
 		IterativeImprovement();
 	}
+	m_wriResultsWriter.FlushRFile();
 }
 
 /*
@@ -26,20 +32,30 @@ void HeuristicCore::Run() {
       (SIDE)EFFECTS:  Modifies the state of the class
 */
 void HeuristicCore::IterativeImprovement() {
-	struct timespec* m_sBeginTime;
-	struct timespec* m_sEndTime;
+	struct timespec sBeginTime;
+	struct timespec sEndTime;
+	unsigned int iterations = 0;
 
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,m_sBeginTime);
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
 	GenerateInitialSolution();
+	ComputeNeighborhood();
+	std::cout << m_cCurrentSolution;
 	while(!IsLocalOptimum()){
-		/*1. Generate neighborhood*/
-		ComputeNeighborhood();
-		/*2. Select solution from neighborhood*/
+		/*1. Select solution from neighborhood*/
 		UpdateSolution();
+		/*2. Generate neighborhood*/
+		ComputeNeighborhood();
+		iterations++;
+		/*std::cout << "Neighborhood " << iterations << ":" << std::endl;
+		for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
+					std::cout << (*itList) << std::endl;
+		}*/
 	}
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,m_sEndTime);
-	m_fRunTime = m_sEndTime->tv_sec - m_sBeginTime->tv_sec;
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
+	m_fRunTime = (sEndTime.tv_nsec - sBeginTime.tv_nsec)/(10e9);
+	std::cout << "Solution found in " << m_fRunTime << "s - (" << iterations << " iterations)" << std::endl;
+	std::cout << m_cCurrentSolution;
 	m_wriResultsWriter.AddData(m_fSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_fRunTime);
 }
 
@@ -119,7 +135,7 @@ void HeuristicCore::UpdateSolution() {
 bool HeuristicCore::IsLocalOptimum() {
 	std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin();
 	while(itList != m_listSolutionNeighborhood.end()){
-		if((*itList).GetTourDuration() < m_cCurrentSolution.GetTourDuration()){
+		if((*itList) <= m_cCurrentSolution){
 			return false;
 		}
 		++itList;
@@ -140,6 +156,10 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 	unsigned int travelTimeAccumulator = 0;
 	unsigned int arrivalTimeAccumulator = 0;
 	unsigned int i=0;
+
+	/**Reset data*/
+	candidateSolution.SetTourDuration(0);
+	candidateSolution.SetConstraintViolations(0);
 
 	/**Compute Tour Length*/
 	for(; i<candidateSolution.GetTour().size();i++){
@@ -172,6 +192,7 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 	}
 
 	candidateSolution.SetTourDuration(travelTimeAccumulator);
+	candidateSolution.ComputeSolutionEvaluation();
 
 }
 
@@ -179,6 +200,7 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 void HeuristicCore::GenerateRandomInitialSolution() {
 	unsigned int i=0;
 	std::vector<unsigned int> currentTour;
+	std::srand ( unsigned ( m_fSeed ) );
 
 	for(;i<m_unCities;i++){
 		currentTour.push_back(i);
@@ -187,6 +209,7 @@ void HeuristicCore::GenerateRandomInitialSolution() {
 	std::random_shuffle(++currentTour.begin(),currentTour.end());
 	std::cout << "Tour length: " << currentTour.size() << std::endl;
 	m_cCurrentSolution.SetTour(currentTour);
+	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
 }
 
 void HeuristicCore::GenerateHeuristicInitialSolution() {
@@ -218,6 +241,7 @@ void HeuristicCore::ComputeExchangeNeighborhood() {
 			CandidateSolution neighborSolution(m_cCurrentSolution);
 			neighborSolution.SwapSolutionComponents(j,i);
 			ComputeTourLengthAndConstraintsViolations(neighborSolution);
+			//std::cout << "["<< i << "," << j << "]" << neighborSolution << std::endl;
 			m_listSolutionNeighborhood.push_back(neighborSolution);
 		}
 	}
@@ -231,50 +255,68 @@ void HeuristicCore::ComputeInsertNeighborhood() {
 	/*Compute all the possible swaps of an element with his successor*/
 	for(unsigned int i=1; i<m_cCurrentSolution.GetTour().size(); i++){
 		for(unsigned int j=1; j<m_cCurrentSolution.GetTour().size(); j++){
-			CandidateSolution neighborSolution(m_cCurrentSolution);
-			neighborSolution.InsertSolutionComponent(i,j);
-			ComputeTourLengthAndConstraintsViolations(neighborSolution);
-			m_listSolutionNeighborhood.push_back(neighborSolution);
+			if( i == j || j == i-1 ){
+				continue;
+			}
+				CandidateSolution neighborSolution(m_cCurrentSolution);
+				neighborSolution.InsertSolutionComponent(i,j);
+				ComputeTourLengthAndConstraintsViolations(neighborSolution);
+				//std::cout << "["<< i << "," << j << "]" << neighborSolution << std::endl;
+				m_listSolutionNeighborhood.push_back(neighborSolution);
 		}
 	}
 }
 
 void HeuristicCore::UpdateSolutionBestImprovement() {
 
-	unsigned int bestTourLength = m_cCurrentSolution.GetTourDuration();
 	std::list<CandidateSolution>::iterator itBest = m_listSolutionNeighborhood.begin();
 
 	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
-		if((*itList).GetTourDuration() < bestTourLength){
-			bestTourLength = (*itList).GetTourDuration();
+		if((*itList) < (*itBest)){
+			itBest = itList;
+		}else if((*itList) <= (*itBest)){
 			itBest = itList;
 		}
 	}
 
 	if(itBest != m_listSolutionNeighborhood.begin()){
 		m_cCurrentSolution.SetTour((*itBest).GetTour());
-		UpdateListTourDistances();
+		m_cCurrentSolution.SetTourDuration((*itBest).GetTourDuration());
+		m_cCurrentSolution.SetConstraintViolations((*itBest).GetConstraintViolations());
+		m_cCurrentSolution.ComputeSolutionEvaluation();
 	}
 }
 
 
 
 void HeuristicCore::UpdateSolutionFirstImprovement() {
+	std::list<CandidateSolution>::iterator itFirst = m_listSolutionNeighborhood.end();
 	bool isEvaluationImproved = false;
 
 	std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin();
 	while(!isEvaluationImproved && itList != m_listSolutionNeighborhood.end()){
-		if((*itList).GetTourDuration() < m_cCurrentSolution.GetTourDuration()){
+		if((*itList) < m_cCurrentSolution){
 			isEvaluationImproved = true;
 		}
 		else{
+			if((*itList) <= m_cCurrentSolution && itFirst == m_listSolutionNeighborhood.end()){
+				itFirst = itList;
+			}
 			++itList;
 		}
 	}
 
 	if(itList != m_listSolutionNeighborhood.end()){
 		m_cCurrentSolution.SetTour((*itList).GetTour());
-		UpdateListTourDistances();
+		m_cCurrentSolution.SetTourDuration((*itList).GetTourDuration());
+		m_cCurrentSolution.SetConstraintViolations((*itList).GetConstraintViolations());
+		m_cCurrentSolution.ComputeSolutionEvaluation();
+	}
+	else if(itFirst != m_listSolutionNeighborhood.end()){
+		m_cCurrentSolution.SetTour((*itFirst).GetTour());
+		m_cCurrentSolution.SetTourDuration((*itFirst).GetTourDuration());
+		m_cCurrentSolution.SetConstraintViolations((*itFirst).GetConstraintViolations());
+		m_cCurrentSolution.ComputeSolutionEvaluation();
 	}
 }
 
@@ -331,21 +373,52 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsign
 }
 
 void HeuristicCore::TestFunction() {
+	unsigned int iterations = 0;
+
 	std::cout << "Cities: " << m_unCities << std::endl;
 	std::cout << "Distance matrix: " << m_vecDistanceMatrix.size() << " x " << m_vecDistanceMatrix.at(80).size() << std::endl;
 	std::cout << "Time windows: " << m_vecTimeWindows.size() << std::endl;
-	GenerateRandomInitialSolution();
-	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
-	ComputeTransposeNeighborhood();
+
+
+
+		/*GenerateRandomInitialSolution();
+		std::cout << m_cCurrentSolution;
+		ComputeInsertNeighborhood();
+		std::cout << "Neighborhood " << iterations << ":" << std::endl;
+		for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
+			std::cout << (*itList) << std::endl;
+		}
+
+		//while(!IsLocalOptimum()){
+			1. Select solution from neighborhood
+			UpdateSolution();
+			2. Generate neighborhood
+			ComputeInsertNeighborhood();
+			iterations++;
+			std::cout << "Neighborhood " << iterations << ":" << std::endl;
+			for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
+						std::cout << (*itList) << std::endl;
+			}
+		//}
+		std::cout << "Solution found in " << m_fRunTime << "s - (" << iterations << " iterations)" << std::endl;
+		std::cout << m_cCurrentSolution;
+*/
+
+	Run();
+	/*ComputeTransposeNeighborhood();
 	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
-	ComputeExchangeNeighborhood();
+	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
+			std::cout << (*itList) << std::endl;
+		}
+	UpdateSolutionBestImprovement();*/
+	//UpdateSolutionFirstImprovement();*/
+	//IterativeImprovement();
+	/*ComputeExchangeNeighborhood();
 	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
 	ComputeInsertNeighborhood();
-	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
-//	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
-//		std::cout << (*itList) << std::endl;
-//	}
-	//std::cout << m_cCurrentSolution;
+	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;*/
+
+
 }
 
 

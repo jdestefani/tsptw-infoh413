@@ -74,6 +74,24 @@ public:
 
 	}
 
+	/* Comparison operator among solutions
+	 * The current solution is better than another if:
+	 * -> Its constraint violations are less than the other solution
+	 * -> If constraint violations are equal, then compare tour durations
+	 * */
+	inline bool operator<(CandidateSolution &other) const{
+		return m_unConstraintViolations < other.m_unConstraintViolations;
+	}
+
+	inline bool operator<=(CandidateSolution &other) const{
+			return m_unConstraintViolations == other.m_unConstraintViolations ? m_unTourDuration < other.m_unTourDuration : m_unConstraintViolations < other.m_unConstraintViolations;
+	}
+
+	inline bool operator==(CandidateSolution &other) const{
+		return m_unConstraintViolations == other.m_unConstraintViolations;
+	}
+
+
 	bool IsTourEqual(const std::vector<unsigned int>& listCitylist);
 	void SwapSolutionComponents(unsigned int,unsigned int);
 	void InsertSolutionComponent(unsigned int,unsigned int);
