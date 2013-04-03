@@ -44,14 +44,11 @@ int main (int argc, char **argv)
 
 	int c;
 	char* inputFileName=NULL;
+	char* seedsFileName=NULL;
 	ENeighborhoodType neighborhoodType=DEFAULT_NEIGHBORHOOD_TYPE;
 	EInitFunction initFunction=DEFAULT_INIT_FUNCTION;
 	ESolutionUpdate solutionUpdate=DEFAULT_SOLUTION_UPDATE;
 	unsigned int runs=DEFAULT_RUNS;
-	struct timespec currTime;
-	clock_gettime(CLOCK_MONOTONIC,&currTime);
-	double seed = currTime.tv_sec;
-	//double seed = 1717;
 	unsigned int bestKnownSolution = DEFAULT_BEST_KNOWN_SOLUTION;
 	bool setInitFunction=false;
 	bool setPivotingRule=false;
@@ -191,15 +188,14 @@ int main (int argc, char **argv)
 				break;
 
 			case 'i':
-				//if(optarg != NULL){
+				if(optarg != NULL){
 					inputFileName = optarg;
-				//}
-				//else{
-
-					//std::cerr << "[Error] - Missing input file." << std::endl << std::endl;
-					//usage();
-					//exit(0);
-				//}
+				}
+				else{
+					std::cerr << "[Error] - Missing input file." << std::endl << std::endl;
+					usage();
+					exit(0);
+				}
 				break;
 
 			case 'r':
@@ -210,9 +206,13 @@ int main (int argc, char **argv)
 
 			case 's':
 				if(optarg != NULL){
-					seed = atol(optarg);
+					seedsFileName = optarg;
 				}
-
+				else{
+					std::cerr << "[Error] - Missing seeds file." << std::endl << std::endl;
+					usage();
+					exit(0);
+				}
 				break;
 
 			case 'k':
@@ -310,13 +310,13 @@ int main (int argc, char **argv)
 		break;
 	}
 
-	std::cout << "\tSeed: " << seed << std::endl;
+	std::cout << "\tSeeds file: " << seedsFileName << std::endl;
 	std::cout << "\tRuns: " << runs << std::endl;
 	std::cout << "\tBest known solution: " << bestKnownSolution << std::endl << std::endl;
 
 
-	InstanceReader instanceReader(inputFileName);
-	if(instanceReader.OpenFile()){
+	InstanceReader instanceReader(inputFileName,seedsFileName);
+	if(instanceReader.OpenFiles()){
 		if(instanceReader.ReadInformations()){
 			//instanceReader.PrintDistanceMatrix();
 			//instanceReader.PrintTimeWindows();
@@ -326,11 +326,11 @@ int main (int argc, char **argv)
 										 initFunction,
 										 neighborhoodType,
 										 solutionUpdate,
-										 seed,
+										 instanceReader.GetSeeds(),
 										 runs,
 										 inputFileName,
 										 bestKnownSolution);
-			simulationCore.TestFunction();
+			simulationCore.Run();
 			return EXIT_SUCCESS;
 			exit(0);
 		}

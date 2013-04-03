@@ -14,12 +14,9 @@
       (SIDE)EFFECTS:  Modifies the state of the class
 */
 void HeuristicCore::Run() {
-	struct timespec currTime;
-
 	m_wriResultsWriter.OpenRFile();
 	for(unsigned int i=0; i<m_unRuns;i++){
-		clock_gettime(CLOCK_MONOTONIC,&currTime);
-		m_fSeed = currTime.tv_sec;
+		m_fSeed = m_vecSeeds.at(i);
 		IterativeImprovement();
 	}
 	m_wriResultsWriter.FlushRFile();
@@ -381,18 +378,18 @@ void HeuristicCore::TestFunction() {
 
 
 
-		/*GenerateRandomInitialSolution();
+		GenerateRandomInitialSolution();
 		std::cout << m_cCurrentSolution;
-		ComputeInsertNeighborhood();
+		ComputeExchangeNeighborhood();
 		std::cout << "Neighborhood " << iterations << ":" << std::endl;
 		for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
 			std::cout << (*itList) << std::endl;
 		}
 
 		//while(!IsLocalOptimum()){
-			1. Select solution from neighborhood
+			//1. Select solution from neighborhood
 			UpdateSolution();
-			2. Generate neighborhood
+			//2. Generate neighborhood
 			ComputeInsertNeighborhood();
 			iterations++;
 			std::cout << "Neighborhood " << iterations << ":" << std::endl;
@@ -402,9 +399,9 @@ void HeuristicCore::TestFunction() {
 		//}
 		std::cout << "Solution found in " << m_fRunTime << "s - (" << iterations << " iterations)" << std::endl;
 		std::cout << m_cCurrentSolution;
-*/
 
-	Run();
+
+	//Run();
 	/*ComputeTransposeNeighborhood();
 	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
 	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){

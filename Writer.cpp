@@ -17,7 +17,7 @@ const std::string Writer::SEPARATOR=".";
 void Writer::OpenRFile() {
 	// data file
 	std::cout << "Filename:" << m_sOutputFileName << std::endl;
-	m_ofsRResults.open(m_sOutputFileName.c_str());
+	m_ofsRResults.open(m_sOutputFileName.append(".txt").c_str());
 	//LOG << "Opening " << m_sStatsFileName << std::endl;
 	if (m_ofsRResults.fail()) {
 		return;

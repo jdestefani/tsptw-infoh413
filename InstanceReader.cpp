@@ -12,9 +12,13 @@ static const unsigned int TIME_WINDOW_TOKENS=2;
 
 
 
-bool InstanceReader::OpenFile() {
+bool InstanceReader::OpenFiles() {
 	m_ifInputFile.open(m_sInputFileName.c_str());
 	if (m_ifInputFile.fail()) {
+		return false;
+	}
+	m_ifSeedsFile.open(m_sSeedsFileName.c_str());
+	if (m_ifSeedsFile.fail()) {
 		return false;
 	}
 	return true;
@@ -79,6 +83,34 @@ bool InstanceReader::ReadInformations() {
 	return true;
 }
 
+bool InstanceReader::ReadSeeds() {
+	unsigned int readLines = 0;
+	std::string currLine;
+	std::string tempBuff;
+	std::vector<std::string> tokens;
+	std::vector<unsigned int> currCityDistances;
+
+	while(!m_ifSeedsFile.eof()){
+		/*Read file line by line and split the string using space as separator*/
+		std::getline(m_ifSeedsFile,currLine);
+		std::stringstream splitStream(currLine);
+
+		while(splitStream >> tempBuff){
+			tokens.push_back(tempBuff);
+		}
+
+		if(0 < tokens.size() && tokens.size() < 2){
+			m_vecSeeds.push_back(atoi(tokens.at(0).c_str()));
+		}
+		else{
+			std::cerr << "Line " << readLines << ": Wrong seeds file structure" << std::endl;
+			return false;
+		}
+		readLines++;
+	}
+	return true;
+}
+
 void InstanceReader::PrintDistanceMatrix() {
 	std::cout << "DISTANCE MATRIX" << std::endl;
 	for(unsigned int i=0; i<m_vecDistanceMatrix.size();i++){
@@ -88,6 +120,8 @@ void InstanceReader::PrintDistanceMatrix() {
 		std::cout << std::endl;
 	}
 }
+
+
 
 void InstanceReader::PrintTimeWindows() {
 	std::cout << "TIME WINDOWS" << std::endl;

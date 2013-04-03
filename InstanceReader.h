@@ -19,8 +19,9 @@
 
 class InstanceReader {
 public:
-	InstanceReader(std::string file_name) :
-		m_sInputFileName(file_name),
+	InstanceReader(std::string data_filename,std::string seeds_filename) :
+		m_sInputFileName(data_filename),
+		m_sSeedsFileName(seeds_filename),
 		m_unCities(0){}
 
 	InstanceReader() :
@@ -59,17 +60,31 @@ public:
 		return m_vecDistanceMatrix;
 	}
 
-	bool OpenFile();
+	inline const std::vector<unsigned int>& GetSeeds() const {
+		return m_vecSeeds;
+	}
+
+	inline void SetSeeds(const std::vector<unsigned int>& vecSeeds) {
+		m_vecSeeds = vecSeeds;
+	}
+
+	bool OpenFiles();
 	bool ReadInformations();
+	bool ReadSeeds();
 	void PrintDistanceMatrix();
 	void PrintTimeWindows();
 
+
+
 private:
 	std::string m_sInputFileName;
+	std::string m_sSeedsFileName;
 	std::ifstream m_ifInputFile;
+	std::ifstream m_ifSeedsFile;
 	unsigned int m_unCities;
 	std::vector<std::vector<unsigned int> > m_vecDistanceMatrix;
 	std::vector<TimeWindow> m_vecTimeWindows;
+	std::vector<unsigned int> m_vecSeeds;
 
 };
 

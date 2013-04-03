@@ -26,6 +26,7 @@ computeStatistics <- function(inputFile){
   return(returnValues)
 }
 
+library(MASS)
 setwd("../results")
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
@@ -42,6 +43,7 @@ insertBestFile <- args[6]
 print(inputFile)
 rm(args)
 
+#Compute statistics for all the files
 transposeFirstResults <- computeStatistics(transposeFirstFile)
 exchangeFirstResults <- computeStatistics(exchangeFirstFile)
 insertFirstResults <- computeStatistics(insertFirstFile)
@@ -49,8 +51,10 @@ transposeBestResults <- computeStatistics(transposeBestFile)
 exchangeBestResults <- computeStatistics(exchangeBestFile)
 insertBestResults <- computeStatistics(insertBestFile)
 
+#Detect instance names
 instanceName <- transposeFirstResults[[1]]
 
+#Extract algorithm types to label columns in data frame
 columnNames <- cbind(transposeFirstResults[[2]],
                      exchangeFirstResults[[2]],
                      insertFirstResults[[2]],
@@ -58,14 +62,25 @@ columnNames <- cbind(transposeFirstResults[[2]],
                      exchangeBestResults[[2]],
                      insertBestResults[[2]])
 
+#Extract data for PRDP plots
 PRDPBoxPlotData <- cbind(transposeFirstResults[[4]][2],
                          exchangeFirstResults[[4]][2],
                          insertFirstResults[[4]][2],
                          transposeBestResults[[4]][2],
                          exchangeBestResults[[4]][2],
                          insertBestResults[[4]][2])
+        
+                 
+# Statistical tests
+#Compare best vs. ﬁrst-improvement for each neighborhood
+transposeWilcoxon <- wilcoxon.test(transposeFirstResults[[4]][2],transposeBestResults[[4]][2],paired=TRUE)
+exchangeWilcoxon <- wilcoxon.test(exchangeFirstResults[[4]][2],exchangeBestResults[[4]][2],paired=TRUE)
+insertWilcoxon <- wilcoxon.test(insertFirstResults[[4]][2],insertBestResults[[4]][2],paired=TRUE)
+#Compare exchange vs. insertion neighborhood for each pivoting rule.
+firstWilcoxon <- wilcoxon.test(exchangeFirstResults[[4]][2],insertFirstResults[[4]][2],paired=TRUE)
+bestWilcoxon <- wilcoxon.test(exchangeBestResults[[4]][2],insertBestResults[[4]][2],paired=TRUE)
 
-
+#Extract data for CpuRunTime
 CpuTimeBoxPlotData <- cbind(transposeFirstResults[[4]][3],
                          exchangeFirstResults[[4]][3],
                          insertFirstResults[[4]][3],

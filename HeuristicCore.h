@@ -28,7 +28,7 @@ public:
 				  EInitFunction init_function,
 				  ENeighborhoodType neighborhood_type,
 				  ESolutionUpdate solution_update,
-				  double seed,
+				  const std::vector<unsigned int>& vec_seeds,
 				  unsigned int runs,
 				  std::string input_filename,
 				  unsigned int best_known_solution):
@@ -39,7 +39,8 @@ public:
 				  m_eInitFunction(init_function),
 				  m_eNeighborhoodType(neighborhood_type),
 				  m_eSolutionUpdate(solution_update),
-				  m_fSeed(seed),
+				  m_vecSeeds(vec_seeds),
+				  m_fSeed(0),
 				  m_fRunTime(0),
 				  m_unRuns(runs),
 				  m_wriResultsWriter(input_filename,best_known_solution,neighborhood_type,solution_update){
@@ -102,6 +103,7 @@ private:
 	unsigned int m_unCities;
 	const std::vector<std::vector<unsigned int> >& m_vecDistanceMatrix;
 	const std::vector<TimeWindow>& m_vecTimeWindows;
+	const std::vector<unsigned int>& m_vecSeeds;
 	double m_fRunTime;
 
 	void GenerateRandomInitialSolution();
