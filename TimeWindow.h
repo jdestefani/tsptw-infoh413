@@ -14,11 +14,14 @@ class TimeWindow {
 public:
 
 	TimeWindow() : m_unLowerBound(0),
-				   m_unUpperBound(0){
+				   m_unUpperBound(0),
+				   m_unCityNumber(0){
 	}
 
-	TimeWindow(unsigned int lower_bound, unsigned int upper_bound) : m_unLowerBound(lower_bound),
-																	 m_unUpperBound(upper_bound){
+	TimeWindow(unsigned int lower_bound, unsigned int upper_bound, unsigned int city_number) :
+		m_unLowerBound(lower_bound),
+		m_unUpperBound(upper_bound),
+		m_unCityNumber(city_number){
 		assert(upper_bound > lower_bound);
 	}
 
@@ -50,9 +53,21 @@ public:
 		return m_unUpperBound;
 	}
 
+	friend inline std::ostream& operator<<(std::ostream& output, const TimeWindow& tw){
+			output << tw.m_unCityNumber << ") [" << tw.m_unLowerBound << "," << tw.m_unUpperBound << "]" << std::endl;
+			return output;
+
+	}
+
+	inline bool operator<(TimeWindow &other) const{
+		return m_unLowerBound < other.m_unLowerBound;
+	}
+
+
 private:
 	unsigned int m_unLowerBound;
 	unsigned int m_unUpperBound;
+	unsigned int m_unCityNumber;
 };
 
 #endif /* TIMEWINDOW_H_ */

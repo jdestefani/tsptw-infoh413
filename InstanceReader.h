@@ -73,6 +73,7 @@ public:
 	bool ReadSeeds();
 	void PrintDistanceMatrix();
 	void PrintTimeWindows();
+	void PrintSeeds();
 
 
 

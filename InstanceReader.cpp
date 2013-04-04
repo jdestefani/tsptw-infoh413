@@ -68,7 +68,7 @@ bool InstanceReader::ReadInformations() {
 			/* The following <m_unCities> lines in the file correspond to the rows of the distance matrix */
 			else if(readLines >= m_unCities + 1){
 				if(tokens.size() == TIME_WINDOW_TOKENS){
-					TimeWindow currTimeWindow(atoi(tokens.at(0).c_str()),atoi(tokens.at(1).c_str()));
+					TimeWindow currTimeWindow(atoi(tokens.at(0).c_str()),atoi(tokens.at(1).c_str()),readLines-(m_unCities+1));
 					m_vecTimeWindows.push_back(currTimeWindow);
 				}
 				else{
@@ -84,7 +84,7 @@ bool InstanceReader::ReadInformations() {
 }
 
 bool InstanceReader::ReadSeeds() {
-	unsigned int readLines = 0;
+	unsigned int readLines = 1;
 	std::string currLine;
 	std::string tempBuff;
 	std::vector<std::string> tokens;
@@ -99,12 +99,15 @@ bool InstanceReader::ReadSeeds() {
 			tokens.push_back(tempBuff);
 		}
 
-		if(0 < tokens.size() && tokens.size() < 2){
-			m_vecSeeds.push_back(atoi(tokens.at(0).c_str()));
-		}
-		else{
-			std::cerr << "Line " << readLines << ": Wrong seeds file structure" << std::endl;
-			return false;
+		if(tokens.size() > 0){
+			if(tokens.size() < 2){
+				m_vecSeeds.push_back(atoi(tokens.at(0).c_str()));
+			}
+			else{
+				std::cerr << "Line " << readLines << ": Wrong seeds file structure" << std::endl;
+				return false;
+			}
+			tokens.erase(tokens.begin(),tokens.end());
 		}
 		readLines++;
 	}
@@ -126,8 +129,14 @@ void InstanceReader::PrintDistanceMatrix() {
 void InstanceReader::PrintTimeWindows() {
 	std::cout << "TIME WINDOWS" << std::endl;
 	for(unsigned int i=0; i < m_vecTimeWindows.size(); i++){
-		std::cout << "[" << m_vecTimeWindows.at(i).GetLowerBound() << "," << m_vecTimeWindows.at(i).GetUpperBound() << "]" << std::endl;
+		std::cout << m_vecTimeWindows.at(i);
 	}
 }
 
+void InstanceReader::PrintSeeds() {
+	std::cout << "SEEDS" << std::endl;
+	for(unsigned int i=0; i < m_vecSeeds.size(); i++){
+		std::cout << i << ")" << m_vecSeeds.at(i) << std::endl;
+	}
+}
 

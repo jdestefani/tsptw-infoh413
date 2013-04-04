@@ -83,7 +83,7 @@ int main (int argc, char **argv)
 			/* getopt_long stores the option index here. */
 			int option_index = 0;
 
-			c = getopt_long (argc, argv, "fbteni:dhrsk",
+			c = getopt_long (argc, argv, "fbteni:dhr:s:k:",
 					long_options, &option_index);
 
 			/* Detect the end of the options. */
@@ -264,6 +264,12 @@ int main (int argc, char **argv)
 		exit(0);
 	}
 
+	if(seedsFileName == NULL){
+			std::cerr << "[Error] - Missing seeds file." << std::endl << std::endl;
+			usage();
+			exit(0);
+		}
+
 	std::cout << "Solver parameters:" << std::endl;
 
 	std::cout << "\tInstance: " << inputFileName << std::endl;
@@ -318,9 +324,12 @@ int main (int argc, char **argv)
 	InstanceReader instanceReader(inputFileName,seedsFileName);
 	if(instanceReader.OpenFiles()){
 		if(instanceReader.ReadInformations()){
-			//instanceReader.PrintDistanceMatrix();
-			//instanceReader.PrintTimeWindows();
-			HeuristicCore simulationCore(instanceReader.GetDistanceMatrix(),
+			instanceReader.PrintDistanceMatrix();
+			instanceReader.PrintTimeWindows();
+			if(instanceReader.ReadSeeds()){
+				instanceReader.PrintSeeds();
+			}
+			/*HeuristicCore simulationCore(instanceReader.GetDistanceMatrix(),
 										 instanceReader.GetTimeWindows(),
 										 instanceReader.GetCities(),
 										 initFunction,
@@ -330,7 +339,7 @@ int main (int argc, char **argv)
 										 runs,
 										 inputFileName,
 										 bestKnownSolution);
-			simulationCore.Run();
+			simulationCore.Run();*/
 			return EXIT_SUCCESS;
 			exit(0);
 		}
