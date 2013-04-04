@@ -69,16 +69,21 @@ PRDPBoxPlotData <- list(transposeFirstResults[[4]][1],
                          insertBestResults[[4]][1])
         
 
-print(str(transposeFirstResults[[4]][2]))
+print(str(transposeFirstResults[[4]][[2]]))
 # Statistical tests
 #Compare best vs. ﬁrst-improvement for each neighborhood
-transposeWilcoxon <- wilcox.test(as.numeric(transposeFirstResults[[4]][2]),as.numeric(transposeBestResults[[4]][2]),paired=TRUE)
-print(transposeWilcoxon)
-#exchangeWilcoxon <- wilcox.test(exchangeFirstResults[[4]][2],exchangeBestResults[[4]][2],paired=TRUE)
-#insertWilcoxon <- wilcox.test(insertFirstResults[[4]][2],insertBestResults[[4]][2],paired=TRUE)
+transposeWilcoxon <- wilcox.test(transposeFirstResults[[4]][[2]],transposeBestResults[[4]][[2]],paired=TRUE)
+exchangeWilcoxon <- wilcox.test(exchangeFirstResults[[4]][[2]],exchangeBestResults[[4]][[2]],paired=TRUE)
+insertWilcoxon <- wilcox.test(insertFirstResults[[4]][[2]],insertBestResults[[4]][[2]],paired=TRUE)
 #Compare exchange vs. insertion neighborhood for each pivoting rule.
-#firstWilcoxon <- wilcox.test(exchangeFirstResults[[4]][2],insertFirstResults[[4]][2],paired=TRUE)
-#bestWilcoxon <- wilcox.test(exchangeBestResults[[4]][2],insertBestResults[[4]][2],paired=TRUE)
+firstWilcoxon <- wilcox.test(exchangeFirstResults[[4]][[2]],insertFirstResults[[4]][[2]],paired=TRUE)
+bestWilcoxon <- wilcox.test(exchangeBestResults[[4]][[2]],insertBestResults[[4]][[2]],paired=TRUE)
+
+print(transposeWilcoxon)
+print(exchangeWilcoxon)
+print(insertWilcoxon)
+print(firstWilcoxon)
+print(bestWilcoxon)
 
 #Extract data for CpuRunTime
 CpuTimeBoxPlotData <- list(transposeFirstResults[[4]][2],
