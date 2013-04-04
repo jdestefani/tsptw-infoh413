@@ -1,13 +1,50 @@
 /*
- * CandidateSolution.cpp
- *
- *  Created on: Mar 18, 2013
- *      Author: deste
- */
+
+      TTTTTT   SSSSS  PPPPP	  TTTTTT  W         W
+        TT    SS      PP  PP	TT	   W       W
+        TT     SSSS   PPPPP		TT      W W W W
+        TT        SS  PP		TT		 W W W
+        TT    SSSSS   PP		TT		  W W
+
+######################################################
+########## Iterative improvement algorithms for ######
+########## the TSP problem with Time Windows #########
+######################################################
+
+      Version: 1.0
+      File:    CandidateSolution.cpp
+      Author:  Jacopo De Stefani
+      Purpose: Implementation file for the user defined class to
+      	  	   model a candidate solution of the problem.
+      	  	   Contains all the basic operations on a candidate solution:
+      	  	   -> Exchange components
+      	  	   -> Insert components
+      Check:   README and gpl.txt
+*/
+
+/***************************************************************************
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    email: jacopo.de.stefani@ulb.ac.be
+
+***************************************************************************/
 
 #include "CandidateSolution.h"
 
-static const double CONSTRAINT_VIOLATION_PENALTY=10e4;
+
 
 CandidateSolution::~CandidateSolution() {
 	// TODO Auto-generated destructor stub
@@ -66,7 +103,7 @@ std::string CandidateSolution::ToString() {
  }
 
 void CandidateSolution::ComputeSolutionEvaluation() {
-	m_fSolutionEvaluation = m_unTourDuration + CONSTRAINT_VIOLATION_PENALTY*m_unConstraintViolations;
+	m_fSolutionEvaluation = m_unTourDuration + m_unConstraintViolations;
 }
 
 

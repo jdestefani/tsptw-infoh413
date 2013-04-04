@@ -1,6 +1,6 @@
-boxplotToPdf <- function(file,data,pdfHeight,pdfWidth){
+boxplotToPdf <- function(file,data,colNames,pdfHeight,pdfWidth){
   pdf(file,height=pdfHeight,width=pdfWidth)
-  boxplot(data)
+  boxplot(as.data.frame(data),names=colNames)
   dev.off()
 }
 
@@ -10,8 +10,8 @@ computeStatistics <- function(inputFile){
   
   #Detect algorithm type
   tokens <- unlist(strsplit(inputFile,"\\."))
-  outputFile <- paste(tokens[1],tokens[2])
-  instanceName <- paste(tokens[3],tokens[4])
+  outputFile <- paste(tokens[1],tokens[2],sep=".")
+  instanceName <- paste(tokens[3],tokens[4],sep=".")
   
   #Compute number of infeasible runs
   infeasibleRunPercentage <- sum(inputData[,"CV"]*1 > 0)/length(inputData[,"CV"])
@@ -20,14 +20,13 @@ computeStatistics <- function(inputFile){
   meanPRDP <- mean(inputData[,"PRPD"])
   meanCpuTime <- mean(inputData[,"CpuTime"])
   
-  statistics <- list(infeasibleRunPercentage,meanPDRP,meanCpuTime)
+  statistics <- paste(instanceName,infeasibleRunPercentage,meanPRDP,meanCpuTime,sep="\t")
   boxplots <- list(inputData[,"PRPD"],inputData[,"CpuTime"])
-  returnValues <- list(instanceName,outputFile,statistics,boxplot)
+  returnValues <- list(instanceName,outputFile,statistics,boxplots)
   return(returnValues)
 }
 
 library(MASS)
-setwd("../results")
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
 # trailingOnly=TRUE means that only arguments after --args are returned
@@ -40,7 +39,6 @@ insertFirstFile <- args[3]
 transposeBestFile <- args[4]
 exchangeBestFile <- args[5]
 insertBestFile <- args[6]
-print(inputFile)
 rm(args)
 
 #Compute statistics for all the files
@@ -63,37 +61,39 @@ columnNames <- cbind(transposeFirstResults[[2]],
                      insertBestResults[[2]])
 
 #Extract data for PRDP plots
-PRDPBoxPlotData <- cbind(transposeFirstResults[[4]][2],
+PRDPBoxPlotData <- list(transposeFirstResults[[4]][1],
+                         exchangeFirstResults[[4]][1],
+                         insertFirstResults[[4]][1],
+                         transposeBestResults[[4]][1],
+                         exchangeBestResults[[4]][1],
+                         insertBestResults[[4]][1])
+        
+
+print(str(transposeFirstResults[[4]][2]))
+# Statistical tests
+#Compare best vs. ﬁrst-improvement for each neighborhood
+transposeWilcoxon <- wilcox.test(as.numeric(transposeFirstResults[[4]][2]),as.numeric(transposeBestResults[[4]][2]),paired=TRUE)
+print(transposeWilcoxon)
+#exchangeWilcoxon <- wilcox.test(exchangeFirstResults[[4]][2],exchangeBestResults[[4]][2],paired=TRUE)
+#insertWilcoxon <- wilcox.test(insertFirstResults[[4]][2],insertBestResults[[4]][2],paired=TRUE)
+#Compare exchange vs. insertion neighborhood for each pivoting rule.
+#firstWilcoxon <- wilcox.test(exchangeFirstResults[[4]][2],insertFirstResults[[4]][2],paired=TRUE)
+#bestWilcoxon <- wilcox.test(exchangeBestResults[[4]][2],insertBestResults[[4]][2],paired=TRUE)
+
+#Extract data for CpuRunTime
+CpuTimeBoxPlotData <- list(transposeFirstResults[[4]][2],
                          exchangeFirstResults[[4]][2],
                          insertFirstResults[[4]][2],
                          transposeBestResults[[4]][2],
                          exchangeBestResults[[4]][2],
                          insertBestResults[[4]][2])
-        
-                 
-# Statistical tests
-#Compare best vs. ﬁrst-improvement for each neighborhood
-transposeWilcoxon <- wilcoxon.test(transposeFirstResults[[4]][2],transposeBestResults[[4]][2],paired=TRUE)
-exchangeWilcoxon <- wilcoxon.test(exchangeFirstResults[[4]][2],exchangeBestResults[[4]][2],paired=TRUE)
-insertWilcoxon <- wilcoxon.test(insertFirstResults[[4]][2],insertBestResults[[4]][2],paired=TRUE)
-#Compare exchange vs. insertion neighborhood for each pivoting rule.
-firstWilcoxon <- wilcoxon.test(exchangeFirstResults[[4]][2],insertFirstResults[[4]][2],paired=TRUE)
-bestWilcoxon <- wilcoxon.test(exchangeBestResults[[4]][2],insertBestResults[[4]][2],paired=TRUE)
 
-#Extract data for CpuRunTime
-CpuTimeBoxPlotData <- cbind(transposeFirstResults[[4]][3],
-                         exchangeFirstResults[[4]][3],
-                         insertFirstResults[[4]][3],
-                         transposeBestResults[[4]][3],
-                         exchangeBestResults[[4]][3],
-                         insertBestResults[[4]][3])
-
-colnames(PRDPBoxPlotData) <- columnNames
-colnames(CpuTimeBoxPlotData) <- columnNames
+#colnames(PRDPBoxPlotData) <- columnNames
+#colnames(CpuTimeBoxPlotData) <- columnNames
 
 #Box plots
-boxplotToPdf(paste(instanceName,"PRPD"),PRDPBoxPlotData)
-boxplotToPdf(paste(instanceName,"CpuTime"),CpuTimeBoxPlotData)
+boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames)
+boxplotToPdf(paste(instanceName,"CpuTime",sep="-"),CpuTimeBoxPlotData,columnNames)
 
 #Write statistics in separate files for each algorithm
 write(transposeFirstResults[[3]],transposeFirstResults[[2]],append=TRUE)

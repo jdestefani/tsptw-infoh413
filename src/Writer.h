@@ -1,9 +1,43 @@
 /*
- * Writer.h
- *
- *  Created on: Mar 22, 2013
- *      Author: deste
- */
+
+      TTTTTT   SSSSS  PPPPP	  TTTTTT  W         W
+        TT    SS      PP  PP	TT	   W       W
+        TT     SSSS   PPPPP		TT      W W W W
+        TT        SS  PP		TT		 W W W
+        TT    SSSSS   PP		TT		  W W
+
+######################################################
+########## Iterative improvement algorithms for ######
+########## the TSP problem with Time Windows #########
+######################################################
+
+      Version: 1.0
+      File:    Writer.h
+      Author:  Jacopo De Stefani
+      Purpose: Header file for the writer module for the output files
+      	  	   to be analysed using R.
+      Check:   README and gpl.txt
+*/
+
+/***************************************************************************
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    email: jacopo.de.stefani@ulb.ac.be
+
+***************************************************************************/
 
 #ifndef WRITER_H_
 #define WRITER_H_
@@ -59,7 +93,7 @@ public:
 		m_sOutputFileName.append(SEPARATOR);
 
 		filename = filename.substr(0,filename.find_last_of('.'));
-		m_sOutputFileName.append(filename.substr(filename.find_first_of('/')+1,filename.length()));
+		m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
 	}
 
 	~Writer() {
@@ -75,8 +109,8 @@ public:
 	void OpenRFile();
 	void OpenTextResults();
 	void FlushRFile();
-	void FlushTextResults();
 	void AddData(double,unsigned int,unsigned int,double);
+
 
 
 private:
@@ -86,6 +120,7 @@ private:
 				unsigned int bestSolution;
 				unsigned int constraintViolations;
 				double cpuRunTime;
+				static const double CONSTRAINT_VIOLATION_PENALTY=10e4;
 
 				SResultsData(double seed, unsigned int best_solution, unsigned int cv, double cpu_runtime):
 					seed(seed),
@@ -96,7 +131,7 @@ private:
 				}
 
 				double ComputePRDP(unsigned int known_best){
-					return 100*(((bestSolution+constraintViolations)-known_best)/known_best);
+					return 100*(((bestSolution+constraintViolations*CONSTRAINT_VIOLATION_PENALTY)-known_best)/known_best);
 				}
 	};
 

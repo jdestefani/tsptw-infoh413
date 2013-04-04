@@ -1,9 +1,42 @@
 /*
- * HeuristicCore.cpp
- *
- *  Created on: Mar 18, 2013
- *      Author: deste
- */
+
+      TTTTTT   SSSSS  PPPPP	  TTTTTT  W         W
+        TT    SS      PP  PP	TT	   W       W
+        TT     SSSS   PPPPP		TT      W W W W
+        TT        SS  PP		TT		 W W W
+        TT    SSSSS   PP		TT		  W W
+
+######################################################
+########## Iterative improvement algorithms for ######
+########## the TSP problem with Time Windows #########
+######################################################
+
+      Version: 1.0
+      File:    HeuristicCore.cpp
+      Author:  Jacopo De Stefani
+      Purpose: Implementation file for the core class of the heuristic solver
+      Check:   README and gpl.txt
+*/
+
+/***************************************************************************
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    email: jacopo.de.stefani@ulb.ac.be
+
+***************************************************************************/
 
 #include "HeuristicCore.h"
 
@@ -17,6 +50,7 @@ void HeuristicCore::Run() {
 	m_wriResultsWriter.OpenRFile();
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_fSeed = m_vecSeeds.at(i);
+		std::cout << "Run " << i+1 << " - seed " << m_fSeed << std::endl;
 		IterativeImprovement();
 	}
 	m_wriResultsWriter.FlushRFile();
@@ -36,26 +70,37 @@ void HeuristicCore::IterativeImprovement() {
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
 	GenerateInitialSolution();
+	//std::cout << iterations << ") " << m_cCurrentSolution;
 	ComputeNeighborhood();
-	std::cout << m_cCurrentSolution;
+
+	//std::cout << m_cCurrentSolution;
 	while(!IsLocalOptimum()){
 		/*1. Select solution from neighborhood*/
 		UpdateSolution();
 		/*2. Generate neighborhood*/
 		ComputeNeighborhood();
 		iterations++;
-		/*std::cout << "Neighborhood " << iterations << ":" << std::endl;
-		for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
-					std::cout << (*itList) << std::endl;
-		}*/
 	}
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
-	m_fRunTime = (sEndTime.tv_nsec - sBeginTime.tv_nsec)/(10e9);
-	std::cout << "Solution found in " << m_fRunTime << "s - (" << iterations << " iterations)" << std::endl;
+	ComputeRunTime(sBeginTime,sEndTime);
+	std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
 	std::cout << m_cCurrentSolution;
+	std::cout << std::endl << std::endl;
 	m_wriResultsWriter.AddData(m_fSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_fRunTime);
 }
 
+
+void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {
+	struct timespec temp;
+		if ((s_end_time.tv_nsec-s_begin_time.tv_nsec)<0) {
+			temp.tv_sec = s_end_time.tv_sec-s_begin_time.tv_sec-1;
+			temp.tv_nsec = 1000000000+s_end_time.tv_nsec-s_begin_time.tv_nsec;
+		} else {
+			temp.tv_sec = s_end_time.tv_sec-s_begin_time.tv_sec;
+			temp.tv_nsec = s_end_time.tv_nsec-s_begin_time.tv_nsec;
+		}
+	m_fRunTime = temp.tv_sec+temp.tv_nsec/(10e9);
+}
 
 /*
       METHOD:         Wrapper for the functions used to generate the initial solution.
@@ -189,7 +234,7 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 	}
 
 	candidateSolution.SetTourDuration(travelTimeAccumulator);
-	candidateSolution.ComputeSolutionEvaluation();
+	//candidateSolution.ComputeSolutionEvaluation();
 
 }
 
@@ -204,7 +249,6 @@ void HeuristicCore::GenerateRandomInitialSolution() {
 		m_vecTourDistances.push_back(0);
 	}
 	std::random_shuffle(++currentTour.begin(),currentTour.end());
-	std::cout << "Tour length: " << currentTour.size() << std::endl;
 	m_cCurrentSolution.SetTour(currentTour);
 	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
 }
@@ -222,6 +266,7 @@ void HeuristicCore::ComputeTransposeNeighborhood() {
 		CandidateSolution neighborSolution(m_cCurrentSolution);
 		neighborSolution.SwapSolutionComponents(i-1,i);
 		ComputeTourLengthAndConstraintsViolations(neighborSolution);
+		//std::cout << "["<< i <<"]" << neighborSolution << std::endl;
 		m_listSolutionNeighborhood.push_back(neighborSolution);
 	}
 }
@@ -266,7 +311,7 @@ void HeuristicCore::ComputeInsertNeighborhood() {
 
 void HeuristicCore::UpdateSolutionBestImprovement() {
 
-	std::list<CandidateSolution>::iterator itBest = m_listSolutionNeighborhood.begin();
+	std::list<CandidateSolution>::iterator itBest = m_listSolutionNeighborhood.end();
 
 	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
 		if((*itList) < (*itBest)){
@@ -276,7 +321,7 @@ void HeuristicCore::UpdateSolutionBestImprovement() {
 		}
 	}
 
-	if(itBest != m_listSolutionNeighborhood.begin()){
+	if(itBest != m_listSolutionNeighborhood.end()){
 		m_cCurrentSolution.SetTour((*itBest).GetTour());
 		m_cCurrentSolution.SetTourDuration((*itBest).GetTourDuration());
 		m_cCurrentSolution.SetConstraintViolations((*itBest).GetConstraintViolations());
@@ -369,6 +414,7 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsign
 */
 }
 
+/*
 void HeuristicCore::TestFunction() {
 	unsigned int iterations = 0;
 
@@ -402,20 +448,21 @@ void HeuristicCore::TestFunction() {
 
 
 	//Run();
-	/*ComputeTransposeNeighborhood();
+	ComputeTransposeNeighborhood();
 	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
 	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
 			std::cout << (*itList) << std::endl;
 		}
-	UpdateSolutionBestImprovement();*/
-	//UpdateSolutionFirstImprovement();*/
+	UpdateSolutionBestImprovement();
+	//UpdateSolutionFirstImprovement();
 	//IterativeImprovement();
-	/*ComputeExchangeNeighborhood();
+	ComputeExchangeNeighborhood();
 	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
 	ComputeInsertNeighborhood();
-	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;*/
+	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
 
 
 }
+*/
 
 

@@ -1,10 +1,42 @@
-//============================================================================
-// Name        : INFO-H-413.cpp
-// Author      : Jacopo De Stefani
-// Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C, Ansi-style
-//============================================================================
+/*
+
+      TTTTTT   SSSSS  PPPPP	  TTTTTT  W         W
+        TT    SS      PP  PP	TT	   W       W
+        TT     SSSS   PPPPP		TT      W W W W
+        TT        SS  PP		TT		 W W W
+        TT    SSSSS   PP		TT		  W W
+
+######################################################
+########## Iterative improvement algorithms for ######
+########## the TSP problem with Time Windows #########
+######################################################
+
+      Version: 1.0
+      File:    TSPTW-II.cpp
+      Author:  Jacopo De Stefani
+      Purpose: Command line parameter parser and algorithm launcher
+      Check:   README and gpl.txt
+*/
+
+/***************************************************************************
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    email: jacopo.de.stefani@ulb.ac.be
+
+***************************************************************************/
 
 #include <ctype.h>
 #include <stdio.h>
@@ -35,6 +67,7 @@
 
 void version(void);
 void usage(void);
+
 /* Flag set by ‘--verbose’. */
 static int verbose_flag;
 
@@ -318,18 +351,18 @@ int main (int argc, char **argv)
 
 	std::cout << "\tSeeds file: " << seedsFileName << std::endl;
 	std::cout << "\tRuns: " << runs << std::endl;
-	std::cout << "\tBest known solution: " << bestKnownSolution << std::endl << std::endl;
+	std::cout << "\tBest known solution: " << bestKnownSolution << std::endl;
 
 
 	InstanceReader instanceReader(inputFileName,seedsFileName);
 	if(instanceReader.OpenFiles()){
 		if(instanceReader.ReadInformations()){
-			instanceReader.PrintDistanceMatrix();
-			instanceReader.PrintTimeWindows();
+			//instanceReader.PrintDistanceMatrix();
+			//instanceReader.PrintTimeWindows();
 			if(instanceReader.ReadSeeds()){
-				instanceReader.PrintSeeds();
+				//instanceReader.PrintSeeds();
 			}
-			/*HeuristicCore simulationCore(instanceReader.GetDistanceMatrix(),
+			HeuristicCore solverCore(instanceReader.GetDistanceMatrix(),
 										 instanceReader.GetTimeWindows(),
 										 instanceReader.GetCities(),
 										 initFunction,
@@ -339,7 +372,7 @@ int main (int argc, char **argv)
 										 runs,
 										 inputFileName,
 										 bestKnownSolution);
-			simulationCore.Run();*/
+			solverCore.Run();
 			return EXIT_SUCCESS;
 			exit(0);
 		}
@@ -374,7 +407,7 @@ void version(void)
 
 void usage(void)
 {
-  std::cout << "Usage: TSPTW [OPTIONS]..." << std::endl << std::endl;
+  std::cout << "Usage: TSPTW-II [OPTIONS]..." << std::endl << std::endl;
   std::cout << "Flag \t\t Argument \t Description" << std::endl;
   std::cout << "-d,--random \t [No] \t\t Generate random initial solution." << std::endl;
   std::cout << "-h,--heuristic\t [No] \t\t Generate initial solution using heuristic." << std::endl;
@@ -385,7 +418,7 @@ void usage(void)
   std::cout << "-n,--insert \t [No] \t\t Use insert neighborhood." << std::endl;
   std::cout << "-i,--input\t [Req,Path] \t Path to instance to be given as input to the program" << std::endl;
   std::cout << "-r,--runs\t [Opt,Runs] \t Number of runs of the algorithm. 1 if omitted." << std::endl;
-  std::cout << "-s,--seed\t [Opt,Seed] \t Seed for the random number generator of the algorithm. System time if omitted." << std::endl;
+  std::cout << "-s,--seed\t [Req,Seed] \t Path to the file containing the list of seeds." << std::endl;
   std::cout << "-k,--known-best\t [Opt,Best] \t Best known solution for the analyzed instance. INT_MAX if omitted." << std::endl;
   version();
 }
