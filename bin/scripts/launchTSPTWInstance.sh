@@ -11,6 +11,11 @@ function createReportFile {
 
 function generateRandomSeeds {
 	count=0
+	
+	if [ -f $2 ]
+	then
+		rm -f $2
+	fi
 
 	while [ "$count" -lt $1 ]      
 	do
