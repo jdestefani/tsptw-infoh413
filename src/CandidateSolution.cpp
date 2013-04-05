@@ -71,6 +71,7 @@ void CandidateSolution::SwapSolutionComponents(unsigned int firstIndex,unsigned 
 		m_vecTour.at(secondIndex) = m_vecTour.at(firstIndex);
 		m_vecTour.at(firstIndex) = swapVariable;
 	}
+
 }
 
 void CandidateSolution::InsertSolutionComponent(unsigned int city_index, unsigned int insertion_position) {
@@ -88,6 +89,12 @@ void CandidateSolution::InsertSolutionComponent(unsigned int city_index, unsigne
 		}
 		m_vecTour.at(insertion_position) = elementToInsert;
 	}
+}
+
+void CandidateSolution::Reset() {
+	m_vecTour.erase(m_vecTour.begin(),m_vecTour.end());
+	m_unTourDuration = 0;
+	m_unConstraintViolations = 0;
 }
 
 std::string CandidateSolution::ToString() {

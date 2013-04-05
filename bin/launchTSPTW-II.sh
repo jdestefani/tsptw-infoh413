@@ -64,13 +64,13 @@ instanceDir="./instances/"
 instanceName=$1
 
 
-./TSPTW-II --transpose --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-II --exchange --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-II --insert --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-II --transpose --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-II --exchange --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-II --insert --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-II --random --transpose --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-II --random --exchange --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-II --random --insert --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-II --random --transpose --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-II --random --exchange --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-II --random --insert --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
 
 
-#Rscript processData.R transpose.first.$instanceName exchange.first.$instanceName insert.first.$instanceName transpose.best.$instanceName exchange.best.$instanceName insert.best.$instanceName
+#Rscript processDataII.R transpose.first.$instanceName exchange.first.$instanceName insert.first.$instanceName transpose.best.$instanceName exchange.best.$instanceName insert.best.$instanceName
 

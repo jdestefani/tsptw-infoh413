@@ -45,19 +45,31 @@
 
 
 typedef enum {
-			RANDOM,
-			HEURISTIC
-		} EInitFunction;
+	RANDOM,
+	HEURISTIC
+} EInitFunction;
 
 typedef enum {
-		EXCHANGE,
-		TRANSPOSE,
-		INSERT
-		} ENeighborhoodType;
+	NO_VND,
+	STANDARD_VND,
+	PIPED_VND,
+}EVNDType;
 
 typedef enum {
-		BEST_IMPROVEMENT,
-		FIRST_IMPROVEMENT
-		}ESolutionUpdate;
+	EXCHANGE,
+	TRANSPOSE,
+	INSERT
+} ENeighborhoodType;
+
+typedef enum {
+	NO_CHAIN,
+	TRANSPOSE_EXCHANGE_INSERT,
+	TRANSPOSE_INSERT_EXCHANGE,
+} ENeighborhoodChain;
+
+typedef enum {
+	BEST_IMPROVEMENT,
+	FIRST_IMPROVEMENT
+}ESolutionUpdate;
 
 #endif /* COMMONDEFS_H_ */

@@ -46,6 +46,10 @@ const std::string Writer::PIVOTING_RULE_FIRST_IMPROVEMENT="first";
 const std::string Writer::NEIGHBORHOOD_TYPE_INSERT="insert";
 const std::string Writer::NEIGHBORHOOD_TYPE_TRANSPOSE="transpose";
 const std::string Writer::NEIGHBORHOOD_TYPE_EXCHANGE="exchange";
+const std::string Writer::NEIGHBORHOOD_CHAIN_TEI="tei";
+const std::string Writer::NEIGHBORHOOD_CHAIN_TIE="tie";
+const std::string Writer::VND_TYPE_STANDARD="std";
+const std::string Writer::VND_TYPE_PIPED="piped";
 const std::string Writer::SEPARATOR=".";
 
 void Writer::OpenRFile() {

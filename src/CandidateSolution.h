@@ -57,7 +57,7 @@ public:
 		m_vecTour.reserve(1);
 	}
 
-	CandidateSolution(std::vector<unsigned int>& tour):
+	CandidateSolution(const std::vector<unsigned int>& tour):
 		m_vecTour(tour),
 		m_unTourDuration(0),
 		m_unConstraintViolations(0),
@@ -131,6 +131,7 @@ public:
 	void SwapSolutionComponents(unsigned int,unsigned int);
 	void InsertSolutionComponent(unsigned int,unsigned int);
 	void ComputeSolutionEvaluation();
+	void Reset();
 	std::string ToString();
 
 

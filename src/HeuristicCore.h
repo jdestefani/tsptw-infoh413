@@ -72,16 +72,42 @@ public:
 				  m_eInitFunction(init_function),
 				  m_eNeighborhoodType(neighborhood_type),
 				  m_eSolutionUpdate(solution_update),
+				  m_eVNDType(NO_VND),
+				  m_eNeighborhoodChain(NO_CHAIN),
 				  m_vecSeeds(vec_seeds),
 				  m_fSeed(0),
 				  m_fRunTime(0),
 				  m_unRuns(runs),
-				  m_wriResultsWriter(input_filename,best_known_solution,neighborhood_type,solution_update){
-		//m_vecDistanceMatrix = vec_distance_matrix;
-		//m_vecTimeWindows = vec_time_windows;
-
-		//m_wriResultsWriter(input_filename,best_known_solution);
+				  m_wriResultsWriter(input_filename,best_known_solution,neighborhood_type,solution_update),
+				  m_isLocalOptimum(false){
 	}
+
+	HeuristicCore(const std::vector<std::vector<unsigned int> >& vec_distance_matrix,
+					  const std::vector<TimeWindow>& vec_time_windows,
+					  unsigned int cities_number,
+					  EVNDType vnd_type,
+					  ENeighborhoodChain neighborhood_chain,
+					  const std::vector<unsigned int>& vec_seeds,
+					  unsigned int runs,
+					  std::string input_filename,
+					  unsigned int best_known_solution):
+
+					  m_vecDistanceMatrix(vec_distance_matrix),
+					  m_vecTimeWindows(vec_time_windows),
+					  m_unCities(cities_number),
+					  m_eInitFunction(RANDOM),
+					  m_eNeighborhoodType(TRANSPOSE),
+					  m_eSolutionUpdate(FIRST_IMPROVEMENT),
+					  m_eVNDType(vnd_type),
+					  m_eNeighborhoodChain(neighborhood_chain),
+					  m_vecSeeds(vec_seeds),
+					  m_fSeed(0),
+					  m_fRunTime(0),
+					  m_unRuns(runs),
+					  m_wriResultsWriter(input_filename,best_known_solution,vnd_type,neighborhood_chain),
+					  m_isLocalOptimum(false){
+		}
+
 
 	~HeuristicCore() {
 		// TODO Auto-generated destructor stub
@@ -112,9 +138,12 @@ public:
 		m_listSolutionNeighborhood = listSolutionNeighborhood;
 	}
 
-	void Run();
+	void RunII();
+	void RunVND();
 	void TestFunction();
 	void IterativeImprovement();
+	void VariableNeighborhoodDescent();
+	void GenerateNeighborhoodChain();
 	void GenerateInitialSolution();
 	void ComputeNeighborhood();
 	void UpdateSolution();
@@ -127,19 +156,24 @@ private:
 	EInitFunction m_eInitFunction;
 	ENeighborhoodType m_eNeighborhoodType;
 	ESolutionUpdate m_eSolutionUpdate;
+	EVNDType m_eVNDType;
+	ENeighborhoodChain m_eNeighborhoodChain;
 	double m_fSeed;
 	unsigned int m_unRuns;
 	Writer m_wriResultsWriter;
 
 	std::list<CandidateSolution> m_listSolutionNeighborhood;
 	CandidateSolution m_cCurrentSolution;
-	std::vector<unsigned int> m_vecTourDistances;
+	std::vector<ENeighborhoodType> m_vecNeighborhoodChain;
+	bool m_isLocalOptimum;
 	unsigned int m_unCities;
 	const std::vector<std::vector<unsigned int> >& m_vecDistanceMatrix;
 	const std::vector<TimeWindow>& m_vecTimeWindows;
 	const std::vector<unsigned int>& m_vecSeeds;
 	double m_fRunTime;
 
+	void StandardVariableNeighborhoodDescent();
+	void PipedVariableNeighborhoodDescent();
 	void GenerateRandomInitialSolution();
 	void GenerateHeuristicInitialSolution();
 	void ComputeExchangeNeighborhood();

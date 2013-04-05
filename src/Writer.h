@@ -55,13 +55,11 @@ public:
 		   unsigned int known_best,
 		   ENeighborhoodType neighborhood_type,
 		   ESolutionUpdate pivoting_rule):
-	m_unKnownBest(known_best),
-	m_eNeighborhoodType(neighborhood_type),
-	m_ePivotingRule(pivoting_rule){
+	m_unKnownBest(known_best){
 
 		m_sOutputFileName = "";
 
-		switch (m_eNeighborhoodType) {
+		switch (neighborhood_type) {
 		case EXCHANGE:
 			m_sOutputFileName.append(NEIGHBORHOOD_TYPE_EXCHANGE);
 			break;
@@ -78,7 +76,7 @@ public:
 
 		m_sOutputFileName.append(SEPARATOR);
 
-		switch (m_ePivotingRule) {
+		switch (pivoting_rule) {
 		case BEST_IMPROVEMENT:
 			m_sOutputFileName.append(PIVOTING_RULE_BEST_IMPROVEMENT);
 			break;
@@ -95,6 +93,46 @@ public:
 		filename = filename.substr(0,filename.find_last_of('.'));
 		m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
 	}
+
+	Writer(std::string filename,
+			   unsigned int known_best,
+			   EVNDType vnd_type,
+			   ENeighborhoodChain neighborhood_chain):
+		m_unKnownBest(known_best){
+
+			m_sOutputFileName = "";
+
+			switch (vnd_type) {
+			case STANDARD_VND:
+				m_sOutputFileName.append(VND_TYPE_STANDARD);
+				break;
+			case PIPED_VND:
+				m_sOutputFileName.append(VND_TYPE_PIPED);
+				break;
+			default:
+				break;
+			}
+
+
+			m_sOutputFileName.append(SEPARATOR);
+
+			switch (neighborhood_chain) {
+			case TRANSPOSE_EXCHANGE_INSERT:
+				m_sOutputFileName.append(NEIGHBORHOOD_CHAIN_TEI);
+				break;
+			case TRANSPOSE_INSERT_EXCHANGE:
+				m_sOutputFileName.append(NEIGHBORHOOD_CHAIN_TIE);
+				break;
+			default:
+				break;
+			}
+
+
+			m_sOutputFileName.append(SEPARATOR);
+
+			filename = filename.substr(0,filename.find_last_of('.'));
+			m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
+		}
 
 	~Writer() {
 		if(m_ofsRResults.is_open()){
@@ -140,6 +178,10 @@ private:
 	static const std::string NEIGHBORHOOD_TYPE_INSERT;
 	static const std::string NEIGHBORHOOD_TYPE_TRANSPOSE;
 	static const std::string NEIGHBORHOOD_TYPE_EXCHANGE;
+	static const std::string NEIGHBORHOOD_CHAIN_TEI;
+	static const std::string NEIGHBORHOOD_CHAIN_TIE;
+	static const std::string VND_TYPE_STANDARD;
+	static const std::string VND_TYPE_PIPED;
 	static const std::string SEPARATOR;
 
 	std::string m_sOutputFileName;
@@ -147,8 +189,7 @@ private:
 	std::list<SResultsData> m_listResults;
 	std::ofstream m_ofsRResults;
 	std::ofstream m_ofsTextResults;
-	ESolutionUpdate m_ePivotingRule;
-	ENeighborhoodType m_eNeighborhoodType;
+
 };
 
 #endif /* WRITER_H_ */

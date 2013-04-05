@@ -46,7 +46,7 @@
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
 */
-void HeuristicCore::Run() {
+void HeuristicCore::RunII() {
 	m_wriResultsWriter.OpenRFile();
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_fSeed = m_vecSeeds.at(i);
@@ -55,6 +55,24 @@ void HeuristicCore::Run() {
 	}
 	m_wriResultsWriter.FlushRFile();
 }
+
+
+/*
+      METHOD:         Run the chosen algorithm for the desired number of runs.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modifies the state of the class
+*/
+void HeuristicCore::RunVND() {
+	m_wriResultsWriter.OpenRFile();
+	for(unsigned int i=0; i<m_unRuns;i++){
+		m_fSeed = m_vecSeeds.at(i);
+		std::cout << "Run " << i+1 << " - seed " << m_fSeed << std::endl;
+		VariableNeighborhoodDescent();
+	}
+	m_wriResultsWriter.FlushRFile();
+}
+
 
 /*
       METHOD:         Implementation of a single run of the algorithm.
@@ -89,6 +107,96 @@ void HeuristicCore::IterativeImprovement() {
 	m_wriResultsWriter.AddData(m_fSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_fRunTime);
 }
 
+void HeuristicCore::VariableNeighborhoodDescent() {
+	struct timespec sBeginTime;
+	struct timespec sEndTime;
+
+	GenerateNeighborhoodChain();
+	m_eNeighborhoodType = m_vecNeighborhoodChain.at(0);
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
+	switch(m_eVNDType){
+		case STANDARD_VND:
+			StandardVariableNeighborhoodDescent();
+			break;
+		case PIPED_VND:
+			PipedVariableNeighborhoodDescent();
+			break;
+		default:break;
+	}
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
+	ComputeRunTime(sBeginTime,sEndTime);
+
+	std::cout << m_cCurrentSolution;
+	std::cout << std::endl << std::endl;
+	m_wriResultsWriter.AddData(m_fSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_fRunTime);
+}
+
+/*
+      METHOD:         Implementation of a single run of the algorithm.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modifies the state of the class
+*/
+void HeuristicCore::StandardVariableNeighborhoodDescent() {
+
+	unsigned int iterations = 0;
+	unsigned int currentNeighborhood = 0;
+
+	GenerateInitialSolution();
+	ComputeNeighborhood();
+	while(currentNeighborhood < m_vecNeighborhoodChain.size()){
+		//std::cout << m_cCurrentSolution;
+		/*If a first improving neighbor is not found*/
+		while(!IsLocalOptimum()){
+			if(currentNeighborhood != 0){
+				currentNeighborhood = 0;
+				m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
+			}
+			/*1. Select solution from neighborhood*/
+			UpdateSolutionFirstImprovement();
+			/*2. Generate neighborhood*/
+			ComputeNeighborhood();
+			iterations++;
+		}
+		/*Change neighborhood type until the chain is terminated*/
+		currentNeighborhood++;
+		m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
+		ComputeNeighborhood();
+	}
+	std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
+}
+
+/*
+      METHOD:         Implementation of a single run of the algorithm.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modifies the state of the class
+*/
+void HeuristicCore::PipedVariableNeighborhoodDescent() {
+
+	unsigned int iterations = 0;
+	unsigned int currentNeighborhood = 0;
+
+	GenerateInitialSolution();
+	ComputeNeighborhood();
+
+	while(currentNeighborhood < m_vecNeighborhoodChain.size()){
+		//std::cout << m_cCurrentSolution;
+		/*If a first improving neighbor is not found*/
+		while(!IsLocalOptimum()){
+			/*1. Select solution from neighborhood*/
+			UpdateSolutionFirstImprovement();
+			/*2. Generate neighborhood*/
+			ComputeNeighborhood();
+			iterations++;
+		}
+		/*Change neighborhood type until the chain is terminated*/
+		currentNeighborhood++;
+		m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
+		ComputeNeighborhood();
+	}
+	std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
+}
 
 void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {
 	struct timespec temp;
@@ -100,6 +208,26 @@ void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespe
 			temp.tv_nsec = s_end_time.tv_nsec-s_begin_time.tv_nsec;
 		}
 	m_fRunTime = temp.tv_sec+temp.tv_nsec/(10e9);
+}
+
+
+void HeuristicCore::GenerateNeighborhoodChain() {
+	m_vecNeighborhoodChain.erase(m_vecNeighborhoodChain.begin(),m_vecNeighborhoodChain.end());
+
+	switch (m_eNeighborhoodChain) {
+			case TRANSPOSE_EXCHANGE_INSERT:
+				m_vecNeighborhoodChain.push_back(TRANSPOSE);
+				m_vecNeighborhoodChain.push_back(EXCHANGE);
+				m_vecNeighborhoodChain.push_back(INSERT);
+				break;
+			case TRANSPOSE_INSERT_EXCHANGE:
+				m_vecNeighborhoodChain.push_back(TRANSPOSE);
+				m_vecNeighborhoodChain.push_back(INSERT);
+				m_vecNeighborhoodChain.push_back(EXCHANGE);
+				break;
+			default:
+				break;
+		}
 }
 
 /*
@@ -246,7 +374,6 @@ void HeuristicCore::GenerateRandomInitialSolution() {
 
 	for(;i<m_unCities;i++){
 		currentTour.push_back(i);
-		m_vecTourDistances.push_back(0);
 	}
 	std::random_shuffle(++currentTour.begin(),currentTour.end());
 	m_cCurrentSolution.SetTour(currentTour);
@@ -263,12 +390,24 @@ void HeuristicCore::ComputeTransposeNeighborhood() {
 
 	/*Compute all the possible swaps of an element with his successor*/
 	for(unsigned int i=2; i<m_cCurrentSolution.GetTour().size(); i++){
-		CandidateSolution neighborSolution(m_cCurrentSolution);
+		CandidateSolution neighborSolution(m_cCurrentSolution.GetTour());
 		neighborSolution.SwapSolutionComponents(i-1,i);
 		ComputeTourLengthAndConstraintsViolations(neighborSolution);
-		//std::cout << "["<< i <<"]" << neighborSolution << std::endl;
 		m_listSolutionNeighborhood.push_back(neighborSolution);
+		if(m_eSolutionUpdate == FIRST_IMPROVEMENT){
+			if(neighborSolution < m_cCurrentSolution){
+				return;
+			}
+			else{
+				if(neighborSolution <= m_cCurrentSolution){
+					return;
+				}
+			}
+		}
+		//std::cout << "["<< i <<"]" << neighborSolution << std::endl;
 	}
+
+
 }
 
 
@@ -280,11 +419,21 @@ void HeuristicCore::ComputeExchangeNeighborhood() {
 	/*Compute all the possible swaps of an element with his successor*/
 	for(unsigned int i=2; i<m_cCurrentSolution.GetTour().size(); i++){
 		for(unsigned int j=1; j<i; j++){
-			CandidateSolution neighborSolution(m_cCurrentSolution);
+			CandidateSolution neighborSolution(m_cCurrentSolution.GetTour());
 			neighborSolution.SwapSolutionComponents(j,i);
 			ComputeTourLengthAndConstraintsViolations(neighborSolution);
 			//std::cout << "["<< i << "," << j << "]" << neighborSolution << std::endl;
 			m_listSolutionNeighborhood.push_back(neighborSolution);
+			if(m_eSolutionUpdate == FIRST_IMPROVEMENT){
+				if(neighborSolution < m_cCurrentSolution){
+					return;
+				}
+				else{
+					if(neighborSolution <= m_cCurrentSolution){
+						return;
+					}
+				}
+			}
 		}
 	}
 }
@@ -300,11 +449,21 @@ void HeuristicCore::ComputeInsertNeighborhood() {
 			if( i == j || j == i-1 ){
 				continue;
 			}
-				CandidateSolution neighborSolution(m_cCurrentSolution);
+				CandidateSolution neighborSolution(m_cCurrentSolution.GetTour());
 				neighborSolution.InsertSolutionComponent(i,j);
 				ComputeTourLengthAndConstraintsViolations(neighborSolution);
 				//std::cout << "["<< i << "," << j << "]" << neighborSolution << std::endl;
 				m_listSolutionNeighborhood.push_back(neighborSolution);
+				if(m_eSolutionUpdate == FIRST_IMPROVEMENT){
+					if(neighborSolution < m_cCurrentSolution){
+						return;
+					}
+					else{
+						if(neighborSolution <= m_cCurrentSolution){
+							return;
+						}
+					}
+				}
 		}
 	}
 }
@@ -343,6 +502,7 @@ void HeuristicCore::UpdateSolutionFirstImprovement() {
 		else{
 			if((*itList) <= m_cCurrentSolution && itFirst == m_listSolutionNeighborhood.end()){
 				itFirst = itList;
+				isEvaluationImproved = true;
 			}
 			++itList;
 		}
@@ -362,13 +522,6 @@ void HeuristicCore::UpdateSolutionFirstImprovement() {
 	}
 }
 
-void HeuristicCore::UpdateListTourDistances() {
-	unsigned int i=0;
-	for(; i<m_cCurrentSolution.GetTour().size()-1;i++){
-		m_vecTourDistances.at(i) = m_vecDistanceMatrix.at(m_cCurrentSolution.GetTour().at(i)).at(m_cCurrentSolution.GetTour().at(i+1));
-	}
-	m_vecTourDistances.at(i) = m_vecDistanceMatrix.at(m_cCurrentSolution.GetTour().at(i)).at(m_cCurrentSolution.GetTour().at(0));
-}
 
 
 
@@ -379,7 +532,7 @@ void HeuristicCore::UpdateListTourDistances() {
       (SIDE)EFFECTS:  Store the computed values in the corresponding attributes of the candidateSolution object passed as parameter.
 */
 void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int i, unsigned int j) {
-	unsigned int currentTourLength = m_cCurrentSolution.GetTourDuration();
+	/*unsigned int currentTourLength = m_cCurrentSolution.GetTourDuration();
 	unsigned int distanceAccumulator = 0;
 	switch (m_eNeighborhoodType) {
 			case EXCHANGE:
@@ -399,7 +552,7 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsign
 				break;
 			default:
 				break;
-		}
+		}*/
 
 		/**Compute Tour Length
 		for(unsigned int i=0; i<candidateSolution.GetTour().size()-1;i++){

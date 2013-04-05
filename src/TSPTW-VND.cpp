@@ -49,15 +49,9 @@
 #include "HeuristicCore.h"
 #include "CommonDefs.h"
 
-#define FIRST_IMPROVEMENT_FLAG "first";
-#define BEST_IMPROVEMENT_FLAG "best";
-#define TRANSPOSE_FLAG "transpose";
-#define EXCHANGE_FLAG "exchange";
-#define INSERT_FLAG "insert";
 
-#define DEFAULT_INIT_FUNCTION RANDOM;
-#define DEFAULT_NEIGHBORHOOD_TYPE INSERT;
-#define DEFAULT_SOLUTION_UPDATE FIRST_IMPROVEMENT;
+#define DEFAULT_NEIGHBORHOOD_CHAIN TRANSPOSE_EXCHANGE_INSERT;
+#define DEFAULT_VND_TYPE STANDARD_VND;
 #define DEFAULT_RUNS 1;
 #define DEFAULT_SEED 0.0f;
 #define DEFAULT_BEST_KNOWN_SOLUTION INT_MAX;
@@ -78,14 +72,13 @@ int main (int argc, char **argv)
 	int c;
 	char* inputFileName=NULL;
 	char* seedsFileName=NULL;
-	ENeighborhoodType neighborhoodType=DEFAULT_NEIGHBORHOOD_TYPE;
-	EInitFunction initFunction=DEFAULT_INIT_FUNCTION;
-	ESolutionUpdate solutionUpdate=DEFAULT_SOLUTION_UPDATE;
+	ENeighborhoodChain neighborhoodChain = DEFAULT_NEIGHBORHOOD_CHAIN;
+	EVNDType vndType=DEFAULT_VND_TYPE;
 	unsigned int runs=DEFAULT_RUNS;
 	unsigned int bestKnownSolution = DEFAULT_BEST_KNOWN_SOLUTION;
-	bool setInitFunction=false;
+	bool setVNDType=false;
 	bool setPivotingRule=false;
-	bool setNeighborhood=false;
+	bool setNeighborhoodChain=false;
 
 
 
@@ -100,14 +93,11 @@ int main (int argc, char **argv)
 					{"brief",   no_argument,       &verbose_flag, 0},
 					/* These options don't set a flag.
                   We distinguish them by their indices. */
-					{"first-imp",     no_argument,       0, 'f'},
-					{"best-imp",  no_argument,       0, 'b'},
-					{"transpose",     no_argument,       0, 't'},
-					{"exchange",  no_argument,       0, 'e'},
-					{"insert",  no_argument,       0, 'n'},
+					{"standard",     no_argument,       0, 't'},
+					{"piped",  no_argument,       0, 'p'},
+					{"TEI",     no_argument,       0, 'a'},
+					{"TIE",  no_argument,       0, 'b'},
 					{"input",    required_argument, 0, 'i'},
-					{"random",     no_argument,       0, 'd'},
-					{"heuristic",  no_argument,       0, 'h'},
 					{"runs",  optional_argument,       0, 'r'},
 					{"seed",  optional_argument,       0, 's'},
 					{"known-best",  optional_argument,       0, 'k'},
@@ -116,7 +106,7 @@ int main (int argc, char **argv)
 			/* getopt_long stores the option index here. */
 			int option_index = 0;
 
-			c = getopt_long (argc, argv, "fbteni:dhr:s:k:",
+			c = getopt_long (argc, argv, "tpabi:r:s:k:",
 					long_options, &option_index);
 
 			/* Detect the end of the options. */
@@ -135,86 +125,50 @@ int main (int argc, char **argv)
 				printf ("\n");
 				break;
 
-			case 'd':
-				if(!setInitFunction){
-					initFunction = RANDOM;
-					setInitFunction=true;
+			case 't':
+				if(!setVNDType){
+					vndType = STANDARD_VND;
+					setVNDType=true;
 				}
 				else{
-					std::cerr << "[Error] - Multiple initialization functions chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Multiple VND types chosen." << std::endl << std::endl;
 					usage();
 					exit(-4);
 				}
 				break;
 
-			case 'h':
-				if(!setInitFunction){
-					initFunction = HEURISTIC;
-					setInitFunction = true;
+			case 'p':
+				if(!setVNDType){
+					vndType = PIPED_VND;
+					setVNDType = true;
 				}
 				else{
-					std::cerr << "[Error] - Multiple initialization functions chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Multiple VND types chosen." << std::endl << std::endl;
 					usage();
 					exit(-4);
 				}
 				break;
 
 
-			case 'f':
-				if(!setPivotingRule){
-					solutionUpdate = FIRST_IMPROVEMENT;
-					setPivotingRule=true;
+			case 'a':
+				if(!setNeighborhoodChain){
+					neighborhoodChain = TRANSPOSE_EXCHANGE_INSERT;
+					setNeighborhoodChain = true;
 				}
 				else{
-					std::cerr << "[Error] - Multiple pivoting rules chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Multiple neighborhood chains chosen." << std::endl << std::endl;
 					usage();
-					exit(-2);
+					exit(-3);
 				}
 				break;
 
 			case 'b':
-				if(!setPivotingRule){
-					solutionUpdate = BEST_IMPROVEMENT;
-					setPivotingRule=true;
+				if(!setNeighborhoodChain){
+					neighborhoodChain = TRANSPOSE_INSERT_EXCHANGE;
+					setNeighborhoodChain = true;
 				}
 				else{
-					std::cerr << "[Error] - Multiple pivoting rules chosen." << std::endl << std::endl;
-					usage();
-					exit(-2);
-				}
-				break;
-
-			case 't':
-				if(!setNeighborhood){
-					neighborhoodType = TRANSPOSE;
-					setNeighborhood = true;
-				}
-				else{
-					std::cerr << "[Error] - Multiple neighborhood types chosen." << std::endl << std::endl;
-					usage();
-					exit(-3);
-				}
-				break;
-
-			case 'e':
-				if(!setNeighborhood){
-					neighborhoodType = EXCHANGE;
-					setNeighborhood = true;
-				}
-				else{
-					std::cerr << "[Error] - Multiple neighborhood types chosen." << std::endl << std::endl;
-					usage();
-					exit(-3);
-				}
-				break;
-
-			case 'n':
-				if(!setNeighborhood){
-					neighborhoodType = INSERT;
-					setNeighborhood = true;
-				}
-				else{
-					std::cerr << "[Error] - Multiple neighborhood types chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Multiple neighborhood chains chosen." << std::endl << std::endl;
 					usage();
 					exit(-3);
 				}
@@ -304,51 +258,10 @@ int main (int argc, char **argv)
 		}
 
 	std::cout << "Solver parameters:" << std::endl;
-
 	std::cout << "\tInstance: " << inputFileName << std::endl;
-
-	std::cout << "\tInitialization function: ";
-	switch (initFunction) {
-	case RANDOM:
-		std::cout << "Random" << std::endl;
-		break;
-	case HEURISTIC:
-		std::cout << "Heuristic" << std::endl;
-		break;
-	default:
-		std::cout << " " << std::endl;
-		break;
-	}
-
-	std::cout << "\tNeighborhood: ";
-	switch (neighborhoodType) {
-	case EXCHANGE:
-		std::cout << "Exchange" << std::endl;
-		break;
-	case TRANSPOSE:
-		std::cout << "Transpose" << std::endl;
-		break;
-	case INSERT:
-		std::cout << "Insert" << std::endl;
-		break;
-	default:
-		std::cout << "" << std::endl;
-		break;
-	}
-
-	std::cout << "\tPivoting rule: ";
-	switch (solutionUpdate) {
-	case BEST_IMPROVEMENT:
-		std::cout << "Best improvement" << std::endl;
-		break;
-	case FIRST_IMPROVEMENT:
-		std::cout << "First improvement" << std::endl;
-		break;
-	default:
-		std::cout << "" << std::endl;
-		break;
-	}
-
+	std::cout << "\tInitialization function: Random" << std::endl;
+	std::cout << "\tNeighborhood: Transpose" << std::endl;
+	std::cout << "\tPivoting rule: First improvement" << std::endl;
 	std::cout << "\tSeeds file: " << seedsFileName << std::endl;
 	std::cout << "\tRuns: " << runs << std::endl;
 	std::cout << "\tBest known solution: " << bestKnownSolution << std::endl;
@@ -365,14 +278,13 @@ int main (int argc, char **argv)
 			HeuristicCore solverCore(instanceReader.GetDistanceMatrix(),
 										 instanceReader.GetTimeWindows(),
 										 instanceReader.GetCities(),
-										 initFunction,
-										 neighborhoodType,
-										 solutionUpdate,
+										 vndType,
+										 neighborhoodChain,
 										 instanceReader.GetSeeds(),
 										 runs,
 										 inputFileName,
 										 bestKnownSolution);
-			solverCore.RunII();
+			solverCore.RunVND();
 			return EXIT_SUCCESS;
 			exit(0);
 		}
