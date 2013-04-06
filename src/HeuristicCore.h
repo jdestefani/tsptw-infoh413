@@ -79,7 +79,9 @@ public:
 				  m_fRunTime(0),
 				  m_unRuns(runs),
 				  m_wriResultsWriter(input_filename,best_known_solution,neighborhood_type,solution_update),
-				  m_isLocalOptimum(false){
+				  m_bIsLocalOptimum(false),
+				  m_bIsImproved(false),
+				  m_sBestComponentExchange(0,0,0,0){
 	}
 
 	HeuristicCore(const std::vector<std::vector<unsigned int> >& vec_distance_matrix,
@@ -105,7 +107,9 @@ public:
 					  m_fRunTime(0),
 					  m_unRuns(runs),
 					  m_wriResultsWriter(input_filename,best_known_solution,vnd_type,neighborhood_chain),
-					  m_isLocalOptimum(false){
+					  m_bIsLocalOptimum(false),
+					  m_bIsImproved(false),
+					  m_sBestComponentExchange(0,0,0,0){
 		}
 
 
@@ -153,6 +157,29 @@ public:
 
 private:
 
+	struct SComponentExchange{
+					unsigned int firstElement;
+					unsigned int secondElement;
+					unsigned int tourDuration;
+					unsigned int constraintViolations;
+
+					SComponentExchange(unsigned int first_element, unsigned int second_element, unsigned int tour_duration, unsigned int cv):
+						firstElement(first_element),
+						secondElement(second_element),
+						tourDuration(tour_duration),
+						constraintViolations(cv)
+						{}
+
+					void Reset(){
+						firstElement = 0;
+						secondElement = 0;
+						tourDuration = 0;
+						constraintViolations = 0;
+					}
+
+		};
+
+
 	EInitFunction m_eInitFunction;
 	ENeighborhoodType m_eNeighborhoodType;
 	ESolutionUpdate m_eSolutionUpdate;
@@ -164,8 +191,10 @@ private:
 
 	std::list<CandidateSolution> m_listSolutionNeighborhood;
 	CandidateSolution m_cCurrentSolution;
+	SComponentExchange m_sBestComponentExchange;
 	std::vector<ENeighborhoodType> m_vecNeighborhoodChain;
-	bool m_isLocalOptimum;
+	bool m_bIsLocalOptimum;
+	bool m_bIsImproved;
 	unsigned int m_unCities;
 	const std::vector<std::vector<unsigned int> >& m_vecDistanceMatrix;
 	const std::vector<TimeWindow>& m_vecTimeWindows;
@@ -183,6 +212,9 @@ private:
 	void UpdateSolutionFirstImprovement();
 	void UpdateListTourDistances();
 	void ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int,unsigned int);
+	void UpdateBestExchange(unsigned int,unsigned int,unsigned int,unsigned int);
+	void SwapTourComponents(std::vector<unsigned int>&,unsigned int,unsigned int);
+	void InsertTourComponent(std::vector<unsigned int>&,unsigned int,unsigned int);
 
 };
 

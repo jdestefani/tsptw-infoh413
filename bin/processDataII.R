@@ -1,6 +1,6 @@
-boxplotToPdf <- function(file,data,colNames,pdfHeight,pdfWidth){
-  pdf(file,height=pdfHeight,width=pdfWidth)
-  boxplot(as.data.frame(data),names=colNames)
+boxplotToPdf <- function(file,data,colNames,stringTitle,pdfHeight,pdfWidth){
+  pdf(file)
+  boxplot(as.data.frame(data),names=colNames,horizontal=TRUE,main=stringTitle,las=1)
   dev.off()
 }
 
@@ -27,6 +27,7 @@ computeStatistics <- function(inputFile){
 }
 
 library(MASS)
+
 args <- commandArgs(trailingOnly = TRUE)
 print(args)
 # trailingOnly=TRUE means that only arguments after --args are returned
@@ -53,12 +54,12 @@ insertBestResults <- computeStatistics(insertBestFile)
 instanceName <- transposeFirstResults[[1]]
 
 #Extract algorithm types to label columns in data frame
-columnNames <- cbind(transposeFirstResults[[2]],
-                     exchangeFirstResults[[2]],
-                     insertFirstResults[[2]],
-                     transposeBestResults[[2]],
-                     exchangeBestResults[[2]],
-                     insertBestResults[[2]])
+columnNames <- cbind("t.f",
+                     "e.f",
+                     "i.f",
+                     "t.b",
+                     "e.b",
+                     "i.b")
 
 #Extract data for PRDP plots
 PRDPBoxPlotData <- list(transposeFirstResults[[4]][1],
@@ -69,7 +70,6 @@ PRDPBoxPlotData <- list(transposeFirstResults[[4]][1],
                          insertBestResults[[4]][1])
         
 
-print(str(transposeFirstResults[[4]][[2]]))
 # Statistical tests
 #Compare best vs. ﬁrst-improvement for each neighborhood
 transposeWilcoxon <- wilcox.test(transposeFirstResults[[4]][[2]],transposeBestResults[[4]][[2]],paired=TRUE)
@@ -79,11 +79,6 @@ insertWilcoxon <- wilcox.test(insertFirstResults[[4]][[2]],insertBestResults[[4]
 firstWilcoxon <- wilcox.test(exchangeFirstResults[[4]][[2]],insertFirstResults[[4]][[2]],paired=TRUE)
 bestWilcoxon <- wilcox.test(exchangeBestResults[[4]][[2]],insertBestResults[[4]][[2]],paired=TRUE)
 
-print(transposeWilcoxon)
-print(exchangeWilcoxon)
-print(insertWilcoxon)
-print(firstWilcoxon)
-print(bestWilcoxon)
 
 #Extract data for CpuRunTime
 CpuTimeBoxPlotData <- list(transposeFirstResults[[4]][2],
@@ -97,8 +92,8 @@ CpuTimeBoxPlotData <- list(transposeFirstResults[[4]][2],
 #colnames(CpuTimeBoxPlotData) <- columnNames
 
 #Box plots
-boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames)
-boxplotToPdf(paste(instanceName,"CpuTime",sep="-"),CpuTimeBoxPlotData,columnNames)
+boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames,paste(instanceName,"PRPD",sep="-"))
+boxplotToPdf(paste(instanceName,"CpuTime",sep="-"),CpuTimeBoxPlotData,columnNames,paste(instanceName,"Runtime",sep="-"))
 
 #Write statistics in separate files for each algorithm
 write(transposeFirstResults[[3]],transposeFirstResults[[2]],append=TRUE)
@@ -107,3 +102,14 @@ write(insertFirstResults[[3]],insertFirstResults[[2]],append=TRUE)
 write(transposeBestResults[[3]],transposeBestResults[[2]],append=TRUE)
 write(exchangeBestResults[[3]],exchangeBestResults[[2]],append=TRUE)
 write(insertBestResults[[3]],insertBestResults[[2]],append=TRUE)
+
+write("First vs best - Transpose - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(transposeWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)
+write("First vs best - Exchange - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(exchangeWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)
+write("First vs best - Insert - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(insertWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)
+write("Exchnage vs Insert - First - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(firstWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)
+write("Exchange vs Insert - Best - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(bestWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)

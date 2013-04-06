@@ -4,8 +4,12 @@
 # $3 = Seeds output file
 
 createReportFile() {
-	touch $1
-	echo "Instance	Infeasible	mean(PRDP)	mean(CpuTime)" > $1
+	if [ ! -f $1 ]
+	then
+		touch $1
+		echo "Instance	Infeasible	mean(PRDP)	mean(CpuTime)" > $1
+	fi
+	
 }
 
 generateRandomSeeds() {
@@ -50,27 +54,32 @@ bestSolutions[n80w200.003.txt]=466
 bestSolutions[n80w200.004.txt]=526
 bestSolutions[n80w200.005.txt]=440
 
-
-createReportFile "transpose.first"
-createReportFile "exchange.first"
-createReportFile "insert.first"
-createReportFile "transpose.best"
-createReportFile "exchange.best"
-createReportFile "insert.best"
+createReportFile "transpose.first" 
+createReportFile "exchange.first" 
+createReportFile "insert.first" 
+createReportFile "transpose.best" 
+createReportFile "exchange.best" 
+createReportFile "insert.best" 
 
 generateRandomSeeds $2 $3
 
 instanceDir="./instances/"
 instanceName=$1
 
-
+echo "TRANSPOSE - FIRST IMPROVEMENT"
 ./TSPTW-II --random --transpose --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+echo "EXCHANGE - FIRST IMPROVEMENT"
 ./TSPTW-II --random --exchange --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+echo "INSERT - FIRST IMPROVEMENT"
 ./TSPTW-II --random --insert --first-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+echo "TRANSPOSE - BEST IMPROVEMENT"
 ./TSPTW-II --random --transpose --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+echo "EXCHANGE - BEST IMPROVEMENT"
 ./TSPTW-II --random --exchange --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+echo "INSERT - BEST IMPROVEMENT"
 ./TSPTW-II --random --insert --best-imp --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
 
 
-#Rscript processDataII.R transpose.first.$instanceName exchange.first.$instanceName insert.first.$instanceName transpose.best.$instanceName exchange.best.$instanceName insert.best.$instanceName
+Rscript processDataII.R transpose.first.$instanceName exchange.first.$instanceName insert.first.$instanceName transpose.best.$instanceName exchange.best.$instanceName insert.best.$instanceName
+
 

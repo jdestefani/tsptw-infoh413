@@ -1,6 +1,6 @@
 CXX = g++
 
-COMPILEFLAGS = -c
+COMPILEFLAGS = -c -g
 
 CXXFLAGS = -O2 -g -Wall -fmessage-length=0 -lrt
 INCLUDEFLAGS = -I 

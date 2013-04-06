@@ -85,20 +85,27 @@ void HeuristicCore::IterativeImprovement() {
 	struct timespec sEndTime;
 	unsigned int iterations = 0;
 
+	m_sBestComponentExchange.Reset();
+	m_bIsLocalOptimum = false;
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
 	GenerateInitialSolution();
 	//std::cout << iterations << ") " << m_cCurrentSolution;
 	ComputeNeighborhood();
 
-	//std::cout << m_cCurrentSolution;
-	while(!IsLocalOptimum()){
-		/*1. Select solution from neighborhood*/
+	while(!m_bIsLocalOptimum){
+			//1. Select solution from neighborhood
+			ComputeNeighborhood();
+			iterations++;
+	}
+
+	/*while(!IsLocalOptimum()){
+		//1. Select solution from neighborhood
 		UpdateSolution();
-		/*2. Generate neighborhood*/
+		//2. Generate neighborhood
 		ComputeNeighborhood();
 		iterations++;
-	}
+	}*/
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
 	ComputeRunTime(sBeginTime,sEndTime);
 	std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
@@ -143,27 +150,49 @@ void HeuristicCore::StandardVariableNeighborhoodDescent() {
 	unsigned int currentNeighborhood = 0;
 
 	GenerateInitialSolution();
+		ComputeNeighborhood();
+		while(currentNeighborhood < m_vecNeighborhoodChain.size()){
+			//std::cout << m_cCurrentSolution;
+			/*If a first improving neighbor is not found*/
+			while(!m_bIsLocalOptimum){
+				if(currentNeighborhood != 0){
+					currentNeighborhood = 0;
+					m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
+				}
+				/*1. Select solution from neighborhood*/
+				/*2. Generate neighborhood*/
+				ComputeNeighborhood();
+				iterations++;
+			}
+			/*Change neighborhood type until the chain is terminated*/
+			currentNeighborhood++;
+			m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
+			ComputeNeighborhood();
+		}
+		std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
+
+	/*GenerateInitialSolution();
 	ComputeNeighborhood();
 	while(currentNeighborhood < m_vecNeighborhoodChain.size()){
 		//std::cout << m_cCurrentSolution;
-		/*If a first improving neighbor is not found*/
+		If a first improving neighbor is not found
 		while(!IsLocalOptimum()){
 			if(currentNeighborhood != 0){
 				currentNeighborhood = 0;
 				m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
 			}
-			/*1. Select solution from neighborhood*/
+			1. Select solution from neighborhood
 			UpdateSolutionFirstImprovement();
-			/*2. Generate neighborhood*/
+			2. Generate neighborhood
 			ComputeNeighborhood();
 			iterations++;
 		}
-		/*Change neighborhood type until the chain is terminated*/
+		Change neighborhood type until the chain is terminated
 		currentNeighborhood++;
 		m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
 		ComputeNeighborhood();
 	}
-	std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
+	std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;*/
 }
 
 /*
@@ -181,20 +210,35 @@ void HeuristicCore::PipedVariableNeighborhoodDescent() {
 	ComputeNeighborhood();
 
 	while(currentNeighborhood < m_vecNeighborhoodChain.size()){
+			//std::cout << m_cCurrentSolution;
+			/*If a first improving neighbor is not found*/
+			while(!m_bIsLocalOptimum){
+				/*1. Select solution from neighborhood*/
+				/*2. Generate neighborhood*/
+				ComputeNeighborhood();
+				iterations++;
+			}
+			/*Change neighborhood type until the chain is terminated*/
+			currentNeighborhood++;
+			m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
+			ComputeNeighborhood();
+		}
+
+	/*while(currentNeighborhood < m_vecNeighborhoodChain.size()){
 		//std::cout << m_cCurrentSolution;
-		/*If a first improving neighbor is not found*/
+		If a first improving neighbor is not found
 		while(!IsLocalOptimum()){
-			/*1. Select solution from neighborhood*/
+			1. Select solution from neighborhood
 			UpdateSolutionFirstImprovement();
-			/*2. Generate neighborhood*/
+			2. Generate neighborhood
 			ComputeNeighborhood();
 			iterations++;
 		}
-		/*Change neighborhood type until the chain is terminated*/
+		Change neighborhood type until the chain is terminated
 		currentNeighborhood++;
 		m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
 		ComputeNeighborhood();
-	}
+	}*/
 	std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
 }
 
@@ -326,6 +370,8 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 	unsigned int travelTimeAccumulator = 0;
 	unsigned int arrivalTimeAccumulator = 0;
 	unsigned int i=0;
+	unsigned int constraintViolations = 0;
+	std::vector<unsigned int> currentTour = candidateSolution.GetTour();
 
 	/**Reset data*/
 	candidateSolution.SetTourDuration(0);
@@ -335,33 +381,34 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 	for(; i<candidateSolution.GetTour().size();i++){
 		/**Compute Constraint Violations and Waiting Times*/
 		/*If the agent arrives in a city before the corresponding time window, delay it until the time window starts*/
-		if(arrivalTimeAccumulator < (m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetLowerBound())){
-			arrivalTimeAccumulator = m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetLowerBound();
+		if(arrivalTimeAccumulator < (m_vecTimeWindows.at(currentTour.at(i)).GetLowerBound())){
+			arrivalTimeAccumulator = m_vecTimeWindows.at(currentTour.at(i)).GetLowerBound();
 		}
 		/*If the window constraint is not met, add a constraint violation*/
-		else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).GetUpperBound())){
-			candidateSolution.SetConstraintViolations(candidateSolution.GetConstraintViolations()+1);
+		else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(currentTour.at(i)).GetUpperBound())){
+			constraintViolations++;
 		}
 		if(i < candidateSolution.GetTour().size()-1 ){
-			arrivalTimeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(i+1));
-			travelTimeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(i+1));
+			arrivalTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(i)).at(currentTour.at(i+1));
+			travelTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(i)).at(currentTour.at(i+1));
 		}
 		else{
-			arrivalTimeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(0));
-			travelTimeAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(0));
+			arrivalTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(i)).at(currentTour.at(0));
+			travelTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(i)).at(currentTour.at(0));
 		}
 	}
 	/*Complete Tour*/
 	/*If the agent arrives in a city before the corresponding time window, delay it until the time window starts*/
-	if(arrivalTimeAccumulator < (m_vecTimeWindows.at(candidateSolution.GetTour().at(0)).GetLowerBound())){
-		arrivalTimeAccumulator = m_vecTimeWindows.at(candidateSolution.GetTour().at(0)).GetLowerBound();
+	if(arrivalTimeAccumulator < (m_vecTimeWindows.at(currentTour.at(0)).GetLowerBound())){
+		arrivalTimeAccumulator = m_vecTimeWindows.at(currentTour.at(0)).GetLowerBound();
 	}
 	/*If the window constraint is not met, add a constraint violation*/
-	else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(candidateSolution.GetTour().at(0)).GetUpperBound())){
-		candidateSolution.SetConstraintViolations(candidateSolution.GetConstraintViolations()+1);
+	else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(currentTour.at(0)).GetUpperBound())){
+		constraintViolations++;
 	}
 
 	candidateSolution.SetTourDuration(travelTimeAccumulator);
+	candidateSolution.SetConstraintViolations(constraintViolations);
 	//candidateSolution.ComputeSolutionEvaluation();
 
 }
@@ -384,11 +431,43 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 }
 
 void HeuristicCore::ComputeTransposeNeighborhood() {
-	/*Erase all the neighborhood list*/
-	m_listSolutionNeighborhood.erase(m_listSolutionNeighborhood.begin(),m_listSolutionNeighborhood.end());
-	/*Possibly consider a differential update of the neighborhood*/
 
-	/*Compute all the possible swaps of an element with his successor*/
+	m_sBestComponentExchange.firstElement = 0;
+	m_sBestComponentExchange.secondElement = 0;
+	m_sBestComponentExchange.tourDuration = m_cCurrentSolution.GetTourDuration();
+	m_sBestComponentExchange.constraintViolations = m_cCurrentSolution.GetConstraintViolations();
+	m_bIsImproved = false;
+
+
+	for(unsigned int i=2; i<m_cCurrentSolution.GetTour().size(); i++){
+		ComputeTourLengthAndConstraintsViolationsDifferential(i-1,i);
+		if(m_bIsImproved){
+			if(m_eSolutionUpdate == FIRST_IMPROVEMENT){
+				m_cCurrentSolution.SwapSolutionComponents(m_sBestComponentExchange.firstElement,m_sBestComponentExchange.secondElement);
+				m_cCurrentSolution.SetTourDuration(m_sBestComponentExchange.tourDuration);
+				m_cCurrentSolution.SetConstraintViolations(m_sBestComponentExchange.constraintViolations);
+				return;
+			}
+		}
+	}
+
+	if(m_bIsImproved){
+		if(m_eSolutionUpdate == BEST_IMPROVEMENT){
+			m_cCurrentSolution.SwapSolutionComponents(m_sBestComponentExchange.firstElement,m_sBestComponentExchange.secondElement);
+			m_cCurrentSolution.SetTourDuration(m_sBestComponentExchange.tourDuration);
+			m_cCurrentSolution.SetConstraintViolations(m_sBestComponentExchange.constraintViolations);
+		}
+	}
+	else{
+		m_bIsLocalOptimum = true;
+
+	}
+
+	/*Erase all the neighborhood list
+	m_listSolutionNeighborhood.erase(m_listSolutionNeighborhood.begin(),m_listSolutionNeighborhood.end());
+	Possibly consider a differential update of the neighborhood
+
+	Compute all the possible swaps of an element with his successor
 	for(unsigned int i=2; i<m_cCurrentSolution.GetTour().size(); i++){
 		CandidateSolution neighborSolution(m_cCurrentSolution.GetTour());
 		neighborSolution.SwapSolutionComponents(i-1,i);
@@ -406,17 +485,49 @@ void HeuristicCore::ComputeTransposeNeighborhood() {
 		}
 		//std::cout << "["<< i <<"]" << neighborSolution << std::endl;
 	}
-
+*/
 
 }
 
 
 void HeuristicCore::ComputeExchangeNeighborhood() {
-	/*Erase all the neighborhood list*/
-	m_listSolutionNeighborhood.erase(m_listSolutionNeighborhood.begin(),m_listSolutionNeighborhood.end());
-	/*Possibly consider a differential update of the neighborhood*/
 
-	/*Compute all the possible swaps of an element with his successor*/
+	m_sBestComponentExchange.firstElement = 0;
+	m_sBestComponentExchange.secondElement = 0;
+	m_sBestComponentExchange.tourDuration = m_cCurrentSolution.GetTourDuration();
+	m_sBestComponentExchange.constraintViolations = m_cCurrentSolution.GetConstraintViolations();
+	m_bIsImproved = false;
+
+	for(unsigned int i=2; i<m_cCurrentSolution.GetTour().size(); i++){
+			for(unsigned int j=1; j<i; j++){
+				ComputeTourLengthAndConstraintsViolationsDifferential(j,i);
+				if(m_bIsImproved){
+					if(m_eSolutionUpdate == FIRST_IMPROVEMENT){
+						m_cCurrentSolution.SwapSolutionComponents(m_sBestComponentExchange.firstElement,m_sBestComponentExchange.secondElement);
+						m_cCurrentSolution.SetTourDuration(m_sBestComponentExchange.tourDuration);
+						m_cCurrentSolution.SetConstraintViolations(m_sBestComponentExchange.constraintViolations);
+						return;
+					}
+				}
+			}
+	}
+
+	if(m_bIsImproved){
+		if(m_eSolutionUpdate == BEST_IMPROVEMENT){
+			m_cCurrentSolution.SwapSolutionComponents(m_sBestComponentExchange.firstElement,m_sBestComponentExchange.secondElement);
+			m_cCurrentSolution.SetTourDuration(m_sBestComponentExchange.tourDuration);
+			m_cCurrentSolution.SetConstraintViolations(m_sBestComponentExchange.constraintViolations);
+		}
+	}
+	else{
+		m_bIsLocalOptimum = true;
+
+	}
+	/*//Erase all the neighborhood list
+	m_listSolutionNeighborhood.erase(m_listSolutionNeighborhood.begin(),m_listSolutionNeighborhood.end());
+	//Possibly consider a differential update of the neighborhood
+
+	//Compute all the possible swaps of an element with his successor
 	for(unsigned int i=2; i<m_cCurrentSolution.GetTour().size(); i++){
 		for(unsigned int j=1; j<i; j++){
 			CandidateSolution neighborSolution(m_cCurrentSolution.GetTour());
@@ -435,15 +546,50 @@ void HeuristicCore::ComputeExchangeNeighborhood() {
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void HeuristicCore::ComputeInsertNeighborhood() {
-	/*Erase all the neighborhood list*/
-	m_listSolutionNeighborhood.erase(m_listSolutionNeighborhood.begin(),m_listSolutionNeighborhood.end());
-	/*Possibly consider a differential update of the neighborhood*/
+	m_sBestComponentExchange.firstElement = 0;
+	m_sBestComponentExchange.secondElement = 0;
+	m_sBestComponentExchange.tourDuration = m_cCurrentSolution.GetTourDuration();
+	m_sBestComponentExchange.constraintViolations = m_cCurrentSolution.GetConstraintViolations();
+	m_bIsImproved = false;
+
 
 	/*Compute all the possible swaps of an element with his successor*/
+	for(unsigned int i=1; i<m_cCurrentSolution.GetTour().size(); i++){
+		for(unsigned int j=1; j<m_cCurrentSolution.GetTour().size(); j++){
+			if( i == j || j == i-1 ){
+				continue;
+			}
+			ComputeTourLengthAndConstraintsViolationsDifferential(i,j);
+			if(m_bIsImproved){
+				if(m_eSolutionUpdate == FIRST_IMPROVEMENT){
+					m_cCurrentSolution.InsertSolutionComponent(m_sBestComponentExchange.firstElement,m_sBestComponentExchange.secondElement);
+					m_cCurrentSolution.SetTourDuration(m_sBestComponentExchange.tourDuration);
+					m_cCurrentSolution.SetConstraintViolations(m_sBestComponentExchange.constraintViolations);
+					return;
+				}
+			}
+		}
+	}
+	if(m_bIsImproved){
+		if(m_eSolutionUpdate == BEST_IMPROVEMENT){
+			m_cCurrentSolution.InsertSolutionComponent(m_sBestComponentExchange.firstElement,m_sBestComponentExchange.secondElement);
+			m_cCurrentSolution.SetTourDuration(m_sBestComponentExchange.tourDuration);
+			m_cCurrentSolution.SetConstraintViolations(m_sBestComponentExchange.constraintViolations);
+		}
+	}
+	else{
+		m_bIsLocalOptimum = true;
+
+	}
+	/*Erase all the neighborhood list
+	m_listSolutionNeighborhood.erase(m_listSolutionNeighborhood.begin(),m_listSolutionNeighborhood.end());
+	Possibly consider a differential update of the neighborhood
+
+	Compute all the possible swaps of an element with his successor
 	for(unsigned int i=1; i<m_cCurrentSolution.GetTour().size(); i++){
 		for(unsigned int j=1; j<m_cCurrentSolution.GetTour().size(); j++){
 			if( i == j || j == i-1 ){
@@ -465,7 +611,7 @@ void HeuristicCore::ComputeInsertNeighborhood() {
 					}
 				}
 		}
-	}
+	}*/
 }
 
 void HeuristicCore::UpdateSolutionBestImprovement() {
@@ -532,40 +678,122 @@ void HeuristicCore::UpdateSolutionFirstImprovement() {
       (SIDE)EFFECTS:  Store the computed values in the corresponding attributes of the candidateSolution object passed as parameter.
 */
 void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int i, unsigned int j) {
-	/*unsigned int currentTourLength = m_cCurrentSolution.GetTourDuration();
-	unsigned int distanceAccumulator = 0;
-	switch (m_eNeighborhoodType) {
-			case EXCHANGE:
-				ComputeExchangeNeighborhood();
-				break;
+		unsigned int travelTimeAccumulator = 0;
+		unsigned int arrivalTimeAccumulator = 0;
+		unsigned int index=0;
+		unsigned int constraintViolations = 0;
+		std::vector<unsigned int> currentTour = m_cCurrentSolution.GetTour();
+
+		switch (m_eNeighborhoodType) {
 			case TRANSPOSE:
-				for(unsigned int k=0; k<i; k++){
-					distanceAccumulator+= m_vecTourDistances.at(k);
-				}
-				currentTourLength -= m_vecTourDistances.at(i-1);
-				currentTourLength -= m_vecTourDistances.at(j);
-				currentTourLength += m_vecDistanceMatrix.at(m_cCurrentSolution.GetTour().at(i)).at(m_cCurrentSolution.GetTour().at(j+1));
-				currentTourLength += m_vecDistanceMatrix.at(m_cCurrentSolution.GetTour().at(j)).at(m_cCurrentSolution.GetTour().at(i-1));
+			case EXCHANGE:
+				SwapTourComponents(currentTour,i,j);
 				break;
 			case INSERT:
-				ComputeInsertNeighborhood();
-				break;
+				InsertTourComponent(currentTour,i,j);
 			default:
 				break;
-		}*/
-
-		/**Compute Tour Length
-		for(unsigned int i=0; i<candidateSolution.GetTour().size()-1;i++){
-			*Compute Constraint Violations
-			if(!(m_vecTimeWindows.at(candidateSolution.GetTour().at(i)).InTimeWindowBoundsIncluded(distanceAccumulator))){
-				candidateSolution.SetConstraintViolations(candidateSolution.GetConstraintViolations()+1);
-			}
-			distanceAccumulator+=m_vecDistanceMatrix.at(candidateSolution.GetTour().at(i)).at(candidateSolution.GetTour().at(i+1));
 		}
-		Complete Tour
-		candidateSolution.SetTourLength(candidateSolution.GetTourLength()+m_vecDistanceMatrix.at(candidateSolution.GetTour().at(candidateSolution.GetTour().size())).at(candidateSolution.GetTour().at(0)));
-*/
+
+
+		/**Reset data*/
+		//m_cCurrentSolution.SetTourDuration(0);
+		//m_cCurrentSolution.SetConstraintViolations(0);
+
+		/**Compute Tour Length*/
+		for(; index<m_cCurrentSolution.GetTour().size();index++){
+
+			/**Compute Constraint Violations and Waiting Times*/
+			/*If the agent arrives in a city before the corresponding time window, delay it until the time window starts*/
+			if(arrivalTimeAccumulator < (m_vecTimeWindows.at(currentTour.at(index)).GetLowerBound())){
+				arrivalTimeAccumulator = m_vecTimeWindows.at(currentTour.at(index)).GetLowerBound();
+			}
+			/*If the window constraint is not met, add a constraint violation*/
+			else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(currentTour.at(index)).GetUpperBound())){
+				constraintViolations++;
+			}
+			if(index < currentTour.size()-1 ){
+				arrivalTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(index)).at(currentTour.at(index+1));
+				travelTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(index)).at(currentTour.at(index+1));
+			}
+			else{
+				arrivalTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(index)).at(currentTour.at(0));
+				travelTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(index)).at(currentTour.at(0));
+			}
+
+		}
+		/*Complete Tour*/
+		/*If the agent arrives in a city before the corresponding time window, delay it until the time window starts*/
+		if(arrivalTimeAccumulator < (m_vecTimeWindows.at(currentTour.at(0)).GetLowerBound())){
+			arrivalTimeAccumulator = m_vecTimeWindows.at(currentTour.at(0)).GetLowerBound();
+		}
+		/*If the window constraint is not met, add a constraint violation*/
+		else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(currentTour.at(0)).GetUpperBound())){
+			constraintViolations++;
+		}
+
+		UpdateBestExchange(i,j,constraintViolations,travelTimeAccumulator);
+		//candidateSolution.SetTourDuration(travelTimeAccumulator);
+		//candidateSolution.ComputeSolutionEvaluation();
+
 }
+
+void HeuristicCore::UpdateBestExchange(unsigned int i, unsigned int j, unsigned int constraint_violations,unsigned int travel_time_accumulator){
+			//Compare values with current solution and decide
+			if(constraint_violations < m_sBestComponentExchange.constraintViolations){
+				m_sBestComponentExchange.firstElement = i;
+				m_sBestComponentExchange.secondElement = j;
+				m_sBestComponentExchange.tourDuration = travel_time_accumulator;
+				m_sBestComponentExchange.constraintViolations = constraint_violations;
+	//			std::cout << std::endl <<"travelTimeAccumulator:" << travelTimeAccumulator << std::endl;
+	//			std::cout <<"constraintViolations:" << constraintViolations << std::endl;
+	//			std::cout <<"m_sBestComponentExchange:" << m_sBestComponentExchange.firstElement << " , " << m_sBestComponentExchange.secondElement << " : " << m_sBestComponentExchange.tourDuration << " , " << m_sBestComponentExchange.constraintViolations << std::endl;
+				if(!m_bIsImproved){
+					m_bIsImproved = true;
+				}
+			}
+			else if(constraint_violations == m_sBestComponentExchange.constraintViolations &&  travel_time_accumulator < m_sBestComponentExchange.tourDuration ){
+				m_sBestComponentExchange.firstElement = i;
+				m_sBestComponentExchange.secondElement = j;
+				m_sBestComponentExchange.tourDuration = travel_time_accumulator;
+				m_sBestComponentExchange.constraintViolations = constraint_violations;
+	//			std::cout << std::endl <<"travelTimeAccumulator:" << travelTimeAccumulator << std::endl;
+	//			std::cout <<"constraintViolations:" << constraintViolations << std::endl;
+	//			std::cout <<"m_sBestComponentExchange:" << m_sBestComponentExchange.firstElement << " , " << m_sBestComponentExchange.secondElement << " : " << m_sBestComponentExchange.tourDuration << " , " << m_sBestComponentExchange.constraintViolations << std::endl;
+				if(!m_bIsImproved){
+					m_bIsImproved = true;
+				}
+
+			}
+
+}
+
+void HeuristicCore::SwapTourComponents(std::vector<unsigned int>& tour,unsigned int firstIndex,unsigned int secondIndex) {
+	if(firstIndex != secondIndex){
+		unsigned int swapVariable = tour.at(secondIndex);
+		tour.at(secondIndex) = tour.at(firstIndex);
+		tour.at(firstIndex) = swapVariable;
+	}
+
+}
+
+void HeuristicCore::InsertTourComponent(std::vector<unsigned int>& tour,unsigned int city_index, unsigned int insertion_position) {
+	if(city_index != insertion_position){
+		unsigned int elementToInsert = tour.at(city_index);
+		if(insertion_position > city_index){
+			for(unsigned int i=city_index;i<insertion_position;i++){
+				tour.at(i) = tour.at(i+1);
+			}
+		}
+		else{
+			for(unsigned int i=city_index;i>insertion_position;i--){
+				tour.at(i) = tour.at(i-1);
+			}
+		}
+		tour.at(insertion_position) = elementToInsert;
+	}
+}
+
 
 /*
 void HeuristicCore::TestFunction() {
