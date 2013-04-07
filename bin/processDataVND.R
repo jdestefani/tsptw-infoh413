@@ -1,6 +1,6 @@
-boxplotToPdf <- function(file,data,colNames,pdfHeight,pdfWidth){
-  pdf(file,height=pdfHeight,width=pdfWidth)
-  boxplot(as.data.frame(data),names=colNames)
+boxplotToPdf <- function(file,data,colNames,stringTitle,pdfHeight,pdfWidth){
+  pdf(file)
+  boxplot(as.data.frame(data),names=colNames,horizontal=TRUE,main=stringTitle,las=1)
   dev.off()
 }
 
@@ -51,10 +51,10 @@ pipedTieResults <- computeStatistics(pipedTieFile)
 instanceName <- standardTeiResults[[1]]
 
 #Extract algorithm types to label columns in data frame
-columnNames <- cbind(standardTeiResults[[2]],
-                     standardTieResults[[2]],
-                     pipedTeiResults[[2]],
-                     pipedTieResults[[2]])
+columnNames <- cbind( "s.tei",
+					  "s.tie",
+					  "p.tei",
+					  "p.tie")
 
 #Extract data for PRDP plots
 PRDPBoxPlotData <- list(standardTeiResults[[4]][1],
@@ -71,10 +71,6 @@ pipedWilcoxon <- wilcox.test(pipedTeiResults[[4]][[2]],pipedTieResults[[4]][[2]]
 TeiWilcoxon <- wilcox.test(standardTeiResults[[4]][[2]],pipedTeiResults[[4]][[2]],paired=TRUE)
 TieWilcoxon <- wilcox.test(standardTieResults[[4]][[2]],pipedTieResults[[4]][[2]],paired=TRUE)
 
-print(standardWilcoxon)
-print(pipedWilcoxon)
-print(TeiWilcoxon)
-print(TieWilcoxon)
 
 #Extract data for CpuRunTime
 CpuTimeBoxPlotData <- list(standardTeiResults[[4]][2],
@@ -86,12 +82,21 @@ CpuTimeBoxPlotData <- list(standardTeiResults[[4]][2],
 #colnames(CpuTimeBoxPlotData) <- columnNames
 
 #Box plots
-boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames)
-boxplotToPdf(paste(instanceName,"CpuTime",sep="-"),CpuTimeBoxPlotData,columnNames)
+boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames,paste(instanceName,"PRPD",sep="-"))
+boxplotToPdf(paste(instanceName,"CpuTime",sep="-"),CpuTimeBoxPlotData,columnNames,paste(instanceName,"Runtime",sep="-"))
 
 #Write statistics in separate files for each algorithm
 write(standardTeiResults[[3]],standardTeiResults[[2]],append=TRUE)
 write(standardTieResults[[3]],standardTieResults[[2]],append=TRUE)
 write(pipedTeiResults[[3]],pipedTeiResults[[2]],append=TRUE)
 write(pipedTieResults[[3]],pipedTieResults[[2]],append=TRUE)
+
+write("Tei vs Tie - Standard - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(standardWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)
+write("Tei vs Tie - Piped - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(pipedWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)
+write("Standard vs Piped - Tei - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(TeiWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)
+write("Standard vs Piped - Tie - p-value:",paste(instanceName,"Tests",sep=""),append=TRUE)
+write(TieWilcoxon$p.value,paste(instanceName,"Tests",sep=""),append=TRUE)
 

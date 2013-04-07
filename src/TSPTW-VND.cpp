@@ -260,7 +260,30 @@ int main (int argc, char **argv)
 	std::cout << "Solver parameters:" << std::endl;
 	std::cout << "\tInstance: " << inputFileName << std::endl;
 	std::cout << "\tInitialization function: Random" << std::endl;
-	std::cout << "\tNeighborhood: Transpose" << std::endl;
+	std::cout << "\tNeighborhood chain: ";
+		switch (neighborhoodChain) {
+		case TRANSPOSE_EXCHANGE_INSERT:
+			std::cout << "Transpose-Exchange-Insert" << std::endl;
+			break;
+		case TRANSPOSE_INSERT_EXCHANGE:
+			std::cout << "Transpose-Insert-Exchange" << std::endl;
+			break;
+		default:
+			std::cout << " " << std::endl;
+			break;
+		}
+		std::cout << "\tVND type: ";
+		switch (vndType) {
+		case PIPED_VND:
+			std::cout << "Piped VND" << std::endl;
+			break;
+		case STANDARD_VND:
+			std::cout << "Standard VND" << std::endl;
+			break;
+		default:
+			std::cout << " " << std::endl;
+			break;
+		}
 	std::cout << "\tPivoting rule: First improvement" << std::endl;
 	std::cout << "\tSeeds file: " << seedsFileName << std::endl;
 	std::cout << "\tRuns: " << runs << std::endl;
@@ -319,15 +342,12 @@ void version(void)
 
 void usage(void)
 {
-  std::cout << "Usage: TSPTW-II [OPTIONS]..." << std::endl << std::endl;
+  std::cout << "Usage: TSPTW-VND [OPTIONS]..." << std::endl << std::endl;
   std::cout << "Flag \t\t Argument \t Description" << std::endl;
-  std::cout << "-d,--random \t [No] \t\t Generate random initial solution." << std::endl;
-  std::cout << "-h,--heuristic\t [No] \t\t Generate initial solution using heuristic." << std::endl;
-  std::cout << "-f,--first-imp \t [No] \t\t Use first improvement pivoting rule." << std::endl;
-  std::cout << "-b,--best-imp \t [No] \t\t Use best improvement pivoting rule." << std::endl;
-  std::cout << "-t,--transpose \t [No] \t\t Use transpose neighborhood." << std::endl;
-  std::cout << "-e,--exchange \t [No] \t\t Use exchange neighborhood." << std::endl;
-  std::cout << "-n,--insert \t [No] \t\t Use insert neighborhood." << std::endl;
+  std::cout << "-t,--standard \t [No] \t\t Use standard VND algorithm." << std::endl;
+  std::cout << "-p,--piped\t [No] \t\t Use piped VND algorithm." << std::endl;
+  std::cout << "-a,--TEI \t [No] \t\t Use Transpose-Exchange-Insert neighborhood chain." << std::endl;
+  std::cout << "-b,--TIE \t [No] \t\t Use Transpose-Insert-Exchange neighborhood chain." << std::endl;
   std::cout << "-i,--input\t [Req,Path] \t Path to instance to be given as input to the program" << std::endl;
   std::cout << "-r,--runs\t [Opt,Runs] \t Number of runs of the algorithm. 1 if omitted." << std::endl;
   std::cout << "-s,--seed\t [Req,Seed] \t Path to the file containing the list of seeds." << std::endl;

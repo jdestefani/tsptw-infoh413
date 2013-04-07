@@ -56,8 +56,8 @@ typedef enum {
 }EVNDType;
 
 typedef enum {
-	EXCHANGE,
 	TRANSPOSE,
+	EXCHANGE,
 	INSERT
 } ENeighborhoodType;
 

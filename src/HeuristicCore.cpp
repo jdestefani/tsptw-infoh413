@@ -118,6 +118,9 @@ void HeuristicCore::VariableNeighborhoodDescent() {
 	struct timespec sBeginTime;
 	struct timespec sEndTime;
 
+	m_bIsLocalOptimum = false;
+	m_sBestComponentExchange.Reset();
+
 	GenerateNeighborhoodChain();
 	m_eNeighborhoodType = m_vecNeighborhoodChain.at(0);
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
@@ -133,6 +136,7 @@ void HeuristicCore::VariableNeighborhoodDescent() {
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
 	ComputeRunTime(sBeginTime,sEndTime);
 
+	std::cout << "Solution found in " << m_fRunTime << " s" << std::endl;
 	std::cout << m_cCurrentSolution;
 	std::cout << std::endl << std::endl;
 	m_wriResultsWriter.AddData(m_fSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_fRunTime);
@@ -150,26 +154,31 @@ void HeuristicCore::StandardVariableNeighborhoodDescent() {
 	unsigned int currentNeighborhood = 0;
 
 	GenerateInitialSolution();
-		ComputeNeighborhood();
-		while(currentNeighborhood < m_vecNeighborhoodChain.size()){
-			//std::cout << m_cCurrentSolution;
-			/*If a first improving neighbor is not found*/
-			while(!m_bIsLocalOptimum){
-				if(currentNeighborhood != 0){
-					currentNeighborhood = 0;
-					m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
-				}
-				/*1. Select solution from neighborhood*/
-				/*2. Generate neighborhood*/
-				ComputeNeighborhood();
-				iterations++;
+	ComputeNeighborhood();
+	while(currentNeighborhood < m_vecNeighborhoodChain.size()){
+		//std::cout << m_cCurrentSolution;
+		/*If a first improving neighbor is not found*/
+		while(!m_bIsLocalOptimum){
+			if(currentNeighborhood != 0){
+				currentNeighborhood = 0;
+				m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
 			}
-			/*Change neighborhood type until the chain is terminated*/
-			currentNeighborhood++;
-			m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
+			/*1. Select solution from neighborhood*/
+			/*2. Generate neighborhood*/
 			ComputeNeighborhood();
+			iterations++;
 		}
-		std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
+		m_bIsLocalOptimum = false;
+		m_sBestComponentExchange.Reset();
+		/*Change neighborhood type until the chain is terminated*/
+		currentNeighborhood++;
+		if(currentNeighborhood == m_vecNeighborhoodChain.size()){
+			break;
+		}
+		m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
+		ComputeNeighborhood();
+	}
+
 
 	/*GenerateInitialSolution();
 	ComputeNeighborhood();
@@ -219,7 +228,12 @@ void HeuristicCore::PipedVariableNeighborhoodDescent() {
 				iterations++;
 			}
 			/*Change neighborhood type until the chain is terminated*/
+			m_bIsLocalOptimum = false;
+			m_sBestComponentExchange.Reset();
 			currentNeighborhood++;
+			if(currentNeighborhood == m_vecNeighborhoodChain.size()){
+				break;
+			}
 			m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
 			ComputeNeighborhood();
 		}
@@ -239,7 +253,6 @@ void HeuristicCore::PipedVariableNeighborhoodDescent() {
 		m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
 		ComputeNeighborhood();
 	}*/
-	std::cout << "Solution found in " << m_fRunTime << " s - (" << iterations << " iterations)" << std::endl;
 }
 
 void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {

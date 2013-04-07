@@ -62,12 +62,12 @@ instanceDir="./instances/"
 instanceName=$1
 
 
-./TSPTW-VND --standard --tei --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-VND --standard --tie --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-VND --piped --tei --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-VND --piped --tie --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-VND --standard --TEI --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-VND --standard --TIE --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-VND --piped --TEI --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-VND --piped --TIE --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
 
 
 
-#Rscript processDataVND.R transpose.first.$instanceName exchange.first.$instanceName insert.first.$instanceName transpose.best.$instanceName exchange.best.$instanceName insert.best.$instanceName
+Rscript processDataVND.R standard.tei.$instanceName standard.tie.$instanceName piped.tei.$instanceName piped.tie.$instanceName
 
