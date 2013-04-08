@@ -1,6 +1,7 @@
-boxplotToPdf <- function(file,data,colNames,stringTitle,pdfHeight,pdfWidth){
+boxplotToPdf <- function(file,data,colNames,stringTitle,stringXLabel,pdfHeight,pdfWidth){
   pdf(file)
-  boxplot(as.data.frame(data),names=colNames,horizontal=TRUE,main=stringTitle,las=1)
+  boxplot(as.data.frame(data),names=colNames,horizontal=TRUE,main=stringTitle,col=terrain.colors(length(colNames)),las=1)
+  title(xlab=stringXLabel)
   dev.off()
 }
 
@@ -92,8 +93,8 @@ CpuTimeBoxPlotData <- list(transposeFirstResults[[4]][2],
 #colnames(CpuTimeBoxPlotData) <- columnNames
 
 #Box plots
-boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames,paste(instanceName,"PRPD",sep="-"))
-boxplotToPdf(paste(instanceName,"CpuTime",sep="-"),CpuTimeBoxPlotData,columnNames,paste(instanceName,"Runtime",sep="-"))
+boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames,paste(instanceName,"PRPD",sep="-"),"RPD")
+boxplotToPdf(paste(instanceName,"CpuTime",sep="-"),CpuTimeBoxPlotData,columnNames,paste(instanceName,"Runtime",sep="-"),"Time(s)")
 
 #Write statistics in separate files for each algorithm
 write(transposeFirstResults[[3]],transposeFirstResults[[2]],append=TRUE)

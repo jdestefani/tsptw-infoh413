@@ -41,6 +41,7 @@
 #ifndef TIMEWINDOW_H_
 #define TIMEWINDOW_H_
 
+#include <cstdlib>
 #include <assert.h>
 
 class TimeWindow {
@@ -86,14 +87,19 @@ public:
 		return m_unUpperBound;
 	}
 
+	inline unsigned int GetCityNumber() const {
+			return m_unCityNumber;
+	}
+
 	friend inline std::ostream& operator<<(std::ostream& output, const TimeWindow& tw){
 			output << tw.m_unCityNumber << ") [" << tw.m_unLowerBound << "," << tw.m_unUpperBound << "]" << std::endl;
 			return output;
 
 	}
 
-	inline bool operator<(TimeWindow &other) const{
-		return m_unLowerBound < other.m_unLowerBound;
+	inline bool operator<(const TimeWindow &other) const{
+		return m_unUpperBound < other.m_unUpperBound;
+		//return float(rand())/RAND_MAX < 0.6 ?  m_unUpperBound < other.m_unUpperBound : m_unLowerBound < other.m_unUpperBound;
 	}
 
 

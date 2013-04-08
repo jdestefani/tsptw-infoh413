@@ -372,7 +372,8 @@ int main (int argc, char **argv)
 										 runs,
 										 inputFileName,
 										 bestKnownSolution);
-			solverCore.RunII();
+			//solverCore.RunII();
+			solverCore.TestFunction();
 			return EXIT_SUCCESS;
 			exit(0);
 		}

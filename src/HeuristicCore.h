@@ -43,6 +43,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <cstdlib>
 #include <set>
 #include <time.h>
 #include <iostream>
@@ -179,6 +180,7 @@ private:
 
 		};
 
+	static const double HEURISTIC_Q = 0.6f;
 
 	EInitFunction m_eInitFunction;
 	ENeighborhoodType m_eNeighborhoodType;

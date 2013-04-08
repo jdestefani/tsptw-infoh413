@@ -441,6 +441,53 @@ void HeuristicCore::GenerateRandomInitialSolution() {
 }
 
 void HeuristicCore::GenerateHeuristicInitialSolution() {
+	std::vector<TimeWindow> timeWindows(m_vecTimeWindows);
+	std::sort(++timeWindows.begin(),timeWindows.end());
+	std::vector<unsigned int> currentTour;
+	std::vector<unsigned int> nextCityDistances;
+	unsigned int tourAccumulator = 0;
+	unsigned int i=0;
+
+	for(;i<2;i++){
+		currentTour.push_back(timeWindows.at(i).GetCityNumber());
+		if(i>0){
+			tourAccumulator += m_vecDistanceMatrix.at(0).at(currentTour.at(i));
+		}
+
+	}
+	timeWindows.erase(timeWindows.begin(),timeWindows.begin()+i);
+
+	while(timeWindows.size()>0){
+		unsigned int j=0;
+		nextCityDistances = m_vecDistanceMatrix.at(i-1);
+		for(; j<timeWindows.size(); j++){
+			if(nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator < timeWindows.at(j).GetUpperBound()
+					&& nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator > timeWindows.at(j).GetLowerBound()){
+				currentTour.push_back(timeWindows.at(j).GetCityNumber());
+				timeWindows.erase(timeWindows.begin()+j);
+				i++;
+				break;
+			}
+			/*if(nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator < timeWindows.at(j).GetUpperBound()){
+				currentTour.push_back(timeWindows.at(j).GetCityNumber());
+				timeWindows.erase(timeWindows.begin()+j);
+				i++;
+				break;
+			}*/
+			/*if(nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator > timeWindows.at(j).GetLowerBound()){
+				currentTour.push_back(timeWindows.at(j).GetCityNumber());
+				timeWindows.erase(timeWindows.begin()+j);
+				i++;
+				break;
+			}*/
+		}
+
+	}
+
+
+	m_cCurrentSolution.SetTour(currentTour);
+	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
+	std::cout << m_cCurrentSolution << std::endl;
 }
 
 void HeuristicCore::ComputeTransposeNeighborhood() {
@@ -808,8 +855,10 @@ void HeuristicCore::InsertTourComponent(std::vector<unsigned int>& tour,unsigned
 }
 
 
-/*
+
 void HeuristicCore::TestFunction() {
+	GenerateHeuristicInitialSolution();
+	/*
 	unsigned int iterations = 0;
 
 	std::cout << "Cities: " << m_unCities << std::endl;
@@ -855,8 +904,8 @@ void HeuristicCore::TestFunction() {
 	ComputeInsertNeighborhood();
 	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
 
-
-}
 */
+}
+
 
 
