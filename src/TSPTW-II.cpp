@@ -361,6 +361,14 @@ int main (int argc, char **argv)
 			//instanceReader.PrintTimeWindows();
 			if(instanceReader.ReadSeeds()){
 				//instanceReader.PrintSeeds();
+				if(instanceReader.GetSeeds().size() < runs){
+					std::cerr << "[Error] - The seeds file contains lees seeds than the required number of runs " << std::endl << std::endl;
+					exit(-1);
+				}
+			}
+			else{
+				std::cerr << "[Error] - Read error on " << seedsFileName << std::endl << std::endl;
+				exit(-1);
 			}
 			HeuristicCore solverCore(instanceReader.GetDistanceMatrix(),
 										 instanceReader.GetTimeWindows(),
@@ -372,8 +380,7 @@ int main (int argc, char **argv)
 										 runs,
 										 inputFileName,
 										 bestKnownSolution);
-			//solverCore.RunII();
-			solverCore.TestFunction();
+			solverCore.RunII();
 			return EXIT_SUCCESS;
 			exit(0);
 		}
@@ -408,7 +415,7 @@ void version(void)
 
 void usage(void)
 {
-  std::cout << "Usage: TSPTW-II [OPTIONS]..." << std::endl << std::endl;
+  std::cout << "Usage: TSPTW-II [PARAMETERS] -i [INPUTFILE] -s [SEEDSFILE]" << std::endl << std::endl;
   std::cout << "Flag \t\t Argument \t Description" << std::endl;
   std::cout << "-d,--random \t [No] \t\t Generate random initial solution." << std::endl;
   std::cout << "-h,--heuristic\t [No] \t\t Generate initial solution using heuristic." << std::endl;

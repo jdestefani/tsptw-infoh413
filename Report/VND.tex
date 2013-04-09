@@ -1,0 +1,425 @@
+%----------------------------------------------------------------------------------------
+%	PROBLEM 1
+%----------------------------------------------------------------------------------------
+
+% To have just one problem per page, simply put a \clearpage after each problem
+\newpage
+\begin{homeworkProblem}
+\section{Variable neighborhood descent algorithms}
+\subsection{Problem statement}
+Implement both a standard and piped variable neighborhood descent (VND) algorithm (concatenation of the underlying iterative improvement algorithms; see lecture slides). Consider the two possible (reasonable) orderings of
+the iterative improvement algorithms (indicated by the neighborhood relation they use):
+\begin{itemize}
+  \item transpose, exchange, insert
+  \item transpose, insert, exchange 
+\end{itemize}
+Implement the 4 VND algorithms (all combinations of standard and piped and the two neighborhood orders) using first-improvement and random initialization.
+
+\subsection{Experiment results}
+\subsubsection{n80w20.001}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.001/n80w20.001-CpuTime}.pdf}
+\captionof{figure}{n80w20.001 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.001/n80w20.001-PRPD}.pdf}
+\captionof{figure}{n80w20.001 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&3.95591160889952e-18\\
+\hline
+Tei vs Tie - Piped&3.9556885406462e-18\\
+\hline
+Standard vs Piped - Tei&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w20.001 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w20.002}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.002/n80w20.002-CpuTime}.pdf}
+\captionof{figure}{n80w20.002 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.002/n80w20.002-PRPD}.pdf}
+\captionof{figure}{n80w20.002 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&3.9556885406462e-18\\
+\hline
+Tei vs Tie - Piped&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tei&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w20.002 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w20.003}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.003/n80w20.003-CpuTime}.pdf}
+\captionof{figure}{n80w20.003 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.003/n80w20.003-PRPD}.pdf}
+\captionof{figure}{n80w20.003 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&3.9552424399092e-18\\
+\hline
+Tei vs Tie - Piped&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tei&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w20.003 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w20.004}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.004/n80w20.004-CpuTime}.pdf}
+\captionof{figure}{n80w20.004 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.004/n80w20.004-PRPD}.pdf}
+\captionof{figure}{n80w20.004 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&3.95591160889952e-18\\
+\hline
+Tei vs Tie - Piped&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tei&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w20.004 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w20.005}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.005/n80w20.005-CpuTime}.pdf}
+\captionof{figure}{n80w20.005 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w20.005/n80w20.005-PRPD}.pdf}
+\captionof{figure}{n80w20.001 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&3.95591160889952e-18\\
+\hline
+Tei vs Tie - Piped&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tei&3.95591160889952e-18\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w20.005 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w200.001}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.001/n80w200.001-CpuTime}.pdf}
+\captionof{figure}{n80w200.001 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.001/n80w200.001-PRPD}.pdf}
+\captionof{figure}{n80w200.001 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&4.07730530936212e-18\\
+\hline
+Tei vs Tie - Piped&2.92094064174088e-17\\
+\hline
+Standard vs Piped - Tei&2.72456795287507e-16\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w200.001 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w200.002}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.002/n80w200.002-CpuTime}.pdf}
+\captionof{figure}{n80w200.002 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.002/n80w200.002-PRPD}.pdf}
+\captionof{figure}{n80w200.002 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&3.95591160889952e-18\\
+\hline
+Tei vs Tie - Piped&1.52379449675399e-17\\
+\hline
+Standard vs Piped - Tei&1.74838327736385e-15\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w200.002 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w200.003}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.003/n80w200.003-CpuTime}.pdf}
+\captionof{figure}{n80w200.003 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.003/n80w200.003-PRPD}.pdf}
+\captionof{figure}{n80w200.003 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&2.04955667109233e-17\\
+\hline
+Tei vs Tie - Piped&2.59611565456869e-17\\
+\hline
+Standard vs Piped - Tei&1.50422804122146e-07\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w200.003 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w200.004}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.004/n80w200.004-CpuTime}.pdf}
+\captionof{figure}{n80w200.004 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.004/n80w200.004-PRPD}.pdf}
+\captionof{figure}{n80w200.004 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&4.07730530936212e-18\\
+\hline
+Tei vs Tie - Piped&4.29577057320019e-16\\
+\hline
+Standard vs Piped - Tei&5.3075517052254e-11\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w200.004 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsubsection{n80w200.005}
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.005/n80w200.005-CpuTime}.pdf}
+\captionof{figure}{n80w200.005 - Runtime boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth,keepaspectratio]{{VND/n80w200.005/n80w200.005-PRPD}.pdf}
+\captionof{figure}{n80w200.001 - PRPD boxplots for the different variable neighborhood descent algorithms}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Test} & \textbf{P-Value} \\
+\hline
+Tei vs Tie - Standard&1.39380002081336e-17\\
+\hline
+Tei vs Tie - Piped&4.07730530936212e-18\\
+\hline
+Standard vs Piped - Tei&3.72316935219101e-06\\
+\hline
+Standard vs Piped - Tie&3.95591160889952e-18\\
+\hline
+\end{tabular}
+\captionof{table}{n80w200.001 - Results of Wilcoxon paired signed rank test}
+\end{center}
+
+\subsection{Statistics}
+\subsubsection{Standard-Transpose-Exchange-Insert}
+\begin{center}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\textbf{Instance}& \textbf{\% Infeasible} & $\mathbf{\bar{PRDP}}$ &$\mathbf{\bar{Runtime}}$\\
+\hline
+n80w20.001&0.71&14772.04644164&50.611339\\
+\hline
+n80w20.002&0.88&12888.542&50.727053\\
+\hline
+n80w20.003&0.92&19936.872&50.820348\\
+\hline
+n80w20.004&0.62&17234.94260984&50.049484\\
+\hline
+n80w20.005&0.94&12564.0560428&50.269182\\
+\hline
+n80w200.001&0.28&11212.97389136&49.151249\\
+\hline
+n80w200.002&0.03&629.5853274&51.433949\\
+\hline
+n80w200.003&0.07&1511.56628539&49.082085\\
+\hline
+n80w200.004&0.16&4193.4817209&49.662512\\
+\hline
+n80w200.005&0.01&466.6729061&46.701953\\
+\hline
+
+\end{tabular}
+\captionof{table}{Statistics summary for variable neighborhood descent algorithm with Transpose-Exchange-Insert neighborhood chain and Standard VND type}
+\end{center}
+
+\subsubsection{Standard-Transpose-Insert-Exchange}
+\begin{center}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\textbf{Instance}& \textbf{\% Infeasible} & $\mathbf{\bar{PRDP}}$ &$\mathbf{\bar{Runtime}}$\\
+\hline
+n80w20.001&0.54&10874.77632472&15.268454\\
+\hline
+n80w20.002&0.62&8411.724&15.386641\\
+\hline
+n80w20.003&0.44&7645.295&15.638153\\
+\hline
+n80w20.004&0.39&7153.68881324&15.980347\\
+\hline
+n80w20.005&0.25&3475.2731712&15.55767\\
+\hline
+n80w200.001&0.16&4898.3227617&33.424555\\
+\hline
+n80w200.002&0&11.0430351&32.198479\\
+\hline
+n80w200.003&0.05&1082.1460308&34.345522\\
+\hline
+n80w200.004&0.28&7804.19186258&32.583152\\
+\hline
+n80w200.005&0&10.20227353&34.501294\\
+\hline
+
+
+\end{tabular}
+\captionof{table}{Statistics summary for variable neighborhood descent algorithm with Transpose-Insert-Exchange neighborhood chain and Standard VND type}
+\end{center}
+
+\subsubsection{Piped-Transpose-Exchange-Insert}
+\begin{center}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\textbf{Instance}& \textbf{\% Infeasible} & $\mathbf{\bar{PRDP}}$ &$\mathbf{\bar{Runtime}}$\\
+\hline
+n80w20.001&0.59&12336.84228578&35.694416\\
+\hline
+n80w20.002&0.94&15603.0142035&36.212393\\
+\hline
+n80w20.003&0.83&19338.924&34.821217\\
+\hline
+n80w20.004&0.55&13170.33921962&36.438959\\
+\hline
+n80w20.005&0.45&6683.336214&36.202891\\
+\hline
+n80w200.001&0.19&5104.3621015&40.772642\\
+\hline
+n80w200.002&0.01&218.8179842&44.241593\\
+\hline
+n80w200.003&0.06&2584.90674231&44.725066\\
+\hline
+n80w200.004&0.17&3430.64506042&43.760992\\
+\hline
+n80w200.005&0.02&693.0136326&42.646023\\
+\hline
+
+\end{tabular}
+\captionof{table}{Statistics summary for variable neighborhood descent algorithm with Transpose-Exchange-Insert neighborhood chain and Standard VND type}
+\end{center}
+
+\subsubsection{Piped-Transpose-Insert-Exchange}
+\begin{center}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\textbf{Instance}& \textbf{\% Infeasible} & $\mathbf{\bar{PRDP}}$ &$\mathbf{\bar{Runtime}}$\\
+\hline
+n80w20.001&0.68&16393.81210394&24.788225\\
+\hline
+n80w20.002&0.81&11667.654&25.902581\\
+\hline
+n80w20.003&0.84&20537.669&26.442309\\
+\hline
+n80w20.004&0.46&8779.79314651&26.424231\\
+\hline
+n80w20.005&0.24&3876.3661498&26.511156\\
+\hline
+n80w200.001&0.21&5917.0312803&52.302366\\
+\hline
+n80w200.002&0.01&626.0983757&56.238843\\
+\hline
+n80w200.003&0.04&867.92563269&58.498874\\
+\hline
+n80w200.004&0.28&6281.58944822&55.867038\\
+\hline
+n80w200.005&0.01&236.8657243&58.331595\\
+\hline
+
+\end{tabular}
+\captionof{table}{Statistics summary for variable neighborhood descent algorithm with Transpose-Insert-Exchange neighborhood chain and Standard VND type}
+\end{center}
+
+\end{homeworkProblem}

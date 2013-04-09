@@ -4,8 +4,11 @@
 # $3 = Seeds output file
 
 createReportFile() {
-	touch $1
-	echo "Instance	Infeasible	mean(PRDP)	mean(CpuTime)" > $1
+	if [ ! -f $1 ]
+	then
+		touch $1
+		echo "Instance	Infeasible	mean(PRDP)	mean(CpuTime)" > $1
+	fi
 }
 
 generateRandomSeeds() {

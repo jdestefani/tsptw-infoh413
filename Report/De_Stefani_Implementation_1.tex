@@ -197,6 +197,7 @@
 \newcommand{\component}[2]{node (p#1) [component]
   {{\scriptsize\textit{#2}}}}
 
+
 % Draw background
 \newcommand{\backgroundSquare}[5]{%
   \begin{pgfonlayer}{background}
@@ -263,438 +264,573 @@
 \newpage
 
 \section{Implementation}
+The heuristic solver had been written using the C++ programming language, in order to be able to take adventage of the functionalities offered by the Standard Template Library (STL).
 
-%----------------------------------------------------------------------------------------
-%	PROBLEM 1
-%----------------------------------------------------------------------------------------
+By combining an object-oriented approach with those functionalities, I built a modular application core (\emph{HeuristicCore}) that has been used for the two exercises required for this implementation.
 
-% To have just one problem per page, simply put a \clearpage after each problem
-\newpage
-\begin{homeworkProblem}
-\section{Iterative improvement algorithms}
-\subsection{Problem statement}
-To  understand  which  strategies  are  stable  against  invasion  implement  a   simulation  of  the  Moran  process  and  apply  it  to  modified  dictator  game. \\
-Determine  for  each  strategy  xy  whether  it  is  stable  against  invasion.\\   
-Send   the  simulation  code  and  the  results.           
+The core is directly linked with the reader (\emph{InstanceReader}) which reads the files containing all the informations to run the simulation (distance matrix, time windows vector and seeds list) and the writer (\emph{Writer}) which outputs the results of the simulation in a CSV file.
 
-\subsection{Simulation code}
-The simulation code had been written using the Python programming language, in order to take advantage of the flexibility granted by dynamic typing system of the language.\\
-This allowed me to focus on the details of the simulation, without having to deal with all the programming pitfalls of a strongly typed language.\\
-The naming style adopted in the code is medial capitalization, starting from the second word, using full capital names to denote constant values, namely the simulation parameters.
+Two different command line front-ends, sharing the same underlying structure, but having a different set of parameters, have been developed to distinguish the iterative-improvement interface from the variable neighborhood descent one. 
+
+The global program structure is depicted here:
 
 \begin{center}
 \begin{tikzpicture}[transform shape]
  
   % Draw diagram elements
   
-  \path \component {1}{moranProcess.py};
-  \path (p1.north)+(-2.0,+1.5) \component{2}{preprocessData.py};
-  \path (p1.north)+(+2.0,+1.5) \component{3}{latexReport.py};
+  \path \component {1}{HeuristicCore};
+  \path (p1.north)+(-2.0,+1.5) \component{2}{InstanceReader};
+  \path (p1.north)+(+2.0,+1.5) \component{3}{Writer};
+  \path (p2.west)+(-3.0,0.0) \component{4}{TSPTW-II};
+  \path (p2.west)+(-3.0,-2.0) \component{5}{TSPTW-VND}; 
      
   % Draw arrows between elements
   \path [line] (p2.south) -> node [above] {} (p1);
   \path [line] (p1) -> node [above, midway] {} (p3.south);
-
+  \path [line] (p4.east) -> node [above] {} (p2.west);
+  \path [line] (p5.east) -> node [above] {} (p2.south);
+  \path [line] (p4.south) -> node [above] {} (p1.west);
+  \path [line] (p5.east) -> node [above] {} (p1.west);
+  
   %\backgroundSquare{p1}{p1}{p3}{p3}{Presentation}
 
  \end{tikzpicture}
  \captionof{figure}{Simulation Code Structure}
 \end{center}
 
-The simulation code has been structured into three modules:
-\begin{enumerate}
-\item The input data preprocessing module - \emph{preprocessData.py}
-\item The simulation module - \emph{moranProcess.py}
-\item The result post-processing module - \emph{latexReport.py}
-\end{enumerate}
+The names of the nodes corresponds to those of the implementation (.cpp) and header files for the corresponding classes.
+In addition to these, a class to represent the time windows (TimeWindow.h) and another one to represent the candidate solution as
+a user defined data type (CandidateSolution.\{h,cpp\}) have been implemented.
 
-\subsubsection{Relevant Parameters}
+
+\subsection{How to compile the program?}
+The software was developed in C++98 under Linux (Debian Wheezy), using the GNU g++ (Debian 4.7.2-5) 4.7.2 compiler and tested in this environment. 
+The software is distributed as a compressed tar file, containing both the source code (in the \verb|src| folder) and the scripts and instances (in the \verb|bin| and \verb|bin\instances| respectively).
+To install the program, first obtain the file TSPTW.V1.0.tar.gz. 
+
+Unzip the file by typing:
+
 \begin{center}
-\vskip7pt
-\begin{tabular}{|l|c|c|}
-\hline 
-\textbf{Parameter} & \textbf{Value} & \textbf{Description} \\ \hline
-$\alpha$ & 0.9 & Proportion of the split of the endowment\\ [10pt]
-$P$ & $10^2$ & Endowment to split\\ [10pt]
-$N$ & 50 & Population size \\ [10pt]
-\emph{ITERATION} & $10^4$ & Number of iterations to be performed for each simulation\\ [10pt]
-\emph{MAXSTEP} & $10\cdot N =$ 500 & Maximum number of step before considering the iteration non converging\\ [10pt]
-$i$ & 1 & Initial number of A-type players\\ [10pt]
-$w$ & 0.5 & Intensity of selection\\ [10pt]
-\hline
-\end{tabular}
-\captionof{table}{Relevant parameters for the simulation}
+\begin{verbatim}
+gunzip TSPTW.V1.0.tar.gz
+\end{verbatim}
 \end{center}
 
-\subsubsection{Input data preprocessing module}
-The preprocessing module simply encodes the symmetric game payoff matrix determined in \ref{tab:spm} and automatically determines all the 36 pairwise comparisons among the pure strategies required as input data for the Moran Process to simulate.\\
-The expected result, under the assumption of an infinite population, is determined for each of these generated simulations according to the values contained in the payoff matrix, following the results described in \cite{Taylor2004}, section 1.\\
-
-%\pyscript{./Simulation/preprocessData}{}
-
-\subsubsection{Simulation execution module}
-
-\paragraph{Description}
-This module contains all the necessary code to actually perform the simulation of the moran Process, namely the functions:
-\begin{itemize}
-\item \emph{simulationStepRelativeFitness()}
-\item \emph{updateFitness()}
-\end{itemize}
-
-The simulation module obtains the preprocessed data from the corresponding module, then, for each of the 36 simulation:
-\begin{enumerate}
-\item Generates a population of $N$ individuals, $i$ of which of A-type.
-\item Computes the initial fitness $f_A$ and $f_B$ of the population.
-\item Performs \emph{ITERATION} runs of maximum $10*N$ simulation step each.
-\item Calls the postprocessing module to produce a syntactically correct \LaTeX  file.
-\end{enumerate}
-
-\subparagraph{updateFitness()}
-The expected payoff of A-type players, as in \cite{Taylor2004}, is determined as follows: 
-\begin{equation}
-p_A = a\cdot(i - 1) + b\cdot(N - i)
-\end{equation}
-while, for B-type players:
-\begin{equation}
-p_B = c\cdot i + d(N - i - 1)
-\end{equation}
-The fitness of each type of players is then determined according to \cite{Traulsen2010}:
-\begin{equation}
-\begin{array}{c}
-f_A = 1-w+w\cdot p_A\\
-f_B = 1-w+w\cdot p_B\\
-\end{array}
-\end{equation}
-The intensity of selection $w \in [0,1]$ determines the relevance of the payoff in the computation of the fitness.\\
-For the simulation it is chosen to be equal to $0.5$ in order neither to perform an individual duplication depending solely on the payoff ($w=1$) nor to have a completely random selection($w=0$).
-
-\paragraph{simulationStepRelativeFitness()}
-In each simulation step, an individual is selected at random to be eliminated and replaced by a copy of another existing individual in the population.\\
-The duplication of an A-type individual occurs with a probability which is fitness dependant, as in \cite{Taylor2004}:
-\begin{equation}
-p_{D_A} = \frac{i \cdot f_A}{i \cdot f_A + (N-i)\cdot f_B}
-\end{equation}
-The number of A-type players is then adjusted according to the outcome of the probabilistic duplication.
-
-%\pyscript{./Simulation/moranProcess}{}
-
-\subsubsection{Output post-processing module}
-At the end of each simulation, the functions of the \LaTeX post-processing module are called to produce the files, used to typeset the simulation results.\\
-%\pyscript{./Simulation/latexReport}{}
-
-\clearpage
-
-
-\end{homeworkProblem}
-
-\begin{homeworkProblem}
-\section{Analysis of simulation results}
-\label{sec:simres}
-The following section presents the results of the simulation performed by executing the Python script.\\
-One should remember, that the population is initialized with $1$ A-Type individual and $N-1$ B-Type individual.\\
-At the end of every section, an overview of the results is shown stating:
-\begin{itemize}
-\item \textbf{Coherent}:
-	\begin{itemize}
-	\item \cmark - Whenever the expected result for an infinite population agrees with the results of the simulation.
-	\item \xmark - If, due to some stochastic effect, the outcome of the simulation is different from what is expected.
-	\end{itemize}
-\item\textbf{Stable against invasion}:
-	\begin{itemize}
-	\item \cmark - Whenever the number of A-Type individuals converges to 0 at the end of the simulation.
-	\item \xmark - If, either the invasion of a single A-Type individual can cause the extinction of B-Type players ($x_A=N$) or the stable state at the end of the simulation has a non null number of A-Type agents ($x_A=x^*$).
-	\end{itemize}
-\end{itemize}
-It should be remarked that the outcome of the simulation is chosen to be the outcome having the greatest occurrence for each simulation.\\
-Whenever there are other outcomes with a non negligible number of occurrences ($o_i>10^3$), the theoretical results and the experimental results are discordant. 
-%\input{simulationResults}
-
-\end{homeworkProblem}
-
-
-%----------------------------------------------------------------------------------------
-%	PROBLEM 2
-%----------------------------------------------------------------------------------------
-\begin{homeworkProblem}
-
-\section{Variable Neighborhood Descent algorithms }
-\subsection{Problem statement}
-\subsubsection{Game description}
-In  a  dictator  game  two  players  are  interacting.\\   
-The  first  player  (also  called  the   proposer)  decides  on  how  some  endowment  is  split  between  the  players. \\
-The   second  player  simply  receives  his  part  of  the  split. \\     
-So  the  role  of  the  receiver  is   completely  passive,  no  decisions  have  to  be  taken  when  a  player  fulfills  that  role.
-\\   We  assume  here  that  the  proposer  can  select  between  three  actions:    a  selfish,  a   fair   and   an   altruistic   split. \\
-In   the   selfish   split,   she   keeps   the   majority   of   the   endowment  and  in  the  altruistic  action  she  hands  over  almost  all  the  endowment   to  the  receiver. \\ 
-In  the  fair  case,  she  splits  the  endowment  in  an  equal  manner. \\        
-As  opposed  to  the  normal  Dictator  Game,  we  will  now  assume  here  that  in  this   game,  before  the  dictator  proposes  a  split,  the  player  needs  to  decide  whether  he   or  she  wants  to  play  the  game.  So  now  the  player  has  two  actions  “play”  or    “not   play”. \\
-If  the  receiver  decides  to  play,  the  proposer  simply  decides  the  split.  If  the   receiver  decides  not  to  play  both  get  zero  payoff.     
-
-\subsubsection{Part I}
-\begin{enumerate}
-\item Draw  the  Extensive  Form  Game  that  corresponds  and  report  the  Subgame  Perfect  equilibrium. 
-\item Create   the   Strategic   Form   of   this   game   and   determine   the   Nash  Equilibrium  of  this  game. 
-\end{enumerate}
-
-
-\subsubsection{Part II}
-The  game  is  clearly  not  symmetric. Yet  we  can  make  it  so. \\    We  need  to  assume   that  a  strategy  takes  the  role  of  the  player  into  account. \\
-When  two  players  meet   their  role  is  randomly  assigned.  A  pure  strategy  of  for  each  of  these  players  can   be  written  as  ‘xy’  which  means  ‘if  I  am  the  proposer  I  play  x  if  I  am  the  receiver  I   play  y’,  where  the  ‘x’  is  either  ‘selfish  split’  (S),  ‘altruistic  split’  (A)    or  ‘Fair  split’   (F)  and  the  ‘y’  is  either  ‘Play  (P)  or    ‘Don’t  play’  (N).\\    
-The  payoff  they  receive  is   the  mean  of  the  payoffs  for  both  choices.     
-\begin{enumerate}
-\item How  many  pure  strategies  are  there  for  each  player? 
-\item Write   down   the   normal   form   and   determine   the   Nash   equilibria   of   this  game. 
-\end{enumerate}
-
-\subsection{Proposed solution}
-\subsubsection{Question 1}
-\paragraph{Modeling assumptions}
-\label{par:modeling}
-The original Dictator game is formally a two-players degenerate game, in the sense that the outcome of the game does not depend on the choices made by all the players in the game, with the second player having a completely passive role.\\
-The proposed modification makes the problem a proper sequential game, thus allowing one to represent it using the extensive form model.\\
-The consider game has two players, each of them having a set of possible actions:
-\begin{itemize}
-\item Proposer ($P_r$) : \{\emph{Selfish split}(S), \emph{Fair split}(F), \emph{Altruistic split}(A)\}
-\item Receiver ($R_e$) : \{\emph{Don't play}(N), \emph{Play}(P)\}
-\end{itemize}
-To model the split proposed by $P_r$, two parameters are used:
-\begin{enumerate}
-\item $P \in \mathbb{N}^+$ - The endowment to split among the players
-\item $\alpha \in (0.5,1)$ - The ratio of the split taken by the proposer.
-\end{enumerate} 
-As one may notice, the part of the endowment taken by the proposer and the receiver can be expressed, respectively as $\alpha P$ and $(1-\alpha) P$ such that $\alpha P+(1-\alpha) P = P$.\\
-Moreover, by restricting the admissible set of values for $\alpha$, it is guaranteed that one player will get a larger part of the good with respect to the other one (the proposer in the \emph{Selfish split},the receiver in the \emph{Altruistic split}). \\
-The \emph{Altruistic split} correspond to a \emph{Selfish split} where the payoff of the players are switched. \\ 
-On the other hand, the \emph{Fair split} corresponds to the case $\alpha=0.5$, yielding to an equal split of the endowment. \\
+and then unpack it by typing:
 
 \begin{center}
-\begin{tikzpicture}
-\tikzstyle{level 1}=[level distance=2cm, sibling distance=6cm]
-\tikzstyle{level 2}=[level distance=2cm, sibling distance=3cm]
-\tikzstyle{level 3}=[level distance=2cm, sibling distance=3cm]
-\tikzstyle{level 4}=[level distance=2cm, sibling distance=3cm]
+\begin{verbatim}
+tar -xvf TSPTW.V1.0.tar
+\end{verbatim}
+\end{center}
 
-\node (root) [player2] {$R_e$} [->]
-    child{
-      		  node (leaf3) {0,0}
-      		  edge from parent
-      		   	node[above left] {$N$}
-	   }
-   child{
-   		  node (1P) [player1] {$P_r$}
-   		  child{
-   		  		node (leaf3) {$\alpha P$,$(1-\alpha) P$}
-      		  		edge from parent
-      		   			node[above left] {$S$}
-   		  }
-   		  child{
-   		  		node (leaf3) {$\frac{P}{2}$,$\frac{P}{2}$}
-      		  		edge from parent
-      		   			node[left] {$F$}
-   		  }
-   		  child{
-   		  		node (leaf3) {$(1-\alpha) P$,$\alpha P$}
-      		  		edge from parent
-      		   			node[above right] {$A$}
-   		  }
-   		  edge from parent
-      		   	node[above right] {$P$}
-        };
+The software will be extracted in a new folder TSPTW.V1.0 
+
+Finally, by launching
+\begin{center}
+\begin{verbatim}
+make all
+\end{verbatim}
+\end{center}
+
+the Makefile will trigger the compilation of the files,
+producing the executables 'TSPTW-II' and 'TSPTW-VND" in the \verb|bin| folder.
+
+\textbf{Note:} The code is written in C++98. Hence, the code should be
+reasonable portable to other Operating Systems than Linux or Unix.
+
+\subsection{How to run the program?}
+
+Once the program has been compiled, two separate executable files,
+corresponding to the different kind of metaheuristic (i.e. Iterative Improvement
+and Variable Neighborhood Descent) can be either launched directly via the command line
+interface or using the bash script to launch.
+
+The design choice to separate the two different kind of metaheuristic is made in order to limit the number of command line parameters to be given as input to the program.
+
+\subsubsection{Command-line execution}
+By launching\footnote{The squared-bracket notation implies that the formal parameters to the script have to be substituted by their actual value.}:
+\begin{center}
+\begin{verbatim}
+./TSPTW-II [PARAMETERS] -i [INPUT_FILE] -s [SEEDS_FILE]
+\end{verbatim}
+\begin{verbatim}
+./TSPTW-VND [PARAMETERS] -i [INPUT_FILE] -s [SEEDS_FILE]
+\end{verbatim}
+\end{center}
+
+one can display the information about the meaning of the different options that can be given as input to the program.
+
+Additional information concerning the usage of the program can be found in the README file.
+
+The only mandatory options are "-i, --input" and "-s,-seeds", since
+without these components will not be possible to execute the simulation.
+
+The argument to the input option must contain the full path to the instance file.
+
+The seeds file must contain a number of seeds at least equal to the number of
+runs required, one seed per line without any additional information.
+
+The options controlling the same parameters are mutually exclusive, with that
+meaning that only one option must be selected in order to run the program.
+If multiple options for the same parameter are chosen, the program will not
+run.
+
+\paragraph{TSPTW-II}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Parameter}	&	\textbf{Mutually exclusive options} \\ \hline
+Initial solution & -d,--random , -h,--heuristic \\ \hline
+Neighborhood type &-t,--transpose , -e,--exchange , -n,--insert \\ \hline 
+Pivoting rule &	-f,--first-imp , -b,--best-imp \\ \hline
+\end{tabular}
+
+\paragraph{TSPTW-VND}
+
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Parameter}	&	\textbf{Mutually exclusive options} \\ \hline
+VND algorithm & -t,--standard , -p,--piped \\ \hline
+Neighborhood chain & 	-a,--TEI  , -b,--TIE \\ \hline
+\end{tabular}
+
+\paragraph{Output}
+Every experiment produces a single file:
+\begin{itemize}
+  \item \textbf{(II)} $[pivoting\_rule].[neighborhood\_type].[INSTANCE\_NAME]$ with $[pivoting\_rule] \in \{first,best\}$ and $[neighborhood\_type] \in \{transpose,exchange,insert\}$ 
+  \item \textbf{(VND)} $[vnd\_type].[neighborhood\_chain].[INSTANCE\_NAME]$ with $[vnd\_type] \in \{standard,piped\}$ and $[neighborhood\_type] \in \{tei,tie\}$
+\end{itemize} 
+				
+					 
+\textbf{Examples:} \begin{verbatim}
+exchange.best.n80w200.004.txt
+standard.tei.n80w20.003.txt
+\end{verbatim}
+
+
+The internal structure of the file is the following: \begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Seed}	&	\textbf{CV} & \textbf{CpuTime} & \textbf{PRPD} \\ \hline
+\end{tabular}
+
+For each run of the algorithm, the program writes in the file, using a tabulation as separator,
+the used seed, the number of constraints violations, the cpu runtime and the penalised relative percentage deviation.
+
+
+\subsubsection{Script execution}
+By launching:
+\begin{center}
+\begin{verbatim}
+./launchTSPTW-II.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
+\end{verbatim}
+\begin{verbatim}
+./launchTSPTW-VND.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
+\end{verbatim}
+\end{center}
+
+The script will:
+\begin{enumerate}
+  \item Create the files required by the data processing script to write statistics.
+  \item Generate a seed file, named [SEEDS\_FILE] containing [RUNS] randomly generated seeds.
+  \item Launch the corresponding TSPTW program for [RUNS]  using all the possible combinations of input options.
+  \item Wait for the termination of all the previously launched experiment and call the R data processing script
+\end{enumerate}
+
+The script assumes that all the instances are located into the instances folder, hence it is only necessary to indicate the instance name, instead of the complete path.
+
+\paragraph{Output}
+
+Each execution of the script will then generate the files:
+\begin{itemize}
+  \item $[INSTANCE\_NAME]-CpuTime.pdf$ containing the boxplots of the runtime distribution for each algorithm.
+  \item $[INSTANCE\_NAME]-PRPD.pdf$ containing the boxplots of the PRPD distribution for each algorithm.
+  \item 
+        \begin{itemize}
+          \item \textbf{(II)} transpose.first, exchange.first, insert.first, transpose.best, exchange.best, insert.best 
+          \item \textbf{(VND)} standard.tei, standard.tie, piped.tei, piped.tie
+        \end{itemize}
+\end{itemize}
+
+The internal structure of the file is the following:
+
+ 
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Instance}	&	\textbf{Infeasible} & \textbf{mean(PRDP)} &	\textbf{mean(CpuTime)} \\ \hline
+\end{tabular}
+
+Each line contains the instance name, the percentage of infeasible runs, the mean PRDP and the mean runtime across [RUNS] runs.
+
+\include{II}
+\include{VND}
+
+% \subsection{Simulation code}
+
+
+% \subsubsection{Simulation execution module}
+
+% \paragraph{Description}
+% This module contains all the necessary code to actually perform the simulation of the moran Process, namely the functions:
+% \begin{itemize}
+% \item \emph{simulationStepRelativeFitness()}
+% \item \emph{updateFitness()}
+% \end{itemize}
+
+% The simulation module obtains the preprocessed data from the corresponding module, then, for each of the 36 simulation:
+% \begin{enumerate}
+% \item Generates a population of $N$ individuals, $i$ of which of A-type.
+% \item Computes the initial fitness $f_A$ and $f_B$ of the population.
+% \item Performs \emph{ITERATION} runs of maximum $10*N$ simulation step each.
+% \item Calls the postprocessing module to produce a syntactically correct \LaTeX  file.
+% \end{enumerate}
+
+% \subparagraph{updateFitness()}
+% The expected payoff of A-type players, as in \cite{Taylor2004}, is determined as follows: 
+% \begin{equation}
+% p_A = a\cdot(i - 1) + b\cdot(N - i)
+% \end{equation}
+% while, for B-type players:
+% \begin{equation}
+% p_B = c\cdot i + d(N - i - 1)
+% \end{equation}
+% The fitness of each type of players is then determined according to \cite{Traulsen2010}:
+% \begin{equation}
+% \begin{array}{c}
+% f_A = 1-w+w\cdot p_A\\
+% f_B = 1-w+w\cdot p_B\\
+% \end{array}
+% \end{equation}
+% The intensity of selection $w \in [0,1]$ determines the relevance of the payoff in the computation of the fitness.\\
+% For the simulation it is chosen to be equal to $0.5$ in order neither to perform an individual duplication depending solely on the payoff ($w=1$) nor to have a completely random selection($w=0$).
+
+% \paragraph{simulationStepRelativeFitness()}
+% In each simulation step, an individual is selected at random to be eliminated and replaced by a copy of another existing individual in the population.\\
+% The duplication of an A-type individual occurs with a probability which is fitness dependant, as in \cite{Taylor2004}:
+% \begin{equation}
+% p_{D_A} = \frac{i \cdot f_A}{i \cdot f_A + (N-i)\cdot f_B}
+% \end{equation}
+% The number of A-type players is then adjusted according to the outcome of the probabilistic duplication.
+
+% %\pyscript{./Simulation/moranProcess}{}
+
+% \subsubsection{Output post-processing module}
+% At the end of each simulation, the functions of the \LaTeX post-processing module are called to produce the files, used to typeset the simulation results.\\
+% %\pyscript{./Simulation/latexReport}{}
+
+% \clearpage
+
+
+% \end{homeworkProblem}
+
+% % \begin{homeworkProblem}
+% % \section{Analysis of simulation results}
+% % \label{sec:simres}
+% % The following section presents the results of the simulation performed by executing the Python script.\\
+% % One should remember, that the population is initialized with $1$ A-Type individual and $N-1$ B-Type individual.\\
+% % At the end of every section, an overview of the results is shown stating:
+% % \begin{itemize}
+% % \item \textbf{Coherent}:
+% % 	\begin{itemize}
+% % 	\item \cmark - Whenever the expected result for an infinite population agrees with the results of the simulation.
+% % 	\item \xmark - If, due to some stochastic effect, the outcome of the simulation is different from what is expected.
+% % 	\end{itemize}
+% % \item\textbf{Stable against invasion}:
+% % 	\begin{itemize}
+% % 	\item \cmark - Whenever the number of A-Type individuals converges to 0 at the end of the simulation.
+% % 	\item \xmark - If, either the invasion of a single A-Type individual can cause the extinction of B-Type players ($x_A=N$) or the stable state at the end of the simulation has a non null number of A-Type agents ($x_A=x^*$).
+% % 	\end{itemize}
+% % \end{itemize}
+% % It should be remarked that the outcome of the simulation is chosen to be the outcome having the greatest occurrence for each simulation.\\
+% % Whenever there are other outcomes with a non negligible number of occurrences ($o_i>10^3$), the theoretical results and the experimental results are discordant. 
+% % %\input{simulationResults}
+
+% % \end{homeworkProblem}
+
+
+% %----------------------------------------------------------------------------------------
+% %	PROBLEM 2
+% %----------------------------------------------------------------------------------------
+% \begin{homeworkProblem}
+
+% \section{Variable Neighborhood Descent algorithms }
+% \subsection{Problem statement}
+% \subsubsection{Game description}
+% In  a  dictator  game  two  players  are  interacting.\\   
+% The  first  player  (also  called  the   proposer)  decides  on  how  some  endowment  is  split  between  the  players. \\
+% The   second  player  simply  receives  his  part  of  the  split. \\     
+% So  the  role  of  the  receiver  is   completely  passive,  no  decisions  have  to  be  taken  when  a  player  fulfills  that  role.
+% \\   We  assume  here  that  the  proposer  can  select  between  three  actions:    a  selfish,  a   fair   and   an   altruistic   split. \\
+% In   the   selfish   split,   she   keeps   the   majority   of   the   endowment  and  in  the  altruistic  action  she  hands  over  almost  all  the  endowment   to  the  receiver. \\ 
+% In  the  fair  case,  she  splits  the  endowment  in  an  equal  manner. \\        
+% As  opposed  to  the  normal  Dictator  Game,  we  will  now  assume  here  that  in  this   game,  before  the  dictator  proposes  a  split,  the  player  needs  to  decide  whether  he   or  she  wants  to  play  the  game.  So  now  the  player  has  two  actions  “play”  or    “not   play”. \\
+% If  the  receiver  decides  to  play,  the  proposer  simply  decides  the  split.  If  the   receiver  decides  not  to  play  both  get  zero  payoff.     
+
+% \subsubsection{Part I}
+% \begin{enumerate}
+% \item Draw  the  Extensive  Form  Game  that  corresponds  and  report  the  Subgame  Perfect  equilibrium. 
+% \item Create   the   Strategic   Form   of   this   game   and   determine   the   Nash  Equilibrium  of  this  game. 
+% \end{enumerate}
+
+
+% \subsubsection{Part II}
+% The  game  is  clearly  not  symmetric. Yet  we  can  make  it  so. \\    We  need  to  assume   that  a  strategy  takes  the  role  of  the  player  into  account. \\
+% When  two  players  meet   their  role  is  randomly  assigned.  A  pure  strategy  of  for  each  of  these  players  can   be  written  as  ‘xy’  which  means  ‘if  I  am  the  proposer  I  play  x  if  I  am  the  receiver  I   play  y’,  where  the  ‘x’  is  either  ‘selfish  split’  (S),  ‘altruistic  split’  (A)    or  ‘Fair  split’   (F)  and  the  ‘y’  is  either  ‘Play  (P)  or    ‘Don’t  play’  (N).\\    
+% The  payoff  they  receive  is   the  mean  of  the  payoffs  for  both  choices.     
+% \begin{enumerate}
+% \item How  many  pure  strategies  are  there  for  each  player? 
+% \item Write   down   the   normal   form   and   determine   the   Nash   equilibria   of   this  game. 
+% \end{enumerate}
+
+% \subsection{Proposed solution}
+% \subsubsection{Question 1}
+% \paragraph{Modeling assumptions}
+% \label{par:modeling}
+% The original Dictator game is formally a two-players degenerate game, in the sense that the outcome of the game does not depend on the choices made by all the players in the game, with the second player having a completely passive role.\\
+% The proposed modification makes the problem a proper sequential game, thus allowing one to represent it using the extensive form model.\\
+% The consider game has two players, each of them having a set of possible actions:
+% \begin{itemize}
+% \item Proposer ($P_r$) : \{\emph{Selfish split}(S), \emph{Fair split}(F), \emph{Altruistic split}(A)\}
+% \item Receiver ($R_e$) : \{\emph{Don't play}(N), \emph{Play}(P)\}
+% \end{itemize}
+% To model the split proposed by $P_r$, two parameters are used:
+% \begin{enumerate}
+% \item $P \in \mathbb{N}^+$ - The endowment to split among the players
+% \item $\alpha \in (0.5,1)$ - The ratio of the split taken by the proposer.
+% \end{enumerate} 
+% As one may notice, the part of the endowment taken by the proposer and the receiver can be expressed, respectively as $\alpha P$ and $(1-\alpha) P$ such that $\alpha P+(1-\alpha) P = P$.\\
+% Moreover, by restricting the admissible set of values for $\alpha$, it is guaranteed that one player will get a larger part of the good with respect to the other one (the proposer in the \emph{Selfish split},the receiver in the \emph{Altruistic split}). \\
+% The \emph{Altruistic split} correspond to a \emph{Selfish split} where the payoff of the players are switched. \\ 
+% On the other hand, the \emph{Fair split} corresponds to the case $\alpha=0.5$, yielding to an equal split of the endowment. \\
+
+% \begin{center}
+% \begin{tikzpicture}
+% \tikzstyle{level 1}=[level distance=2cm, sibling distance=6cm]
+% \tikzstyle{level 2}=[level distance=2cm, sibling distance=3cm]
+% \tikzstyle{level 3}=[level distance=2cm, sibling distance=3cm]
+% \tikzstyle{level 4}=[level distance=2cm, sibling distance=3cm]
+
+% \node (root) [player2] {$R_e$} [->]
+%     child{
+%       		  node (leaf3) {0,0}
+%       		  edge from parent
+%       		   	node[above left] {$N$}
+% 	   }
+%    child{
+%    		  node (1P) [player1] {$P_r$}
+%    		  child{
+%    		  		node (leaf3) {$\alpha P$,$(1-\alpha) P$}
+%       		  		edge from parent
+%       		   			node[above left] {$S$}
+%    		  }
+%    		  child{
+%    		  		node (leaf3) {$\frac{P}{2}$,$\frac{P}{2}$}
+%       		  		edge from parent
+%       		   			node[left] {$F$}
+%    		  }
+%    		  child{
+%    		  		node (leaf3) {$(1-\alpha) P$,$\alpha P$}
+%       		  		edge from parent
+%       		   			node[above right] {$A$}
+%    		  }
+%    		  edge from parent
+%       		   	node[above right] {$P$}
+%         };
         
 
-\path [rounded corners, draw=orange, thick,dashed]
-            (-4,1) rectangle (7.5,-6.5);
-\node at (7,0.5) [text=orange, thick] {$S_2$};
+% \path [rounded corners, draw=orange, thick,dashed]
+%             (-4,1) rectangle (7.5,-6.5);
+% \node at (7,0.5) [text=orange, thick] {$S_2$};
 
-\path [rounded corners, draw=green!70!black, thick,dashed]
-            (-1.3,-2.5) rectangle (7.2,-6.3);
-\node at (6.7,-3) [text=green!70!black, thick] {$S_1$};
-\end{tikzpicture}
-\captionof{figure}{Extensive form representation for modified dictator game}
-\label{fig:spe}
-\end{center}
+% \path [rounded corners, draw=green!70!black, thick,dashed]
+%             (-1.3,-2.5) rectangle (7.2,-6.3);
+% \node at (6.7,-3) [text=green!70!black, thick] {$S_1$};
+% \end{tikzpicture}
+% \captionof{figure}{Extensive form representation for modified dictator game}
+% \label{fig:spe}
+% \end{center}
 
-The depicted extensive game consists of :
-\begin{itemize} 
-\item a set of players \{$P_r$, $R_e$\}
-\item a set of terminal histories with the property that none of these histories
-is a proper sub-history of another - \{\emph{Don't play}(N), (\emph{Play},\emph{Selfish split})(P,S), (\emph{Play},\emph{Fair split})(P,F), (\emph{Play},\emph{Altruistic split})(P,A)\}
-\item a player function that assigns a player to every proper sub-history that can be derived from the terminal histories - $P(\emptyset) =$ \{$R_e$\}, $P($\emph{Play}$) =$ \{$P_r$, $R_e$\}
-\item for each player, preferences over the set of terminal histories:
-	 \begin{itemize}
-	 \item $P_r$ (P,S) $>$ (P,F) $>$ (P,A) $>$ N 
-	 \item $R_e$ (P,A) $>$ (P,F) $>$ (P,S) $>$ N
-	 \end{itemize}
-\end{itemize}
+% The depicted extensive game consists of :
+% \begin{itemize} 
+% \item a set of players \{$P_r$, $R_e$\}
+% \item a set of terminal histories with the property that none of these histories
+% is a proper sub-history of another - \{\emph{Don't play}(N), (\emph{Play},\emph{Selfish split})(P,S), (\emph{Play},\emph{Fair split})(P,F), (\emph{Play},\emph{Altruistic split})(P,A)\}
+% \item a player function that assigns a player to every proper sub-history that can be derived from the terminal histories - $P(\emptyset) =$ \{$R_e$\}, $P($\emph{Play}$) =$ \{$P_r$, $R_e$\}
+% \item for each player, preferences over the set of terminal histories:
+% 	 \begin{itemize}
+% 	 \item $P_r$ (P,S) $>$ (P,F) $>$ (P,A) $>$ N 
+% 	 \item $R_e$ (P,A) $>$ (P,F) $>$ (P,S) $>$ N
+% 	 \end{itemize}
+% \end{itemize}
 
-\paragraph{Equilibria analysis}
-Prior to the computation of the subgame perfect equilibria, one has to determine the number of subgames which compose the analyzed problem.\\
-In the considered game there are two subgames:
-\begin{itemize}
-\item $S_1$
-\item $S_2$
-\end{itemize}
-The backward induction algorithm used to compute the subgame perfect equilibrium of $S_2$  requires the computation of the subgame perfect equilibrium for the nested subgame $S_1$.\\
-To summarize, the subgame perfect equilibria corresponding to the game is indeed (\emph{Play}, \emph{Selfish split}), according to the aforementioned preferences, since :
-\begin{itemize}
-\item (BI - Step one) \emph{Selfish split} action is the subgame perfect equilibrium of subgame $S_1$ since it gives to the $P_r$ player the larger part of the endowment, considered all the other actions. 
-\item (BI - Step two) The \emph{Play} action is the subgame perfect equilibrium of subgame $S_2$ since player $R_e$ is asked to choose between receiving a small part of the endowment or a null part of it, thus selecting the non null split (as long as $\alpha \ne 1$, case excluded according to modeling assumptions).
-\end{itemize}
+% \paragraph{Equilibria analysis}
+% Prior to the computation of the subgame perfect equilibria, one has to determine the number of subgames which compose the analyzed problem.\\
+% In the considered game there are two subgames:
+% \begin{itemize}
+% \item $S_1$
+% \item $S_2$
+% \end{itemize}
+% The backward induction algorithm used to compute the subgame perfect equilibrium of $S_2$  requires the computation of the subgame perfect equilibrium for the nested subgame $S_1$.\\
+% To summarize, the subgame perfect equilibria corresponding to the game is indeed (\emph{Play}, \emph{Selfish split}), according to the aforementioned preferences, since :
+% \begin{itemize}
+% \item (BI - Step one) \emph{Selfish split} action is the subgame perfect equilibrium of subgame $S_1$ since it gives to the $P_r$ player the larger part of the endowment, considered all the other actions. 
+% \item (BI - Step two) The \emph{Play} action is the subgame perfect equilibrium of subgame $S_2$ since player $R_e$ is asked to choose between receiving a small part of the endowment or a null part of it, thus selecting the non null split (as long as $\alpha \ne 1$, case excluded according to modeling assumptions).
+% \end{itemize}
 
 
-\subsubsection{Question 2}
-\paragraph{Normal form representation}
-The modified dictator game can be represented as a normal form, assuming that the two players are playing simultaneously.\\
-As described in \ref{par:modeling} there are two players ($P_r$ and $R_e$) having respectively three (S,F,A) and two (N,P) actions, yielding to the following strategic form:
-\begin{center}
-\begin{tabular}{|l|c|c|}
-\hline
-& \textbf{N} & \textbf{P} \\ \hline
-\textbf{S} & 0,0 & $\alpha P$,$(1-\alpha) P$ \\ \hline
-\textbf{F} & 0,0 & $\frac{P}{2}$,$\frac{P}{2}$ \\ \hline
-\textbf{A} & 0,0 & $(1-\alpha) P$,$\alpha P$ \\ \hline
-  \end{tabular}
-\captionof{table}{Normal (Strategic) form for modified dictator game}
-\label{tab:normform}
-\end{center}
-Whenever $R_e$ decides not to play, both the player will get a null payoff, otherwise they can be deduced in a straightforward fashion from the extensive form representation.
+% \subsubsection{Question 2}
+% \paragraph{Normal form representation}
+% The modified dictator game can be represented as a normal form, assuming that the two players are playing simultaneously.\\
+% As described in \ref{par:modeling} there are two players ($P_r$ and $R_e$) having respectively three (S,F,A) and two (N,P) actions, yielding to the following strategic form:
+% \begin{center}
+% \begin{tabular}{|l|c|c|}
+% \hline
+% & \textbf{N} & \textbf{P} \\ \hline
+% \textbf{S} & 0,0 & $\alpha P$,$(1-\alpha) P$ \\ \hline
+% \textbf{F} & 0,0 & $\frac{P}{2}$,$\frac{P}{2}$ \\ \hline
+% \textbf{A} & 0,0 & $(1-\alpha) P$,$\alpha P$ \\ \hline
+%   \end{tabular}
+% \captionof{table}{Normal (Strategic) form for modified dictator game}
+% \label{tab:normform}
+% \end{center}
+% Whenever $R_e$ decides not to play, both the player will get a null payoff, otherwise they can be deduced in a straightforward fashion from the extensive form representation.
 
-\paragraph{Nash equilibrium determination}
+% \paragraph{Nash equilibrium determination}
 
-The Nash equilibrium for the game can be computed by determining the best response sets for each player and then selecting action profiles $a^*$ in which every action is a best response to the other player's actions.\\
-\begin{center}
-\begin{tabular}{|l|c|c|}
-\hline
-& \textbf{N} & \textbf{P} \\ \hline
-\textbf{S} & \circled{0}{nashEq1P},0 & \circled{$\alpha P$}{nashEq1P},\circled{$(1-\alpha) P$}{nashEq2P} \\ \hline
-\textbf{F} & \circled{0}{nashEq1P},0 & $\frac{P}{2}$,\circled{$\frac{P}{2}$}{nashEq2P} \\ \hline
-\textbf{A} & \circled{0}{nashEq1P},0 & $(1-\alpha) P$,\circled{$\alpha P$}{nashEq2P} \\ \hline
-  \end{tabular}
-\captionof{table}{Best response analysis on the normal form of the modified dictator game}
-\label{tab:bra}
-\end{center}
-\subparagraph{Player $\mathbf{P_r}$}
-\begin{tabular}{c c}
-$B_{P_{r}}(N)$ = \{S, F, A\} & $B_{P_{r}}(P)$ = \{S\}\\
-\end{tabular}
+% The Nash equilibrium for the game can be computed by determining the best response sets for each player and then selecting action profiles $a^*$ in which every action is a best response to the other player's actions.\\
+% \begin{center}
+% \begin{tabular}{|l|c|c|}
+% \hline
+% & \textbf{N} & \textbf{P} \\ \hline
+% \textbf{S} & \circled{0}{nashEq1P},0 & \circled{$\alpha P$}{nashEq1P},\circled{$(1-\alpha) P$}{nashEq2P} \\ \hline
+% \textbf{F} & \circled{0}{nashEq1P},0 & $\frac{P}{2}$,\circled{$\frac{P}{2}$}{nashEq2P} \\ \hline
+% \textbf{A} & \circled{0}{nashEq1P},0 & $(1-\alpha) P$,\circled{$\alpha P$}{nashEq2P} \\ \hline
+%   \end{tabular}
+% \captionof{table}{Best response analysis on the normal form of the modified dictator game}
+% \label{tab:bra}
+% \end{center}
+% \subparagraph{Player $\mathbf{P_r}$}
+% \begin{tabular}{c c}
+% $B_{P_{r}}(N)$ = \{S, F, A\} & $B_{P_{r}}(P)$ = \{S\}\\
+% \end{tabular}
 
-\subparagraph{Player $\mathbf{R_e}$}
-\begin{tabular}{c c c}
-$B_{R_{e}}(S)$ = \{P\} & $B_{R_{e}}(F)$ = \{P\} & $B_{R_{e}}(A)$ = \{P\}\\
-\end{tabular}\\
+% \subparagraph{Player $\mathbf{R_e}$}
+% \begin{tabular}{c c c}
+% $B_{R_{e}}(S)$ = \{P\} & $B_{R_{e}}(F)$ = \{P\} & $B_{R_{e}}(A)$ = \{P\}\\
+% \end{tabular}\\
 
-Since $B_{R_{e}}(S)$ = \{P\} and $B_{P_{r}}(P)$ = \{S\} the only Nash equilibrium of the game is \emph{Selfish split},\emph{Play}.\\
-This result is justified by the fact that every subgame perfect equilibrium is a Nash Equilibrium as well.
+% Since $B_{R_{e}}(S)$ = \{P\} and $B_{P_{r}}(P)$ = \{S\} the only Nash equilibrium of the game is \emph{Selfish split},\emph{Play}.\\
+% This result is justified by the fact that every subgame perfect equilibrium is a Nash Equilibrium as well.
 
-\subsection{Proposed solution  - Part II}
-\subsubsection{Question 1}
-A game is defined as symmetrical if, denoted with $A$ and $B$ respectively the payoff matrices of player $P_r$ and $R_e$, one has $A=B^T$. \\
-As suggested in the problem formulation, the game can be transformed into an equivalent symmetric game by assuming that the player's role is randomly assigned (i.e. every player act 50\% of the time as a row player and 50\% of the time as a column player.\\
-Hence, both players must have the same number of pure strategies in the form $xy$, where $x$ is a pure strategy for player $P_r$ and  $x$ is a pure strategy for player $R_e$.\\
-Indicating with $A_i$ the action set for player $i$, one has:
-\begin{itemize}
-\item $A_{P_r}$ : \{\emph{Selfish split}(S),\emph{Fair split}(F),\emph{Altruistic split}(A)\}
-\item $A_{R_e}$ :  \{\emph{Don't play}(N),\emph{Play}(P)\}
-\end{itemize}
-Given that $|A_{P_r}| = 3$ and $|A_{R_e}| = 2$ the pure strategy set for the symmetrical game corresponds to the Cartesian product of the players' pure strategy sets:
-\begin{equation} 
-A_s = A_{P_r}\times A_{R_e} =  \{(S,N), (S,P), (F,N), (F,P), (A,N), (A,P)\}\\
-\end{equation}
-hence the number of pure strategies is:
-\begin{equation} 
-|A_s| =|A_{P_r}|\cdot|A_{R_e}|=6
-\end{equation}
+% \subsection{Proposed solution  - Part II}
+% \subsubsection{Question 1}
+% A game is defined as symmetrical if, denoted with $A$ and $B$ respectively the payoff matrices of player $P_r$ and $R_e$, one has $A=B^T$. \\
+% As suggested in the problem formulation, the game can be transformed into an equivalent symmetric game by assuming that the player's role is randomly assigned (i.e. every player act 50\% of the time as a row player and 50\% of the time as a column player.\\
+% Hence, both players must have the same number of pure strategies in the form $xy$, where $x$ is a pure strategy for player $P_r$ and  $x$ is a pure strategy for player $R_e$.\\
+% Indicating with $A_i$ the action set for player $i$, one has:
+% \begin{itemize}
+% \item $A_{P_r}$ : \{\emph{Selfish split}(S),\emph{Fair split}(F),\emph{Altruistic split}(A)\}
+% \item $A_{R_e}$ :  \{\emph{Don't play}(N),\emph{Play}(P)\}
+% \end{itemize}
+% Given that $|A_{P_r}| = 3$ and $|A_{R_e}| = 2$ the pure strategy set for the symmetrical game corresponds to the Cartesian product of the players' pure strategy sets:
+% \begin{equation} 
+% A_s = A_{P_r}\times A_{R_e} =  \{(S,N), (S,P), (F,N), (F,P), (A,N), (A,P)\}\\
+% \end{equation}
+% hence the number of pure strategies is:
+% \begin{equation} 
+% |A_s| =|A_{P_r}|\cdot|A_{R_e}|=6
+% \end{equation}
 
-\subsubsection{Question 2}
-The normal form of symmetrical game is a 6x6 table, where the payoffs are determined as the average payoff that the players will receive acting one time as column player and the other time as row player as follows:
-\begin{equation} 
-U_s(x_1y_1,x_2y_2) = \frac{U_{P_r}(x_1,y_1)+U_{R_e}(x_2,y_2)}{2}
-\end{equation}
-$U_{P_r}(x,y)$ and $U_{R_e}(x,y)$ are the payoff for players $P_r$ and $R_e$ respectively as in table \ref{tab:normform}.\\ 
-As described in the problem statement, the  payoff  they receive  is   the  mean  of  the  payoffs  for  both  choices.\\    
-The details of computations are reported in the following table.
-\newpage
-\begin{landscape}
-\begin{center}
-\label{tab:spm}
-\begin{tabular}{|l|c|c|c|c|c|c|}
-\hline
-& \textbf{SN} & \textbf{SP} & \textbf{FN} & \textbf{FP} & \textbf{AN} & \textbf{AP} \\ \hline
-%Eerste rij
-\cellvcenter{\textbf{SN}} &\cellvcenter{0,0} & \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{\alpha P}{2}$,\circled{$\frac{\alpha P}{2}$}{nashEq2P}} \\ [10pt] \hline 
-%Tweede rij
-\cellvcenter{\textbf{SP}} & \cellvcenter{\circled{$\frac{\alpha P}{2}$}{nashEq1P},$\frac{\alpha P}{2}$} & \cellvcenter{\circled{$\frac{P}{2}$}{nashEq1P},$\frac{P}{2}$} & \cellvcenter{\circled{$\frac{\alpha P}{2}$}{nashEq1P},$\frac{\alpha P}{2}$} & \cellvcenter{\circled{$\frac{(2\alpha+1)P}{4}$}{nashEq1P},$\frac{(2\alpha+1)P}{4}$} & \cellvcenter{\circled{$\frac{\alpha P}{2}$}{nashEq1P},$\frac{\alpha P}{2}$} & \cellvcenter{\circled{$\alpha P$}{nashEq1P},\circled{$\alpha P$}{nashEq2P}} \\ [10pt] \hline
-%Derde rij
-\cellvcenter{\textbf{FN}} & \cellvcenter{0,0} & \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{\alpha P}{2}$,\circled{$\frac{\alpha P}{2}$}{nashEq2P}} \\ [10pt]\hline
-%Vierde rij
-\cellvcenter{\textbf{FP}} &  \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{$(\frac{3}{2}-\alpha)\frac{P}{2}$,$(\frac{3}{2}-\alpha)\frac{P}{2}$} &\cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{$\frac{P}{2}$,$\frac{P}{2}$} & \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{$\frac{(2\alpha+1)P}{4}$,\circled{$\frac{(2\alpha+1)P}{4}$}{nashEq2P}}\\ [10pt] \hline
-%Vijfde rij
-\cellvcenter{\textbf{AN}} & \cellvcenter{0,0} & \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{\alpha P}{2}$,\circled{$\frac{\alpha P}{2}$}{nashEq2P}} \\ [10pt] \hline
-%Zesde rij
-\cellvcenter{\textbf{AP}} &  \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$}  & \cellvcenter{$(1-\alpha)P$,$(1-\alpha)P$} & \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$ } & \cellvcenter{ $(\frac{3}{2}-\alpha)\frac{P}{2}$,$(\frac{3}{2}-\alpha)\frac{P}{2}$}  &  \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$} & \cellvcenter{$\frac{P}{2}$,\circled{$\frac{P}{2}$}{nashEq2P}} \\ [10pt] \hline
-  \end{tabular}
-\captionof{table}{Normal (Strategic) form for modified dictator game after symmetric transformation}
-\end{center}
-\vskip10pt
-The Nash Equilibria of the game are determined by means of the best response analysis in the same manner as already done in table \ref{tab:bra}.\\
-The total ordering of the payoff values, under the assumption that $\alpha \in (0.5,1)$, are included in table \ref{tab:bra1P} and table \ref{tab:bra2P}, along with the best response for every player, to each action.\\
-\begin{itemize}
-\item \textbf{1P} : SP - \textbf{2P} : AP
-\end{itemize}
-One should recall that, for player $i$, the strategy \emph{xy} signifies that, if player $i$ is the proposer, then it should play action \emph{x}.\\
-On the other hand, if it is the receiver, it should play the strategy \emph{y}.\\
-To be coherent with the previous analysis one can assume 1P$\equiv P_r$ and 2P$ \equiv R_e$ which yields to:
-\begin{itemize}
-\item $\mathbf{P_r}$ : S (\emph{Selfish split}) - $\mathbf{R_e}$ : P(Play)
-\end{itemize}
-The unique Nash equilibrium for the symmetric game is equal to the one determined in figure \ref{fig:spe} and table \ref{tab:bra}.
-\end{landscape}
-\clearpage
+% \subsubsection{Question 2}
+% The normal form of symmetrical game is a 6x6 table, where the payoffs are determined as the average payoff that the players will receive acting one time as column player and the other time as row player as follows:
+% \begin{equation} 
+% U_s(x_1y_1,x_2y_2) = \frac{U_{P_r}(x_1,y_1)+U_{R_e}(x_2,y_2)}{2}
+% \end{equation}
+% $U_{P_r}(x,y)$ and $U_{R_e}(x,y)$ are the payoff for players $P_r$ and $R_e$ respectively as in table \ref{tab:normform}.\\ 
+% As described in the problem statement, the  payoff  they receive  is   the  mean  of  the  payoffs  for  both  choices.\\    
+% The details of computations are reported in the following table.
+% \newpage
+% \begin{landscape}
+% \begin{center}
+% \label{tab:spm}
+% \begin{tabular}{|l|c|c|c|c|c|c|}
+% \hline
+% & \textbf{SN} & \textbf{SP} & \textbf{FN} & \textbf{FP} & \textbf{AN} & \textbf{AP} \\ \hline
+% %Eerste rij
+% \cellvcenter{\textbf{SN}} &\cellvcenter{0,0} & \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{\alpha P}{2}$,\circled{$\frac{\alpha P}{2}$}{nashEq2P}} \\ [10pt] \hline 
+% %Tweede rij
+% \cellvcenter{\textbf{SP}} & \cellvcenter{\circled{$\frac{\alpha P}{2}$}{nashEq1P},$\frac{\alpha P}{2}$} & \cellvcenter{\circled{$\frac{P}{2}$}{nashEq1P},$\frac{P}{2}$} & \cellvcenter{\circled{$\frac{\alpha P}{2}$}{nashEq1P},$\frac{\alpha P}{2}$} & \cellvcenter{\circled{$\frac{(2\alpha+1)P}{4}$}{nashEq1P},$\frac{(2\alpha+1)P}{4}$} & \cellvcenter{\circled{$\frac{\alpha P}{2}$}{nashEq1P},$\frac{\alpha P}{2}$} & \cellvcenter{\circled{$\alpha P$}{nashEq1P},\circled{$\alpha P$}{nashEq2P}} \\ [10pt] \hline
+% %Derde rij
+% \cellvcenter{\textbf{FN}} & \cellvcenter{0,0} & \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{\alpha P}{2}$,\circled{$\frac{\alpha P}{2}$}{nashEq2P}} \\ [10pt]\hline
+% %Vierde rij
+% \cellvcenter{\textbf{FP}} &  \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{$(\frac{3}{2}-\alpha)\frac{P}{2}$,$(\frac{3}{2}-\alpha)\frac{P}{2}$} &\cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{$\frac{P}{2}$,$\frac{P}{2}$} & \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{$\frac{(2\alpha+1)P}{4}$,\circled{$\frac{(2\alpha+1)P}{4}$}{nashEq2P}}\\ [10pt] \hline
+% %Vijfde rij
+% \cellvcenter{\textbf{AN}} & \cellvcenter{0,0} & \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{P}{4}$,$\frac{P}{4}$} & \cellvcenter{0,0} & \cellvcenter{$\frac{\alpha P}{2}$,\circled{$\frac{\alpha P}{2}$}{nashEq2P}} \\ [10pt] \hline
+% %Zesde rij
+% \cellvcenter{\textbf{AP}} &  \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$}  & \cellvcenter{$(1-\alpha)P$,$(1-\alpha)P$} & \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$ } & \cellvcenter{ $(\frac{3}{2}-\alpha)\frac{P}{2}$,$(\frac{3}{2}-\alpha)\frac{P}{2}$}  &  \cellvcenter{$(1-\alpha)\frac{P}{2}$,$(1-\alpha)\frac{P}{2}$} & \cellvcenter{$\frac{P}{2}$,\circled{$\frac{P}{2}$}{nashEq2P}} \\ [10pt] \hline
+%   \end{tabular}
+% \captionof{table}{Normal (Strategic) form for modified dictator game after symmetric transformation}
+% \end{center}
+% \vskip10pt
+% The Nash Equilibria of the game are determined by means of the best response analysis in the same manner as already done in table \ref{tab:bra}.\\
+% The total ordering of the payoff values, under the assumption that $\alpha \in (0.5,1)$, are included in table \ref{tab:bra1P} and table \ref{tab:bra2P}, along with the best response for every player, to each action.\\
+% \begin{itemize}
+% \item \textbf{1P} : SP - \textbf{2P} : AP
+% \end{itemize}
+% One should recall that, for player $i$, the strategy \emph{xy} signifies that, if player $i$ is the proposer, then it should play action \emph{x}.\\
+% On the other hand, if it is the receiver, it should play the strategy \emph{y}.\\
+% To be coherent with the previous analysis one can assume 1P$\equiv P_r$ and 2P$ \equiv R_e$ which yields to:
+% \begin{itemize}
+% \item $\mathbf{P_r}$ : S (\emph{Selfish split}) - $\mathbf{R_e}$ : P(Play)
+% \end{itemize}
+% The unique Nash equilibrium for the symmetric game is equal to the one determined in figure \ref{fig:spe} and table \ref{tab:bra}.
+% \end{landscape}
+% \clearpage
 
-\textbf{Player 1}
-\begin{center}
-\vskip7pt
-\begin{tabular}{|l|c|c|}
-\hline 
-\textbf{Action} & \textbf{Payoff Order} & \textbf{Best Response} \\ \hline
-\textbf{SN}$\mathbf{(\alpha > \frac{2}{3})}$ & $\frac{\alpha P}{2}>\frac{\alpha P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt]
-\textbf{SN}$\mathbf{(\alpha < \frac{2}{3})}$ & $\frac{\alpha P}{2}>(1-\alpha)\frac{P}{2}>\frac{\alpha P}{4}$ & \textbf{SP}\\ [10pt]
-\textbf{SP} & $\frac{P}{2}>(\frac{3}{2}-\alpha)\frac{P}{2}>(1-\alpha)P>(1-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt]
-\textbf{FN}$\mathbf{(\alpha > \frac{2}{3})}$ & $\frac{\alpha P}{2}>\frac{\alpha P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt] 
-\textbf{FN}$\mathbf{(\alpha < \frac{2}{3})}$ & $\frac{\alpha P}{2}>(1-\alpha)\frac{P}{2}>\frac{\alpha P}{4}$ & \textbf{SP}\\ [10pt]
-\textbf{FP} & $(2\alpha+1)\frac{P}{4}>\frac{P}{2}>\frac{P}{4}>(\frac{3}{2}-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt]
-\textbf{AN}$\mathbf{(\alpha > \frac{2}{3})}$ & $\frac{\alpha P}{2}>\frac{\alpha P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt]
-\textbf{AN}$\mathbf{(\alpha < \frac{2}{3})}$ & $\frac{\alpha P}{2}>(1-\alpha)\frac{P}{2}>\frac{\alpha P}{4}$ & \textbf{SP}\\ [10pt]
-\textbf{AP} & $\alpha P>(2\alpha+1)\frac{P}{4}>\frac{P}{2}>\frac{\alpha P}{2}$ & \textbf{SP}\\ [10pt]
-\hline
-\end{tabular}
-\captionof{table}{Best response analysis for player 1}
-\label{tab:bra1P}
-\end{center}
+% \textbf{Player 1}
+% \begin{center}
+% \vskip7pt
+% \begin{tabular}{|l|c|c|}
+% \hline 
+% \textbf{Action} & \textbf{Payoff Order} & \textbf{Best Response} \\ \hline
+% \textbf{SN}$\mathbf{(\alpha > \frac{2}{3})}$ & $\frac{\alpha P}{2}>\frac{\alpha P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt]
+% \textbf{SN}$\mathbf{(\alpha < \frac{2}{3})}$ & $\frac{\alpha P}{2}>(1-\alpha)\frac{P}{2}>\frac{\alpha P}{4}$ & \textbf{SP}\\ [10pt]
+% \textbf{SP} & $\frac{P}{2}>(\frac{3}{2}-\alpha)\frac{P}{2}>(1-\alpha)P>(1-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt]
+% \textbf{FN}$\mathbf{(\alpha > \frac{2}{3})}$ & $\frac{\alpha P}{2}>\frac{\alpha P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt] 
+% \textbf{FN}$\mathbf{(\alpha < \frac{2}{3})}$ & $\frac{\alpha P}{2}>(1-\alpha)\frac{P}{2}>\frac{\alpha P}{4}$ & \textbf{SP}\\ [10pt]
+% \textbf{FP} & $(2\alpha+1)\frac{P}{4}>\frac{P}{2}>\frac{P}{4}>(\frac{3}{2}-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt]
+% \textbf{AN}$\mathbf{(\alpha > \frac{2}{3})}$ & $\frac{\alpha P}{2}>\frac{\alpha P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{SP}\\ [10pt]
+% \textbf{AN}$\mathbf{(\alpha < \frac{2}{3})}$ & $\frac{\alpha P}{2}>(1-\alpha)\frac{P}{2}>\frac{\alpha P}{4}$ & \textbf{SP}\\ [10pt]
+% \textbf{AP} & $\alpha P>(2\alpha+1)\frac{P}{4}>\frac{P}{2}>\frac{\alpha P}{2}$ & \textbf{SP}\\ [10pt]
+% \hline
+% \end{tabular}
+% \captionof{table}{Best response analysis for player 1}
+% \label{tab:bra1P}
+% \end{center}
 
-\textbf{Player 2}
-\begin{center}
-\vskip7pt
-\begin{tabular}{|l|c|c|}
-\hline 
-\textbf{Action} & \textbf{Payoff Order} & \textbf{Best Response} \\ \hline
-\textbf{SN} & $\frac{\alpha P}{2}>\frac{P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
-\textbf{SP} & $\alpha P>(2\alpha+1)\frac{P}{4}>\frac{P}{2}>\frac{\alpha P}{2}$ & \textbf{AP}\\ [10pt]
-\textbf{FN} & $\frac{\alpha P}{2}>\frac{P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
-\textbf{FP} & $(2\alpha+1)\frac{P}{4}>\frac{P}{2}>\frac{P}{4}>(\frac{3}{2}-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
-\textbf{AN} & $\frac{\alpha P}{2}>\frac{P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
-\textbf{AP} & $\frac{P}{2}>(\frac{3}{2}-\alpha)\frac{P}{2}>(1-\alpha)P>(1-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
-\hline
-\end{tabular}
-\captionof{table}{Best response analysis for player 2}
-\label{tab:bra2P}
-\end{center}
+% \textbf{Player 2}
+% \begin{center}
+% \vskip7pt
+% \begin{tabular}{|l|c|c|}
+% \hline 
+% \textbf{Action} & \textbf{Payoff Order} & \textbf{Best Response} \\ \hline
+% \textbf{SN} & $\frac{\alpha P}{2}>\frac{P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
+% \textbf{SP} & $\alpha P>(2\alpha+1)\frac{P}{4}>\frac{P}{2}>\frac{\alpha P}{2}$ & \textbf{AP}\\ [10pt]
+% \textbf{FN} & $\frac{\alpha P}{2}>\frac{P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
+% \textbf{FP} & $(2\alpha+1)\frac{P}{4}>\frac{P}{2}>\frac{P}{4}>(\frac{3}{2}-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
+% \textbf{AN} & $\frac{\alpha P}{2}>\frac{P}{4}>(1-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
+% \textbf{AP} & $\frac{P}{2}>(\frac{3}{2}-\alpha)\frac{P}{2}>(1-\alpha)P>(1-\alpha)\frac{P}{2}$ & \textbf{AP}\\ [10pt]
+% \hline
+% \end{tabular}
+% \captionof{table}{Best response analysis for player 2}
+% \label{tab:bra2P}
+% \end{center}
 
-\end{homeworkProblem}		
+%\end{homeworkProblem}		
 
 \section{Conclusion}
 
-\bibliographystyle{plain}
-\bibliography{Assignment2}
+%\bibliographystyle{plain}
+%\bibliography{Assignment2}
 
 \end{document}

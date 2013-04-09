@@ -297,6 +297,14 @@ int main (int argc, char **argv)
 			//instanceReader.PrintTimeWindows();
 			if(instanceReader.ReadSeeds()){
 				//instanceReader.PrintSeeds();
+				if(instanceReader.GetSeeds().size() < runs){
+					std::cerr << "[Error] - The seeds file contains lees seeds than the required number of runs " << std::endl << std::endl;
+					exit(-1);
+				}
+			}
+			else{
+				std::cerr << "[Error] - Read error on " << seedsFileName << std::endl << std::endl;
+				exit(-1);
 			}
 			HeuristicCore solverCore(instanceReader.GetDistanceMatrix(),
 										 instanceReader.GetTimeWindows(),
@@ -342,7 +350,7 @@ void version(void)
 
 void usage(void)
 {
-  std::cout << "Usage: TSPTW-VND [OPTIONS]..." << std::endl << std::endl;
+  std::cout << "Usage: TSPTW-VND [PARAMETERS] -i [INPUTFILE] -s [SEEDSFILE]" << std::endl << std::endl;
   std::cout << "Flag \t\t Argument \t Description" << std::endl;
   std::cout << "-t,--standard \t [No] \t\t Use standard VND algorithm." << std::endl;
   std::cout << "-p,--piped\t [No] \t\t Use piped VND algorithm." << std::endl;

@@ -468,18 +468,18 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 				i++;
 				break;
 			}
-			/*if(nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator < timeWindows.at(j).GetUpperBound()){
+			if(nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator < timeWindows.at(j).GetUpperBound()){
 				currentTour.push_back(timeWindows.at(j).GetCityNumber());
 				timeWindows.erase(timeWindows.begin()+j);
 				i++;
 				break;
-			}*/
-			/*if(nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator > timeWindows.at(j).GetLowerBound()){
+			}
+			if(nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator > timeWindows.at(j).GetLowerBound()){
 				currentTour.push_back(timeWindows.at(j).GetCityNumber());
 				timeWindows.erase(timeWindows.begin()+j);
 				i++;
 				break;
-			}*/
+			}
 		}
 
 	}
@@ -487,7 +487,6 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 
 	m_cCurrentSolution.SetTour(currentTour);
 	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
-	std::cout << m_cCurrentSolution << std::endl;
 }
 
 void HeuristicCore::ComputeTransposeNeighborhood() {
