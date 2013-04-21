@@ -51,17 +51,20 @@
 #include <vector>
 
 #include "TimeWindow.h"
+#include "NumericMatrix.h"
 
 class InstanceReader {
 public:
 	InstanceReader(std::string data_filename,std::string seeds_filename) :
 		m_sInputFileName(data_filename),
 		m_sSeedsFileName(seeds_filename),
-		m_unCities(0){}
+		m_unCities(0),
+		m_pcDistanceMatrix(NULL){}
 
 	InstanceReader() :
 		m_sInputFileName(""),
-		m_unCities(0){}
+		m_unCities(0),
+		m_pcDistanceMatrix(NULL){}
 
 	~InstanceReader() {
 		m_ifInputFile.close();
@@ -91,8 +94,8 @@ public:
 		return m_ifInputFile;
 	}
 
-	inline const std::vector<std::vector<unsigned int> >& GetDistanceMatrix() const {
-		return m_vecDistanceMatrix;
+	const NumericMatrix<unsigned int>* GetPDistanceMatrix() const {
+		return m_pcDistanceMatrix;
 	}
 
 	inline const std::vector<unsigned int>& GetSeeds() const {
@@ -111,14 +114,13 @@ public:
 	void PrintSeeds();
 
 
-
 private:
 	std::string m_sInputFileName;
 	std::string m_sSeedsFileName;
 	std::ifstream m_ifInputFile;
 	std::ifstream m_ifSeedsFile;
 	unsigned int m_unCities;
-	std::vector<std::vector<unsigned int> > m_vecDistanceMatrix;
+	NumericMatrix<unsigned int> *m_pcDistanceMatrix;
 	std::vector<TimeWindow> m_vecTimeWindows;
 	std::vector<unsigned int> m_vecSeeds;
 

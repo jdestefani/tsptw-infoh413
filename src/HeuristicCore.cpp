@@ -41,7 +41,7 @@
 #include "HeuristicCore.h"
 
 /*
-      METHOD:         Run the chosen algorithm for the desired number of runs.
+      METHOD:         Run the chosen II algorithm for the desired number of runs.
       INPUT:          none
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
@@ -58,7 +58,7 @@ void HeuristicCore::RunII() {
 
 
 /*
-      METHOD:         Run the chosen algorithm for the desired number of runs.
+      METHOD:         Run the chosen VND algorithm for the desired number of runs.
       INPUT:          none
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
@@ -75,7 +75,7 @@ void HeuristicCore::RunVND() {
 
 
 /*
-      METHOD:         Implementation of a single run of the algorithm.
+      METHOD:         Implementation of a single run of the II algorithm.
       INPUT:          none
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
@@ -114,6 +114,15 @@ void HeuristicCore::IterativeImprovement() {
 	m_wriResultsWriter.AddData(m_fSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_fRunTime);
 }
 
+
+/*
+      METHOD:         Wrapper for the functions used to execute a single run of the VND algorithm.
+       	   	   	   	  Launch the correct one according to the value of m_eVNDType.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  none
+*/
+
 void HeuristicCore::VariableNeighborhoodDescent() {
 	struct timespec sBeginTime;
 	struct timespec sEndTime;
@@ -143,7 +152,7 @@ void HeuristicCore::VariableNeighborhoodDescent() {
 }
 
 /*
-      METHOD:         Implementation of a single run of the algorithm.
+      METHOD:         Implementation of a single run of the standard VND algorithm.
       INPUT:          none
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
@@ -160,6 +169,7 @@ void HeuristicCore::StandardVariableNeighborhoodDescent() {
 		/*If a first improving neighbor is not found*/
 		while(!m_bIsLocalOptimum){
 			if(currentNeighborhood != 0){
+				/*If the solution is not a local optimum reset neighborhood size to minimal size*/
 				currentNeighborhood = 0;
 				m_eNeighborhoodType = m_vecNeighborhoodChain.at(currentNeighborhood);
 			}
@@ -205,7 +215,7 @@ void HeuristicCore::StandardVariableNeighborhoodDescent() {
 }
 
 /*
-      METHOD:         Implementation of a single run of the algorithm.
+      METHOD:         Implementation of a single run of the Piped VND algorithm.
       INPUT:          none
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
@@ -255,6 +265,13 @@ void HeuristicCore::PipedVariableNeighborhoodDescent() {
 	}*/
 }
 
+
+/*
+      METHOD:         Computation of the time passed by two time instants.
+      INPUT:          struct timesteps containing the starting and ending time of the period to compute
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modifies the state of the class
+*/
 void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {
 	struct timespec temp;
 		if ((s_end_time.tv_nsec-s_begin_time.tv_nsec)<0) {
@@ -267,7 +284,13 @@ void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespe
 	m_fRunTime = temp.tv_sec+temp.tv_nsec/(10e9);
 }
 
-
+/*
+      METHOD:         Wrapper for the functions used to generate the neighborhood chains for the VND algorithm.
+       	   	   	   	  Launch the correct one according to the value of m_eNeighborhoodChain.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Generates the initial solution and store it into the object m_cCurrentSolution
+*/
 void HeuristicCore::GenerateNeighborhoodChain() {
 	m_vecNeighborhoodChain.erase(m_vecNeighborhoodChain.begin(),m_vecNeighborhoodChain.end());
 
@@ -353,7 +376,7 @@ void HeuristicCore::UpdateSolution() {
 }
 
 /*
-      METHOD:         Method used to test the optimality of the solution.
+      METHOD:         Method used to test the optimality of the solution. (Deprecated)
        	   	   	   	  Search in the current neighborhood whether there are better solution that the current one.
       INPUT:          none
       OUTPUT:         true if the solution is the optimal one, false otherwise
@@ -401,13 +424,14 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 		else if(arrivalTimeAccumulator > (m_vecTimeWindows.at(currentTour.at(i)).GetUpperBound())){
 			constraintViolations++;
 		}
+
 		if(i < candidateSolution.GetTour().size()-1 ){
-			arrivalTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(i)).at(currentTour.at(i+1));
-			travelTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(i)).at(currentTour.at(i+1));
+			arrivalTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(i),currentTour.at(i+1));
+			travelTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(i),currentTour.at(i+1));
 		}
 		else{
-			arrivalTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(i)).at(currentTour.at(0));
-			travelTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(i)).at(currentTour.at(0));
+			arrivalTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(i),currentTour.at(0));
+			travelTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(i),currentTour.at(0));;
 		}
 	}
 	/*Complete Tour*/
@@ -426,7 +450,12 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 
 }
 
-
+/*
+      METHOD:         Method used to generate randomly an initial solution.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class
+*/
 void HeuristicCore::GenerateRandomInitialSolution() {
 	unsigned int i=0;
 	std::vector<unsigned int> currentTour;
@@ -438,8 +467,15 @@ void HeuristicCore::GenerateRandomInitialSolution() {
 	std::random_shuffle(++currentTour.begin(),currentTour.end());
 	m_cCurrentSolution.SetTour(currentTour);
 	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
+	std::cout << m_cCurrentSolution << std::endl;
 }
 
+/*
+      METHOD:         Method used to generate an initial solution using an heuristic
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class
+*/
 void HeuristicCore::GenerateHeuristicInitialSolution() {
 	std::vector<TimeWindow> timeWindows(m_vecTimeWindows);
 	std::sort(++timeWindows.begin(),timeWindows.end());
@@ -447,19 +483,24 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 	std::vector<unsigned int> nextCityDistances;
 	unsigned int tourAccumulator = 0;
 	unsigned int i=0;
+	std::srand ( unsigned ( m_fSeed ) );
+	unsigned int perturbations = (float(rand())/RAND_MAX)*(m_vecTimeWindows.size()/10);
+
 
 	for(;i<2;i++){
 		currentTour.push_back(timeWindows.at(i).GetCityNumber());
 		if(i>0){
-			tourAccumulator += m_vecDistanceMatrix.at(0).at(currentTour.at(i));
+			tourAccumulator += m_pcDistanceMatrix->GetElement(0,currentTour.at(i));
 		}
 
 	}
 	timeWindows.erase(timeWindows.begin(),timeWindows.begin()+i);
 
+	/*Tries to allocate cities in order to avoid constraint violations*/
+	/*If that is not possible, order cities according to the closing time of the time window*/
 	while(timeWindows.size()>0){
 		unsigned int j=0;
-		nextCityDistances = m_vecDistanceMatrix.at(i-1);
+		//nextCityDistances = m_vecDistanceMatrix.at(i-1);
 		for(; j<timeWindows.size(); j++){
 			if(nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator < timeWindows.at(j).GetUpperBound()
 					&& nextCityDistances.at(timeWindows.at(j).GetCityNumber())+tourAccumulator > timeWindows.at(j).GetLowerBound()){
@@ -484,11 +525,30 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 
 	}
 
+	/*Perturbate locally the generated solution with decreasing intensity*/
+	while(perturbations > 0){
+		unsigned int perturbationPoint = (float(rand())/RAND_MAX)*(currentTour.size()-1);
+		unsigned int perturbationIntensity = (float(rand())/RAND_MAX)*perturbations;
+		if(perturbationPoint+perturbationIntensity > currentTour.size()){
+			perturbationIntensity -= (perturbationIntensity+perturbationIntensity - currentTour.size());
+		}
+		std::random_shuffle(currentTour.begin()+1+perturbationPoint,currentTour.begin()+1+perturbationPoint+perturbationIntensity);
+		perturbations--;
+	}
 
 	m_cCurrentSolution.SetTour(currentTour);
 	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
 }
 
+
+
+/*
+      METHOD:         Method used to compute the transpose neighborhood of the current solution and to
+      	  	  	  	  choose the next candidate solution according to the defined pivoting rule
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class by updating m_cCurrentSolution.
+*/
 void HeuristicCore::ComputeTransposeNeighborhood() {
 
 	m_sBestComponentExchange.firstElement = 0;
@@ -548,7 +608,13 @@ void HeuristicCore::ComputeTransposeNeighborhood() {
 
 }
 
-
+/*
+      METHOD:         Method used to compute the exchange neighborhood of the current solution and to
+      	  	  	  	  choose the next candidate solution according to the defined pivoting rule
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class by updating m_cCurrentSolution.
+*/
 void HeuristicCore::ComputeExchangeNeighborhood() {
 
 	m_sBestComponentExchange.firstElement = 0;
@@ -608,6 +674,13 @@ void HeuristicCore::ComputeExchangeNeighborhood() {
 	}*/
 }
 
+/*
+      METHOD:         Method used to compute the insert neighborhood of the current solution and to
+      	  	  	  	  choose the next candidate solution according to the defined pivoting rule
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class by updating m_cCurrentSolution.
+*/
 void HeuristicCore::ComputeInsertNeighborhood() {
 	m_sBestComponentExchange.firstElement = 0;
 	m_sBestComponentExchange.secondElement = 0;
@@ -673,6 +746,13 @@ void HeuristicCore::ComputeInsertNeighborhood() {
 	}*/
 }
 
+/*
+      METHOD:         Method used to determine the next candidate solution using best improvement
+      	  	  	  	  pivoting rule.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class by updating m_cCurrentSolution.
+*/
 void HeuristicCore::UpdateSolutionBestImprovement() {
 
 	std::list<CandidateSolution>::iterator itBest = m_listSolutionNeighborhood.end();
@@ -694,7 +774,13 @@ void HeuristicCore::UpdateSolutionBestImprovement() {
 }
 
 
-
+/*
+      METHOD:         Method used to determine the next candidate solution using first improvement
+      	  	  	  	  pivoting rule.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class by updating m_cCurrentSolution.
+*/
 void HeuristicCore::UpdateSolutionFirstImprovement() {
 	std::list<CandidateSolution>::iterator itFirst = m_listSolutionNeighborhood.end();
 	bool isEvaluationImproved = false;
@@ -732,9 +818,9 @@ void HeuristicCore::UpdateSolutionFirstImprovement() {
 
 /*
       METHOD:         Method used to compute the tour length and the number of the constraint violations based on the built solutions.
-      INPUT:          An object containing the solution for which the values have to be computed
+      INPUT:          The indexes of the solution components corresponting to the currently evaluated 2-opt operation
       OUTPUT:         none
-      (SIDE)EFFECTS:  Store the computed values in the corresponding attributes of the candidateSolution object passed as parameter.
+      (SIDE)EFFECTS:  Store the computed values in the corresponding attributes of m_sBestComponentExchange.
 */
 void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int i, unsigned int j) {
 		unsigned int travelTimeAccumulator = 0;
@@ -772,12 +858,12 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsign
 				constraintViolations++;
 			}
 			if(index < currentTour.size()-1 ){
-				arrivalTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(index)).at(currentTour.at(index+1));
-				travelTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(index)).at(currentTour.at(index+1));
+				arrivalTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(index),currentTour.at(index+1));
+				travelTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(index),currentTour.at(index+1));
 			}
 			else{
-				arrivalTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(index)).at(currentTour.at(0));
-				travelTimeAccumulator+=m_vecDistanceMatrix.at(currentTour.at(index)).at(currentTour.at(0));
+				arrivalTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(index),currentTour.at(0));
+				travelTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(index),currentTour.at(0));;
 			}
 
 		}
@@ -797,6 +883,16 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolationsDifferential(unsign
 
 }
 
+
+/*
+      METHOD:         Method used to update the structure containing the parameters of the currently best improving solution with respect
+      	  	  	  	  to the current one.
+      INPUT:          i,j: The indexes of the solution components corresponding to the currently evaluated 2-opt operation
+      	  	  	  	  constraint_violations: Number of constraint violations
+      	  	  	  	  travel_time_accumulator: Total tour duration
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Store the computed values in the corresponding attributes of m_sBestComponentExchange.
+*/
 void HeuristicCore::UpdateBestExchange(unsigned int i, unsigned int j, unsigned int constraint_violations,unsigned int travel_time_accumulator){
 			//Compare values with current solution and decide
 			if(constraint_violations < m_sBestComponentExchange.constraintViolations){
@@ -804,9 +900,6 @@ void HeuristicCore::UpdateBestExchange(unsigned int i, unsigned int j, unsigned 
 				m_sBestComponentExchange.secondElement = j;
 				m_sBestComponentExchange.tourDuration = travel_time_accumulator;
 				m_sBestComponentExchange.constraintViolations = constraint_violations;
-	//			std::cout << std::endl <<"travelTimeAccumulator:" << travelTimeAccumulator << std::endl;
-	//			std::cout <<"constraintViolations:" << constraintViolations << std::endl;
-	//			std::cout <<"m_sBestComponentExchange:" << m_sBestComponentExchange.firstElement << " , " << m_sBestComponentExchange.secondElement << " : " << m_sBestComponentExchange.tourDuration << " , " << m_sBestComponentExchange.constraintViolations << std::endl;
 				if(!m_bIsImproved){
 					m_bIsImproved = true;
 				}
@@ -816,9 +909,7 @@ void HeuristicCore::UpdateBestExchange(unsigned int i, unsigned int j, unsigned 
 				m_sBestComponentExchange.secondElement = j;
 				m_sBestComponentExchange.tourDuration = travel_time_accumulator;
 				m_sBestComponentExchange.constraintViolations = constraint_violations;
-	//			std::cout << std::endl <<"travelTimeAccumulator:" << travelTimeAccumulator << std::endl;
-	//			std::cout <<"constraintViolations:" << constraintViolations << std::endl;
-	//			std::cout <<"m_sBestComponentExchange:" << m_sBestComponentExchange.firstElement << " , " << m_sBestComponentExchange.secondElement << " : " << m_sBestComponentExchange.tourDuration << " , " << m_sBestComponentExchange.constraintViolations << std::endl;
+
 				if(!m_bIsImproved){
 					m_bIsImproved = true;
 				}
@@ -827,6 +918,14 @@ void HeuristicCore::UpdateBestExchange(unsigned int i, unsigned int j, unsigned 
 
 }
 
+/*
+      METHOD:         Method implementing the swap operation required to generate the transpose and exchange neighborhood
+      INPUT:          tour: The currently evaluated solution
+      	  	  	  	  i,j: The indexes of the solution components corresponding to the currently evaluated 2-opt operation
+      	  	  	  	  	   or equally the components to swap.
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Swap the components in tour.
+*/
 void HeuristicCore::SwapTourComponents(std::vector<unsigned int>& tour,unsigned int firstIndex,unsigned int secondIndex) {
 	if(firstIndex != secondIndex){
 		unsigned int swapVariable = tour.at(secondIndex);
@@ -836,6 +935,14 @@ void HeuristicCore::SwapTourComponents(std::vector<unsigned int>& tour,unsigned 
 
 }
 
+/*
+      METHOD:         Method implementing the insert operation required to generate the insert neighborhood
+      INPUT:          tour: The currently evaluated solution
+      	  	  	  	  city_index: The index of the solution component to move and insert in a different position
+      	  	  	  	  insertion_position: The index of the position where the solution component should be inserted.
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Insert the solution component in the desired position and shift the other values to maintain the validity of the insertion
+*/
 void HeuristicCore::InsertTourComponent(std::vector<unsigned int>& tour,unsigned int city_index, unsigned int insertion_position) {
 	if(city_index != insertion_position){
 		unsigned int elementToInsert = tour.at(city_index);
@@ -851,59 +958,6 @@ void HeuristicCore::InsertTourComponent(std::vector<unsigned int>& tour,unsigned
 		}
 		tour.at(insertion_position) = elementToInsert;
 	}
-}
-
-
-
-void HeuristicCore::TestFunction() {
-	GenerateHeuristicInitialSolution();
-	/*
-	unsigned int iterations = 0;
-
-	std::cout << "Cities: " << m_unCities << std::endl;
-	std::cout << "Distance matrix: " << m_vecDistanceMatrix.size() << " x " << m_vecDistanceMatrix.at(80).size() << std::endl;
-	std::cout << "Time windows: " << m_vecTimeWindows.size() << std::endl;
-
-
-
-		GenerateRandomInitialSolution();
-		std::cout << m_cCurrentSolution;
-		ComputeExchangeNeighborhood();
-		std::cout << "Neighborhood " << iterations << ":" << std::endl;
-		for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
-			std::cout << (*itList) << std::endl;
-		}
-
-		//while(!IsLocalOptimum()){
-			//1. Select solution from neighborhood
-			UpdateSolution();
-			//2. Generate neighborhood
-			ComputeInsertNeighborhood();
-			iterations++;
-			std::cout << "Neighborhood " << iterations << ":" << std::endl;
-			for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
-						std::cout << (*itList) << std::endl;
-			}
-		//}
-		std::cout << "Solution found in " << m_fRunTime << "s - (" << iterations << " iterations)" << std::endl;
-		std::cout << m_cCurrentSolution;
-
-
-	//Run();
-	ComputeTransposeNeighborhood();
-	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
-	for(std::list<CandidateSolution>::iterator itList = m_listSolutionNeighborhood.begin(); itList != m_listSolutionNeighborhood.end() ; ++itList){
-			std::cout << (*itList) << std::endl;
-		}
-	UpdateSolutionBestImprovement();
-	//UpdateSolutionFirstImprovement();
-	//IterativeImprovement();
-	ComputeExchangeNeighborhood();
-	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
-	ComputeInsertNeighborhood();
-	std::cout << "Generated neighbor size:" << m_listSolutionNeighborhood.size() << std::endl;
-
-*/
 }
 
 

@@ -31,7 +31,6 @@ TSPTW-II=bin/TSPTW-II
 TSPTW-VND=bin/TSPTW-VND
 
 
-
 #%.o: %.cpp 
 #	$(CXX) $(COMPILEFLAGS) $< $(DIRFLAG)
 

@@ -50,13 +50,14 @@
 
 #include "TimeWindow.h"
 #include "CandidateSolution.h"
+#include "NumericMatrix.h"
 #include "Writer.h"
 #include "CommonDefs.h"
 
 class HeuristicCore {
 public:
 
-	HeuristicCore(const std::vector<std::vector<unsigned int> >& vec_distance_matrix,
+	HeuristicCore(const NumericMatrix<unsigned int>* p_distance_matrix,
 				  const std::vector<TimeWindow>& vec_time_windows,
 				  unsigned int cities_number,
 				  EInitFunction init_function,
@@ -67,7 +68,7 @@ public:
 				  std::string input_filename,
 				  unsigned int best_known_solution):
 
-				  m_vecDistanceMatrix(vec_distance_matrix),
+				  m_pcDistanceMatrix(p_distance_matrix),
 				  m_vecTimeWindows(vec_time_windows),
 				  m_unCities(cities_number),
 				  m_eInitFunction(init_function),
@@ -85,7 +86,7 @@ public:
 				  m_sBestComponentExchange(0,0,0,0){
 	}
 
-	HeuristicCore(const std::vector<std::vector<unsigned int> >& vec_distance_matrix,
+	HeuristicCore(const NumericMatrix<unsigned int>* p_distance_matrix,
 					  const std::vector<TimeWindow>& vec_time_windows,
 					  unsigned int cities_number,
 					  EVNDType vnd_type,
@@ -95,7 +96,7 @@ public:
 					  std::string input_filename,
 					  unsigned int best_known_solution):
 
-					  m_vecDistanceMatrix(vec_distance_matrix),
+					  m_pcDistanceMatrix(p_distance_matrix),
 					  m_vecTimeWindows(vec_time_windows),
 					  m_unCities(cities_number),
 					  m_eInitFunction(RANDOM),
@@ -145,7 +146,6 @@ public:
 
 	void RunII();
 	void RunVND();
-	void TestFunction();
 	void IterativeImprovement();
 	void VariableNeighborhoodDescent();
 	void GenerateNeighborhoodChain();
@@ -198,7 +198,7 @@ private:
 	bool m_bIsLocalOptimum;
 	bool m_bIsImproved;
 	unsigned int m_unCities;
-	const std::vector<std::vector<unsigned int> >& m_vecDistanceMatrix;
+	const NumericMatrix<unsigned int>* m_pcDistanceMatrix;
 	const std::vector<TimeWindow>& m_vecTimeWindows;
 	const std::vector<unsigned int>& m_vecSeeds;
 	double m_fRunTime;

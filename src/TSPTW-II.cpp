@@ -370,7 +370,7 @@ int main (int argc, char **argv)
 				std::cerr << "[Error] - Read error on " << seedsFileName << std::endl << std::endl;
 				exit(-1);
 			}
-			HeuristicCore solverCore(instanceReader.GetDistanceMatrix(),
+			HeuristicCore solverCore(instanceReader.GetPDistanceMatrix(),
 										 instanceReader.GetTimeWindows(),
 										 instanceReader.GetCities(),
 										 initFunction,

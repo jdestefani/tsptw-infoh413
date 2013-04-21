@@ -78,7 +78,10 @@ bool InstanceReader::ReadInformations() {
 			/* The first line in the file corresponds to the number of cities */
 			if(readLines == 0){
 				if(tokens.size() == CITIES_NUMBER_TOKENS){
-					m_unCities = atoi(tokens.at(0).c_str());
+					unsigned int citiesNumber = 0;
+					citiesNumber = atoi(tokens.at(0).c_str());
+					m_unCities = citiesNumber;
+					m_pcDistanceMatrix = new NumericMatrix<unsigned int>(m_unCities,m_unCities);
 				}
 				else{
 					std::cerr << "Line " << readLines << ": Wrong instance file structure -> Error in cities' number" << std::endl;
@@ -90,8 +93,8 @@ bool InstanceReader::ReadInformations() {
 				if(tokens.size() == m_unCities){
 					for(unsigned int i = 0;i < m_unCities;i++){
 						currCityDistances.push_back(atoi(tokens.at(i).c_str()));
+						m_pcDistanceMatrix->SetElement(readLines-1,i,atoi(tokens.at(i).c_str()));
 					}
-					m_vecDistanceMatrix.push_back(currCityDistances);
 					currCityDistances.erase(currCityDistances.begin(),currCityDistances.end());
 				}
 				else{
@@ -150,12 +153,13 @@ bool InstanceReader::ReadSeeds() {
 
 void InstanceReader::PrintDistanceMatrix() {
 	std::cout << "DISTANCE MATRIX" << std::endl;
-	for(unsigned int i=0; i<m_vecDistanceMatrix.size();i++){
+	std::cout << (*m_pcDistanceMatrix) << std::endl;
+	/*for(unsigned int i=0; i<m_vecDistanceMatrix.size();i++){
 		for(unsigned int j=0; j<m_vecDistanceMatrix.at(i).size();j++){
 			std::cout << m_vecDistanceMatrix.at(i).at(j) << " ";
 		}
 		std::cout << std::endl;
-	}
+	}*/
 }
 
 
