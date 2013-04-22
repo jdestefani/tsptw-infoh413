@@ -30,46 +30,150 @@ of the iterative improvement algorithm for the hybrid SLS algorithm.
 \end{itemize}
 \end{enumerate}
 
-\subsection{Introduction}
-Ant Colony Optimization is an example of population-based stochastic local search method.
+\subsection{Introduction} \label{sec:intro}
+Ant Colony Optimization is an example of population-based metaheuristic (i.e a set of algorithmic concepts that can be used to define heuristic methods) inspired by the behavior of the ant species \emph{Iridomyrmex humilis}.
 
-The algorithm is inspired by the behavior of the ant species \emph{Iridomyrmex humilis}.
+To be more precise, these insects are able, by means of stigmergic communication, to choose the shortest path between their nest and a food source, when given the choice (\cite{deneubourg1990self}).
 
-To be more precise, these insects are able, by means of stigmergic communication, to choose the shortest path between their nest and a food source, when given the choice (CITE Deneubourg).
+The communication process occurs by deposing a certain quantity of pheromone in the environment that can be sensed by the other ants and that will be used by them as an heuristic (i.e an information to guide their choice) for selecting the shortest path.
 
-The ants are able to communicate indirectly by deposing a certain quantity of pheromone in the environment that can be sensed by the other ants and that will be used by them to choose the right path.
+Furthermore, the pheromone quantity on a certain location decreases over time because of evaporation, thus requiring a continuous deposit process to be effective.
 
-The convergence to one of the paths will occur as a consequence of the self-reinforcing pheromone deposit mechanism (i.e the more pheromone is deposited, the more ants will follow the pheromone trail deposing even more pheromone).
+The convergence to one of the paths will occur as a consequence of the self-reinforcing pheromone deposit mechanism.
+In fact the more pheromone is deposited on a path, the more ants will follow the pheromone trail on that path deposing even more pheromone.
 
-The Ant Colony Optimization method arise from the implementation of this mechanism to optimization problems (CITE Dorigo), with the following analogies:
+The first application of Ant Colony Optimization method, the Ant System, has been made on the optimization version of the Travelling Salesman Problem (TSP) (\cite{dorigo1996ant}).
+
+In this implemetation a population of virtual agents (an ant colony) is used to explore the search space (the virtual environment).
+
+In the same fashion as the real insects, the ants are able to deposit virtual pheromone in the environment, to signal to the other ants the presence of promising solutions.
+
+The general outline of the implemented algorithm is the following (as in \cite{dorigo2006artificial}):
+
+\begin{algorithm}[!h]
+  \caption{Ant Colony Optimization - Outline}\label{aco}
+  \begin{algorithmic}[1]
+    \State \emph{InitalizePheromoneTrail} 
+    \While{!(TerminationCondition)}
+        \State \emph{ConstructAntsSolutions}
+        \State \emph{LocalSearch} (Optional)
+        \State \emph{UpdatePheromoneTrails}
+    \EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+
+
+\subsection{Problem formulation}
+An instance of the Travelling Salesman Problem with Time Windows (TSPTW) can be expressed as a tuple $<N,E,c,t>$ where:
 \begin{itemize}
-\item Ants $\equiv $ Virtual ants
-\item Pheromone $\equiv $ Virtual pheromone
-\item Environment $\equiv $ Search space 
+  \item $N:\{0,\cdots,n\}$ - Node set 
+  \item $E:N\times N$ - Edge set
+  \item $c:E\mapsto \mathbb{R}$ - Edge cost function mapping a cost $c$ to every edge $e \in E$. 
+  \item $t:N\mapsto \mathbb{R}^2$ - Time window function mapping a couple of values $a_i,b_i$ representing respectively, the opening and closing time of the time window, such that $a_i<b_i$, to every node $i \in N$.
+  \item A candidate solution for the problem, in this case, is represented as a permutation $p$ of the nodes in $N$, where $p_i$ represents the $i^{th}$ solution component (node) in the sequence, such that $p_0 = 0 \forall p$.
 \end{itemize}
 
-\begin{algorithm}
-  \caption{Ant Colony Optimization for TSPTW - Outline}\label{aco}
+As in \cite{lopez2010beam} the formal definition of the problem is:
+\begin{align} \label{eq:probform}
+ \textbf{min} & &f(p) &= \sum\limits_{i=0}^{n} c(e_{p_{i}p_{k+i}}) \\
+ \textbf{subject to} & &\Omega(p) &= \sum\limits_{i=0}^{n+1} \omega(p_{i}) = 0 \\
+\end{align}
+where
+\begin{equation} \label{eq:cv}
+ \omega(p_{i}) \begin{cases}
+ 1 & A_{p_i} < b_{p_i}  \\
+ 0 & \text{otherwise} \\   
+  \end{cases}
+\end{equation}
+
+\begin{equation} \label{eq:at}
+A_{p_{i+1}} = \max(A_{p_i},a_i) + c(e_{p_{i}p_{k+i}})  
+\end{equation}
+
+As one may notice in \ref{eq:probform} and \ref{eq:cv}, a feasible solution $p$ for the problem is a permutation where the constraints related to the time windows are met for every node $i$ in the permutation.
+
+\subsection{Algorithm structure}
+The proposed algorithm is an implementation of one of the extensions to the Ant Colony Optimization metaheuristic framework, the \maxmin Ant System (cf. \cite{stutzle2000max}).
+The main features of the algorithm are the following:
+\begin{itemize}
+  \item Only iteration best or best-so-far ants update pheromone
+  \item $\tau_{\min} < \tau_{i,j}(t) < \tau_{\max} \forall t $ - Pheromone trails have explicit upper and lower limits
+  \item $\tau_{i,j}(0) = \tau_0 = \tau_{\max} \forall t $Pheromone trails initialized to upper limit
+  \item Pheromone trails are re-initialized when stagnated
+\end{itemize}
+
+\begin{algorithm}[!h]
+  \caption{\maxmin Ant System for TSPTW - Outline}\label{maxmintsptw}
   \begin{algorithmic}[1]
     \Procedure{ACO}{$\alpha,\beta,\rho,\tau_0,n_{ants},n_{cities},t_{max}$}\Comment{The main procedure}
-    \State {\emph{InitalizePheromoneTrail}($\tau_0,n_{cities}$)} \Comment{Set the pheromone values for all the solution components to $\tau_0$}
-    \While{\emph{!TerminationCondition}($t_{max}$)}\Comment{The termination condition can be either based on time or solution quality} \label{marker}
-      \ForAll {ants}
+    \Require $N$ - Node set
+    \Require $E$ - Edge set 
+    \Require $c$ - Edge cost function
+    \Require $t$ - Time window function
+    \State {\emph{InitalizePheromoneTrail}($\tau_0,n_{cities}$)}
+    \While{\emph{!TerminationCondition}($t_{max}$)}
+      \ForAll {Ants}
         \State \emph{ConstructSolution}($\alpha,\beta$)
-        \State \emph{LocalSearch}(TO DEFINE)
+        \State \emph{IterativeImprovement}(INSERT,BEST-IMPROVEMENT)
         \State \emph{UpdatePheromoneTrails}($\rho$)
       \EndFor
     \EndWhile
-    \State \textbf{return} solution\Comment{The gcd is b}
+    \State \textbf{return} solution
     \State
   \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}
+\begin{minipage}{.45\textwidth}
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm,
+                    semithick]
+  \tikzstyle{every state}=[fill=blue!20,draw=none,thick]
+
+  \node[initial,state] (Init)                    {};
+  \node[state]         (CI) [right of=Init]     {\emph{CI}};
+  \node[state]         (CS) [above right of=CI] {\emph{CS}};
+  \node[state]         (LS) [below right of=CI] {\emph{LS}};
+
+  \path (Init) edge              node {DET:\emph{IPT}()} (CI)
+        (CI) edge              node {DET} (CS)
+        (CS) edge [loop above] node {CDET(not \emph{SC})} (CS)
+            edge              node {CDET(\emph{SC})} (LS)
+        (LS) edge [loop below] node {CDET(not \emph{LO})} (LS)
+            edge               node {CDET(\emph{LO})} (CI);
+\end{tikzpicture}
+\captionof{figure}{\maxmin Ant System GLSM}
+\end{minipage}%
+\hspace{1.5cm}
+\begin{minipage}{.45\textwidth}
+\centering
+\begin{itemize}
+  \item \emph{IPT}() $\equiv$ \emph{InitializePheromoneTrail}()
+  \item \emph{SC} $\equiv$ \emph{SolutionComplete}()
+  \item \emph{LO} $\equiv$ \emph{LocalOptimum}()
+\end{itemize}
+\end{minipage}
+
+In the implementation, an instance is completely defined by:
+\begin{itemize}
+\item \textbf{Cost matrix} - Encapsulating information on the node set $N$, edge set $E$, and weighting of each edge $c$.
+\item \textbf{Time window vector} - Describing the time window mapping function $t$ for each node.
+\end{itemize}
+
+\subsubsection{Pheromone Initialization}
+As discussed in \ref{sec:intro}, the ACO methods are based on stigmergic communication among the agents by means of virtual pheromone.
+
+While the real ants can deposit pheromone anywhere in the environment, the virtual ants may only exchange informations concerning solutions components.
+
+For this reason, every admissible edge $e_{ij}$ of $E$ has an associated pheromone value $\tau_{ij}$, that have to be initialized at the beginning of the execution of the algorithm.
+
+The inizialization value $\tau_0$ is a parameter of the algorithm.
+
+\begin{algorithm}[!h]
   \caption{Pheromone Initialization}\label{init}
   \begin{algorithmic}[1]
-    \Procedure{InitalizePheromoneTrail}{$\tau_0,n_{cities}$}\Comment{The main procedure}
+    \Procedure{InitalizePheromoneTrail}{$\tau_0,n_{cities}$}
       \State $i \gets 0$
       \State $j \gets 0$
       \For{$i < n_{cities}$} 
@@ -84,7 +188,8 @@ The Ant Colony Optimization method arise from the implementation of this mechani
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}
+\subsubsection{Solution construction}
+\begin{algorithm}[!h]
   \caption{Solution Construction}\label{sol}
   \begin{algorithmic}[1]
     \Procedure{ConstructSolution}{$\alpha,\beta$}\Comment{The main procedure}
@@ -102,10 +207,79 @@ The Ant Colony Optimization method arise from the implementation of this mechani
 \end{algorithm}
 
 \begin{equation}
-p_k = \frac{[\tau_{i-1,k}]^\alpha \cdot [\eta_{i-1,k}]^\beta}{\sum_{j \in N(s_{i-1})} [\tau_{i-1,j}]^\alpha \cdot [\eta_{i-1,j}]^\beta}
+p_k = \begin{cases}
+  \frac{[\tau_{i-1,k}]^\alpha \cdot [\eta_{i-1,k}]^\beta}{\sum_{j \in N(s_{i-1})} [\tau_{i-1,j}]^\alpha \cdot [\eta_{i-1,j}]^\beta} & k \in N(s_{i-1}) \\
+ 0 & \text{otherwise} \\
+\end{cases}
+\end{equation}
+
+\subsection{Possible heuristics}
+\subsubsection{Cheng and Mao, 2007}
+The local heuristics used in the current algorithm are similar to that proposed by Gambardella et al. [24] in their
+multiple ant colony system (MACS) designed to solve the vehicle routing problem with time windows (VRPTW).
+
+[24]  L.M. Gambardella, E.D. Taillard, G. Agazzi, MACS-VRPTW: A multiple ant colony system for vehicle routing problems with time windows,
+in: D. Corne, M. Dorigo, F. Glover (Eds.), New Ideas in Optimization, McGraw Hill, London, UK, 1999, pp. 63–76.
+
+\begin{equation}
+[\eta_{i-1,k}]^\beta = [g_{i-1,k}]^\beta \cdot [h_{i-1,k}]^\gamma
 \end{equation}  
 
-\begin{algorithm}
+\begin{equation}
+g_{i-1,k} = \begin{cases}
+ \frac{1}{1+e^{\delta \cdot (G_{i-1,k} - \mu)}}  &  G_{i-1,k} = b_k - t_k \geq 0 \\
+0 & \text{otherwise} \\
+\end{cases}
+\end{equation}
+where
+\begin{itemize}
+  \item $G_{i,j} = b_j - t_j$ - Slack corresponding to the time window $j$ while being in node $i$
+  \item $t_i$ - Arrival time at node $i$
+  \item $b_i$ - Closing time of time window $i$
+  \item $G(i) = \{k\text{ } | \text{ }G_{i,k} \geq 0\}$ - Set of feasible neighbors of node $i$ (i.e. such that node $k$ is reached earlier than its closing time)
+  \item $\mu = \frac{1}{|G(i)|}\sum_{j \in G(i)}  G_{i,j}$ - Average slack 
+  \item $\delta$ - Parameter to control the slope of the sigmoidal function
+\end{itemize}
+
+\begin{equation}
+h_{i-1,k} = \begin{cases}
+ \frac{1}{1+e^{\lambda \cdot (H_{i-1,k} - \upsilon)}}  &  H_{i-1,k} = t_k - a_k \geq 0 \\
+0 & \text{otherwise} \\
+\end{cases}
+\end{equation}
+where
+\begin{itemize}
+  \item $H_{i,j} = t_j - a_j$ - Waiting time corresponding to the time window $j$ while being in node $i$
+  \item $t_i$ - Arrival time at node $i$
+  \item $a_i$ - Opening time of time window $i$
+  \item $H(i) = \{k\text{ } | \text{ }H_{i,k} \geq 0\}$ - Set of non-waiting neighbors of node $i$ (i.e such that node $k$ is reached within the time window)
+  \item $\upsilon = \frac{1}{|H(i)|}\sum_{j \in H(i)}  H_{i,j}$ - Average waiting time 
+  $\lambda$ - Parameter to control the slope of the sigmoidal function 
+\end{itemize}
+
+
+\subsubsection{Lopez-Ibanez and Blum, 2009}
+
+\begin{equation}
+\eta_{i-1,k} = \lambda_{a} \cdot \frac{a_{\max}-a_{k}}{a_{\max}-a_{\min}} + \lambda_{b} \cdot \frac{b_{\max}-b_{k}}{b_{\max}-b_{\min}} + \lambda_{c} \cdot \frac{c_{\max}-c_{i-1,k}}{c_{\max}-c_{\min}}
+\end{equation}
+
+where
+\begin{itemize}
+  \item $a_i$ - Opening time of time window $i$
+  \item $a_{\max} = \max_{j \in N(i)} a_{j}$ - Maximum time window opening time in the neighborhood of node $i$
+  \item $a_{\min} = \min_{j \in N(i)} a_{j}$ - Minimum time window opening time in the neighborhood of node $i$
+  \item $b_i$ - Closing time of time window $i$
+  \item $b_{\max} = \max_{j \in N(i)} b_{j}$ - Maximum time window closing time in the neighborhood of node $i$
+  \item $b_{\min} = \min_{j \in N(i)} b_{j}$ - Minimum time window closing time in the neighborhood of node $i$
+  \item $c_{i,j}$ - Travelling cost from node $i$ - $j$
+  \item $c_{\max} = \max_j c_{i,j}$ - Maximum travelling cost from node $i$ 
+  \item $c_{\min} = \min_j c_{i,j}$ - Minimum travelling cost from node $i$
+  \item $\lambda_{a},\lambda_{b},\lambda_{c}$ such that $\lambda_{a}+\lambda_{b}+\lambda_{c}=1$ - Randomly picked weights
+\end{itemize}
+
+
+\begin{algorithm}[!h]
   \caption{Pheromone Trails Update}\label{update}
   \begin{algorithmic}[1]
     \Procedure{UpdatePheromoneTrails}{$\rho$}\Comment{The main procedure}
@@ -113,7 +287,7 @@ p_k = \frac{[\tau_{i-1,k}]^\alpha \cdot [\eta_{i-1,k}]^\beta}{\sum_{j \in N(s_{i
       \State $j \gets 0$
       \For{$i < n_{cities}$} 
         \For{$j < i$} 
-          \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta_{\tau}$
+          \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}$
           \State $\tau_{ji} \gets \tau_{ij}$
           \State $ j \gets j + 1$  
         \EndFor
@@ -124,31 +298,20 @@ p_k = \frac{[\tau_{i-1,k}]^\alpha \cdot [\eta_{i-1,k}]^\beta}{\sum_{j \in N(s_{i
 \end{algorithm} 
 
 \begin{equation}
-  \Delta_{\tau} = DEFINE
+  \Delta\tau_{i,j} = \begin{cases}
+    \frac{1}{T_d} & e_{i,j} \in T^{\text{best}}  \\
+    0 & \text{otherwise} \\
+  \end{cases}
 \end{equation}
 
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm,
-                    semithick]
-  \tikzstyle{every state}=[fill=blue!20,draw=none,thick]
-
-  \node[initial,state] (Init)                    {};
-  \node[state]         (CI) [right of=Init]     {\emph{CI}};
-  \node[state]         (CS) [above right of=CI] {\emph{CS}};
-  \node[state]         (LS) [below right of=CI] {\emph{LS}};
-
-  \path (Init) edge              node {DET:\emph{IPT}()} (CI)
-        (CI) edge              node {DET} (CS)
-        (CS) edge [loop above] node {CDET(not \emph{SC})} (CS)
-            edge              node {CDET(\emph{SC})} (LS)
-        (LS) edge [loop below] node {CDET(not \emph{LO})} (LS)
-            edge               node {CDET(\emph{LO})} (CI);
-\end{tikzpicture}
-
+where
 \begin{itemize}
-  \item \emph{IPT}() $\equiv$ \emph{InitializePheromoneTrail}()
-  \item \emph{SC} $\equiv$ \emph{SolutionComplete}()
-  \item \emph{LO} $\equiv$ \emph{LocalOptimum}()
+\item $e_{i,j}$ - Edge connecting node $i$ and $j$
+\item $T_d$ - Complete tour duration
+\item $T^{\text{best}}$ - Best iteration 
 \end{itemize}
+
+
  
 An Iterative Improvement algorithm generally starts from a candidate solution, which can be either generated randomly or using an heuristic, and improves the evaluation of the solution at each step by modifying the solution structure , until a local optimum is reached.
 
