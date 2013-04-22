@@ -42,7 +42,7 @@
 
 #ifndef COMMONDEFS_H_
 #define COMMONDEFS_H_
-
+#include <time.h>
 
 typedef enum {
 	RANDOM,
@@ -71,5 +71,23 @@ typedef enum {
 	BEST_IMPROVEMENT,
 	FIRST_IMPROVEMENT
 }ESolutionUpdate;
+
+/*
+      METHOD:         Computation of the time passed by two time instants.
+      INPUT:          struct timespec containing the starting and ending time of the period to compute
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modifies the state of the class
+*/
+double ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {
+	struct timespec temp;
+		if ((s_end_time.tv_nsec-s_begin_time.tv_nsec)<0) {
+			temp.tv_sec = s_end_time.tv_sec-s_begin_time.tv_sec-1;
+			temp.tv_nsec = 1000000000+s_end_time.tv_nsec-s_begin_time.tv_nsec;
+		} else {
+			temp.tv_sec = s_end_time.tv_sec-s_begin_time.tv_sec;
+			temp.tv_nsec = s_end_time.tv_nsec-s_begin_time.tv_nsec;
+		}
+	return temp.tv_sec+temp.tv_nsec/(10e9);
+}
 
 #endif /* COMMONDEFS_H_ */

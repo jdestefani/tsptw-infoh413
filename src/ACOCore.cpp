@@ -7,6 +7,42 @@
 
 #include "ACOCore.h"
 
+/*
+      METHOD:         Run the chosen II algorithm for the desired number of runs.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modifies the state of the class
+*/
+void ACOCore::Run() {
+	m_wriResultsWriter.OpenRFile();
+	for(unsigned int i=0; i<m_unRuns;i++){
+		m_lfSeed = m_vecSeeds.at(i);
+		std::srand ( unsigned ( m_lfSeed ) );
+		std::cout << "Run " << i+1 << " - seed " << m_lfSeed << std::endl;
+		ACO();
+	}
+	m_wriResultsWriter.FlushRFile();
+}
+
+
+void ACOCore::ACO() {
+	struct timespec sBeginTime;
+	struct timespec sEndTime;
+	unsigned int iterations = 0;
+
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
+	ConstructSolutions();
+	LocalSearch();
+	PheromoneUpdate();
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
+	m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
+
+	std::cout << "Solution found in " << m_lfRunTime << " s" << std::endl;
+	std::cout << m_cCurrentSolution;
+	std::cout << std::endl << std::endl;
+	m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_lfRunTime);
+}
+
 
 void ACOCore::PheromoneUpdate() {
 	PheromoneEvaporation();
@@ -38,7 +74,7 @@ unsigned int ACOCore::RouletteWheelSelection(unsigned int ant_index,unsigned int
 			rouletteWheel[i] = 0.0f;
 		}
 		else{
-			rouletteWheel[i] = pow(m_cPheromoneMatrix.GetElement(previouslyVisitedCity,i),m_lfAlpha) * pow(1.0f/m_pcDistanceMatrix->GetElement(previouslyVisitedCity,i),m_lfBeta);
+			rouletteWheel[i] = pow(m_cPheromoneMatrix.GetElement(previouslyVisitedCity,i),m_lfAlpha) * m_cHeuristicMatrix.GetElement(previouslyVisitedCity,i);
 			rouletteWheelSum += rouletteWheel[i];
 		}
 
@@ -80,6 +116,7 @@ void ACOCore::PheromoneDeposit(unsigned int ant_index) {
 	}
 
 }
+
 
 void ACOCore::ConstructSolutionAnt(unsigned int ant_index) {
 	std::vector<unsigned int> constructedTour;

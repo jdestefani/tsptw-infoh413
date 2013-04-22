@@ -143,7 +143,7 @@ void HeuristicCore::VariableNeighborhoodDescent() {
 		default:break;
 	}
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
-	ComputeRunTime(sBeginTime,sEndTime);
+	m_fRunTime = ComputeRunTime(sBeginTime,sEndTime);
 
 	std::cout << "Solution found in " << m_fRunTime << " s" << std::endl;
 	std::cout << m_cCurrentSolution;
@@ -268,7 +268,7 @@ void HeuristicCore::PipedVariableNeighborhoodDescent() {
 
 /*
       METHOD:         Computation of the time passed by two time instants.
-      INPUT:          struct timesteps containing the starting and ending time of the period to compute
+      INPUT:          struct timespec containing the starting and ending time of the period to compute
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
 */

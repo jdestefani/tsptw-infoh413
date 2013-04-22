@@ -52,6 +52,16 @@ class Writer {
 public:
 
 	Writer(std::string filename,
+		 unsigned int known_best):
+		m_unKnownBest(known_best){
+				m_sOutputFileName = "";
+				m_sOutputFileName.append(ACO);
+				m_sOutputFileName.append(SEPARATOR);
+				filename = filename.substr(0,filename.find_last_of('.'));
+				m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
+	};
+
+	Writer(std::string filename,
 		   unsigned int known_best,
 		   ENeighborhoodType neighborhood_type,
 		   ESolutionUpdate pivoting_rule):
@@ -182,6 +192,7 @@ private:
 	static const std::string NEIGHBORHOOD_CHAIN_TIE;
 	static const std::string VND_TYPE_STANDARD;
 	static const std::string VND_TYPE_PIPED;
+	static const std::string ACO;
 	static const std::string SEPARATOR;
 
 	std::string m_sOutputFileName;

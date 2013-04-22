@@ -1,0 +1,488 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programming/Coding Assignment
+% LaTeX Template
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% Original author:
+% Ted Pavlic (http://www.tedpavlic.com)
+%
+% Adapted by:
+% Jacopo De Stefani (jacopo.de.stefani@gmail.com)
+%
+% Note:
+% The \lipsum[#] commands throughout this template generate dummy text
+% to fill the template out. These commands should all be removed when 
+% writing assignment content.
+%
+% This template uses a Perl script as an example snippet of code, most other
+% languages are also usable. Configure them in the "CODE INCLUSION 
+% CONFIGURATION" section.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage[usenames,dvipsnames]{color} % Required for custom colors
+\usepackage{graphicx} % Required to insert images
+\usepackage{listings} % Required for insertion of code
+\usepackage{courier} % Required for the courier font
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{rotating}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{multicol}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
+\usepackage{algorithm}% http://ctan.org/pkg/algorithm
+\usepackage{pdflscape}
+\usepackage{hyperref}
+\usepackage{pifont}
+
+\usetikzlibrary{positioning,shadows,arrows,intersections,calc,automata}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{} % Top left header
+\chead{\hmwkClass\ (\hmwkClassInstructor\ ): \hmwkTitle} % Top center head
+\rhead{}%\firstxmark} % Top right header
+\lfoot{\hmwkAuthorName} % Bottom left footer
+\cfoot{}%\lastxmark} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \protect\pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+%----------------------------------------------------------------------------------------
+%	CODE INCLUSION CONFIGURATION
+%----------------------------------------------------------------------------------------
+
+\definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0} % This is the color used for comments
+\lstloadlanguages{Python} % Load Perl syntax for listings, for a list of other languages supported see: ftp://ftp.tex.ac.uk/tex-archive/macros/latex/contrib/listings/listings.pdf
+\lstset{language=Python, % Use Perl in this example
+        frame=single, % Single frame around code
+        basicstyle=\small\ttfamily, % Use small true type font
+        keywordstyle=[1]\color{Blue}\bf, % Perl functions bold and blue
+        keywordstyle=[2]\color{Purple}, % Perl function arguments purple
+        keywordstyle=[3]\color{Blue}\underbar, % Custom functions underlined and blue
+        identifierstyle=, % Nothing special about identifiers                                         
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{MyDarkGreen}\small, % Comments small dark green courier font
+        stringstyle=\color{Purple}, % Strings are purple
+        showstringspaces=false, % Don't put marks in string spaces
+        tabsize=5, % 5 spaces per tab
+        %
+        % Put standard Perl functions not included in the default language here
+        morekeywords={rand},
+        %
+        % Put Perl function parameters here
+        morekeywords=[2]{on, off, interp},
+        %
+        % Put user defined functions here
+        morekeywords=[3]{test},
+       	%
+        morecomment=[l][\color{Blue}]{...}, % Line continuation (...) like blue comment
+        numbers=left, % Line numbers on left
+        firstnumber=1, % Line numbers start with line 1
+        numberstyle=\tiny\color{Blue}, % Line numbers are blue and small
+        stepnumber=5, % Line numbers go in steps of 5
+        breaklines=true
+}
+
+% Creates a new command to include a perl script, the first parameter is the filename of the script (without .pl), the second parameter is the caption
+\newcommand{\pyscript}[2]{
+\begin{itemize}
+\item[]\lstinputlisting[caption=#2,label=#1]{#1.py}
+\end{itemize}
+}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+\setcounter{secnumdepth}{0} % Removes default section numbers
+\newcounter{homeworkProblemCounter} % Creates a counter to keep track of the number of problems
+
+\newcommand{\homeworkProblemName}{}
+\newenvironment{homeworkProblem}[1][Problem \arabic{homeworkProblemCounter}]{ % Makes a new environment called homeworkProblem which takes 1 argument (custom name) but the default is "Problem #"
+\stepcounter{homeworkProblemCounter} % Increase counter for number of problems
+\renewcommand{\homeworkProblemName}{#1} % Assign \homeworkProblemName the name of the problem
+\section{\homeworkProblemName} % Make a section in the document with the custom problem count
+\enterProblemHeader{\homeworkProblemName} % Header and footer within the environment
+}{
+\exitProblemHeader{\homeworkProblemName} % Header and footer after the environment
+}
+
+\newcommand{\problemAnswer}[1]{ % Defines the problem answer command with the content as the only argument
+\noindent\framebox[\columnwidth][c]{\begin{minipage}{0.98\columnwidth}#1\end{minipage}} % Makes the box around the problem answer and puts the content inside
+}
+
+\newcommand{\homeworkSectionName}{}
+\newenvironment{homeworkSection}[1]{ % New environment for sections within homework problems, takes 1 argument - the name of the section
+\renewcommand{\homeworkSectionName}{#1} % Assign \homeworkSectionName to the name of the section from the environment argument
+\subsection{\homeworkSectionName} % Make a subsection with the custom name of the subsection
+\enterProblemHeader{\homeworkProblemName\ [\homeworkSectionName]} % Header and footer within the environment
+}{
+\enterProblemHeader{\homeworkProblemName} % Header and footer after the environment
+}
+
+%----------------------------------------------------------------------------------------
+%	USER DEFINED TIKZ STYLES
+%----------------------------------------------------------------------------------------
+
+\tikzset{
+    player1/.style={circle, draw=none, fill=green!70!black, circular drop shadow,
+        text centered, anchor=north, text=white},
+    player2/.style={circle, draw=none, fill=orange, circular drop shadow,
+        text centered, anchor=north, text=white},
+    chance/.style={circle, draw,text centered, anchor=north},
+    subtreeB/.style={rectangle, draw, rounded corners=1mm, color=red, thick,
+        text centered, anchor=north, text=red},
+    subtreeC/.style={rectangle, draw, rounded corners=1mm, color=orange, thick,
+        text centered, anchor=north, text=orange},
+    ex2/.style={circle, draw,text centered, anchor=north},
+    nashEq1P/.style={circle,draw=none, fill=green!70!black, text centered, anchor=north, text=white,inner sep=2pt},
+    nashEq2P/.style={circle,draw=none, fill=orange, text centered, anchor=north, text=white,inner sep=2pt},
+    nashEqPoints/.style={fill=white,draw=black,thick},
+    level distance=0.5cm, growth parent anchor=south
+}
+
+\tikzstyle{tier}=[draw, fill=yellow!20, text width=6.0em, text centered,
+  minimum height=1.5em,drop shadow]
+\tikzstyle{component} = [tier, text width=8em, minimum width=10em,
+  minimum height=3em, rounded corners, drop shadow,inner sep=2pt]
+\tikzstyle{texto} = [above, text width=6em, text centered]
+\tikzstyle{linepart} = [draw, thick, color=black!50, -latex', dashed]
+\tikzstyle{line} = [draw, thick, color=black!50, -latex', ->]
+\tikzstyle{ur}=[draw, text centered, minimum height=0.01em]
+ 
+% Define distances for bordering
+\newcommand{\blockdist}{1.3}
+\newcommand{\edgedist}{1.5}
+
+\newcommand{\component}[2]{node (p#1) [component]
+  {{\scriptsize\textit{#2}}}}
+
+
+% Draw background
+\newcommand{\backgroundSquare}[5]{%
+  \begin{pgfonlayer}{background}
+    % Left-top corner of the background rectangle
+    \path (#1.west |- #2.north)+(-0.5,0.5) node (a1) {};
+    % Right-bottom corner of the background rectanle
+    \path (#3.east |- #4.south)+(+0.5,-0.25) node (a2) {};
+    % Draw the background
+    \path[fill=blue!20,rounded corners, draw=black!50, dashed]
+      (a1) rectangle (a2);
+    \path (a1.east |- a1.south)+(0.8,-0.3) node (u1)[texto]
+      {\scriptsize\textit{#5 Tier}};
+  \end{pgfonlayer}}
+
+
+\newcommand*\circled[2]{\tikz[baseline=(char.base)]{
+            \node[#2,rectangle, rounded corners=0.7mm, text=white] (char) {#1};}}
+\newcommand*\cellvcenter[1]{\raisebox{-\height}{#1}}
+
+
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+%----------------------------------------------------------------------------------------
+%	NAME AND CLASS SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\hmwkTitle}{Implementation Exercise \#2 \\ The Traveling Salesman Problem with Time Windows - Stochastic Local Search Algorithms} % Assignment title
+\newcommand{\hmwkDueDate}{Wednesday,\ April\ 10,\ 2013} % Due date
+\newcommand{\hmwkClass}{INFO-H-413 - Learning Dynamics} % Course/class
+\newcommand{\hmwkClassTime}{} % Class/lecture time
+\newcommand{\hmwkClassInstructor}{Prof. T. St\"{u}etzle} % Teacher/lecturer
+\newcommand{\hmwkAuthorName}{Jacopo De Stefani} % Your name
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title{
+\vspace{2in}
+\textmd{\textbf{\hmwkClass:\\ \hmwkTitle}}\\
+%\normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate}\\
+\vspace{0.1in}\large{\textit{\hmwkClassInstructor\ }}
+\vspace{3in}
+}
+
+\author{\textbf{\hmwkAuthorName}}
+\date{\today} % Insert date here if you want it to appear below your name
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle
+
+%----------------------------------------------------------------------------------------
+%	TABLE OF CONTENTS
+%----------------------------------------------------------------------------------------
+
+%\setcounter{tocdepth}{1} % Uncomment this line if you don't want subsections listed in the ToC
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Implementation}
+The heuristic solver had been written using the C++ programming language, in order to be able to take adventage of the functionalities offered by the Standard Template Library (STL).
+
+By combining an object-oriented approach with those functionalities, I built a modular application core (\emph{HeuristicCore}) that has been used for the two exercises required for this implementation.
+
+The core is directly linked with the reader (\emph{InstanceReader}) which reads the files containing all the informations to run the simulation (distance matrix, time windows vector and seeds list) and the writer (\emph{Writer}) which outputs the results of the simulation in a CSV file.
+
+Two different command line front-ends, sharing the same underlying structure, but having a different set of parameters, have been developed to distinguish the iterative-improvement interface from the variable neighborhood descent one. 
+
+The global program structure is depicted here:
+
+\begin{center}
+\begin{tikzpicture}[transform shape]
+ 
+  % Draw diagram elements
+  
+  \path \component {1}{HeuristicCore};
+  \path (p1.north)+(-2.0,+1.5) \component{2}{InstanceReader};
+  \path (p1.north)+(+2.0,+1.5) \component{3}{Writer};
+  \path (p2.west)+(-3.0,0.0) \component{4}{TSPTW-II};
+  \path (p2.west)+(-3.0,-2.0) \component{5}{TSPTW-VND}; 
+     
+  % Draw arrows between elements
+  \path [line] (p2.south) -> node [above] {} (p1);
+  \path [line] (p1) -> node [above, midway] {} (p3.south);
+  \path [line] (p4.east) -> node [above] {} (p2.west);
+  \path [line] (p5.east) -> node [above] {} (p2.south);
+  \path [line] (p4.south) -> node [above] {} (p1.west);
+  \path [line] (p5.east) -> node [above] {} (p1.west);
+  
+  %\backgroundSquare{p1}{p1}{p3}{p3}{Presentation}
+
+ \end{tikzpicture}
+ \captionof{figure}{Simulation Code Structure}
+\end{center}
+
+The names of the nodes corresponds to those of the implementation (.cpp) and header files for the corresponding classes.
+In addition to these, a class to represent the time windows (TimeWindow.h) and another one to represent the candidate solution as
+a user defined data type (CandidateSolution.\{h,cpp\}) have been implemented.
+
+
+\subsection{How to compile the program?}
+The software was developed in C++98 under Linux (Debian Wheezy), using the GNU g++ (Debian 4.7.2-5) 4.7.2 compiler and tested in this environment. 
+The software is distributed as a compressed tar file, containing both the source code (in the \verb|src| folder) and the scripts and instances (in the \verb|bin| and \verb|bin\instances| respectively).
+To install the program, first obtain the file TSPTW.V1.0.tar.gz. 
+
+Unzip the file by typing:
+
+\begin{center}
+\begin{verbatim}
+gunzip TSPTW.V1.0.tar.gz
+\end{verbatim}
+\end{center}
+
+and then unpack it by typing:
+
+\begin{center}
+\begin{verbatim}
+tar -xvf TSPTW.V1.0.tar
+\end{verbatim}
+\end{center}
+
+The software will be extracted in a new folder TSPTW.V1.0 
+
+Finally, by launching
+\begin{center}
+\begin{verbatim}
+make all
+\end{verbatim}
+\end{center}
+
+the Makefile will trigger the compilation of the files,
+producing the executables 'TSPTW-II' and 'TSPTW-VND" in the \verb|bin| folder.
+
+\textbf{Note:} The code is written in C++98. Hence, the code should be
+reasonable portable to other Operating Systems than Linux or Unix.
+
+\subsection{How to run the program?}
+
+Once the program has been compiled, two separate executable files,
+corresponding to the different kind of metaheuristic (i.e. Iterative Improvement
+and Variable Neighborhood Descent) can be either launched directly via the command line
+interface or using the bash script to launch.
+
+The design choice to separate the two different kind of metaheuristic is made in order to limit the number of command line parameters to be given as input to the program.
+
+\subsubsection{Command-line execution}
+By launching\footnote{The squared-bracket notation implies that the formal parameters to the script have to be substituted by their actual value.}:
+\begin{center}
+\begin{verbatim}
+./TSPTW-II [PARAMETERS] -i [INPUT_FILE] -s [SEEDS_FILE]
+\end{verbatim}
+\begin{verbatim}
+./TSPTW-VND [PARAMETERS] -i [INPUT_FILE] -s [SEEDS_FILE]
+\end{verbatim}
+\end{center}
+
+one can display the information about the meaning of the different options that can be given as input to the program.
+
+Additional information concerning the usage of the program can be found in the README file.
+
+The only mandatory options are "-i, --input" and "-s,-seeds", since
+without these components will not be possible to execute the simulation.
+
+The argument to the input option must contain the full path to the instance file.
+
+The seeds file must contain a number of seeds at least equal to the number of
+runs required, one seed per line without any additional information.
+
+The options controlling the same parameters are mutually exclusive, with that
+meaning that only one option must be selected in order to run the program.
+If multiple options for the same parameter are chosen, the program will not
+run.
+
+\paragraph{TSPTW-II}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Parameter}	&	\textbf{Mutually exclusive options} \\ \hline
+Initial solution & -d,--random , -h,--heuristic \\ \hline
+Neighborhood type &-t,--transpose , -e,--exchange , -n,--insert \\ \hline 
+Pivoting rule &	-f,--first-imp , -b,--best-imp \\ \hline
+\end{tabular}
+
+\paragraph{TSPTW-VND}
+
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Parameter}	&	\textbf{Mutually exclusive options} \\ \hline
+VND algorithm & -t,--standard , -p,--piped \\ \hline
+Neighborhood chain & 	-a,--TEI  , -b,--TIE \\ \hline
+\end{tabular}
+
+\paragraph{Output}
+Every experiment produces a single file:
+\begin{itemize}
+  \item \textbf{(II)} $[pivoting\_rule].[neighborhood\_type].[INSTANCE\_NAME]$ with $[pivoting\_rule] \in \{first,best\}$ and $[neighborhood\_type] \in \{transpose,exchange,insert\}$ 
+  \item \textbf{(VND)} $[vnd\_type].[neighborhood\_chain].[INSTANCE\_NAME]$ with $[vnd\_type] \in \{standard,piped\}$ and $[neighborhood\_type] \in \{tei,tie\}$
+\end{itemize} 
+				
+					 
+\textbf{Examples:} \begin{verbatim}
+exchange.best.n80w200.004.txt
+standard.tei.n80w20.003.txt
+\end{verbatim}
+
+
+The internal structure of the file is the following: \begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Seed}	&	\textbf{CV} & \textbf{CpuTime} & \textbf{PRPD} \\ \hline
+\end{tabular}
+
+For each run of the algorithm, the program writes in the file, using a tabulation as separator,
+the used seed, the number of constraints violations, the cpu runtime and the penalised relative percentage deviation.
+
+
+\subsubsection{Script execution}
+By launching:
+\begin{center}
+\begin{verbatim}
+./launchTSPTW-II.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
+\end{verbatim}
+\begin{verbatim}
+./launchTSPTW-VND.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
+\end{verbatim}
+\end{center}
+
+The script will:
+\begin{enumerate}
+  \item Create the files required by the data processing script to write statistics.
+  \item Generate a seed file, named [SEEDS\_FILE] containing [RUNS] randomly generated seeds.
+  \item Launch the corresponding TSPTW program for [RUNS]  using all the possible combinations of input options.
+  \item Wait for the termination of all the previously launched experiment and call the R data processing script
+\end{enumerate}
+
+The script assumes that all the instances are located into the instances folder, hence it is only necessary to indicate the instance name, instead of the complete path.
+
+\paragraph{Output}
+
+Each execution of the script will then generate the files:
+\begin{itemize}
+  \item $[INSTANCE\_NAME]-CpuTime.pdf$ containing the boxplots of the runtime distribution for each algorithm.
+  \item $[INSTANCE\_NAME]-PRPD.pdf$ containing the boxplots of the PRPD distribution for each algorithm.
+  \item 
+        \begin{itemize}
+          \item \textbf{(II)} transpose.first, exchange.first, insert.first, transpose.best, exchange.best, insert.best 
+          \item \textbf{(VND)} standard.tei, standard.tie, piped.tei, piped.tie
+        \end{itemize}
+\end{itemize}
+
+The internal structure of the file is the following:
+
+ 
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Instance}	&	\textbf{Infeasible} & \textbf{mean(PRDP)} &	\textbf{mean(CpuTime)} \\ \hline
+\end{tabular}
+
+Each line contains the instance name, the percentage of infeasible runs, the mean PRDP and the mean runtime across [RUNS] runs.
+
+%\include{II}
+\include{ACO}
+%\include{VND}
+
+
+\section{Conclusions}
+By combining the results from the previous analysis:
+\begin{itemize}
+  \item The Iterative Improvement algorithms based on Transpose and Exchange neighborhoods do not allow to find feasible solutions hence they should not be considered for a practical application.
+  \item On the other hand, the solution quality generated by the Iterative Improvement algorithm with the Insert neighborhood is similar to those generated by the VND algorithms, regardless of the instances.
+  \item On this set of instances, the VND algorithms have a lower runtime than the Iterative Improvement one using Insert neighborhood, hence being similar the resulting solution quality, they should be preferred to the Iterative Improvement ones.
+  \item The algorithm that showed the best performances in terms of solution quality and runtime is the Standard Variable Neighborhood Descent with Transpose-Insert-Exchange neighborhood chain.
+  \item The usage of average statistics as metrics to measure the quality of the algorithms is strongly biased by the presence of outliers (penalisation, in this case).
+\end{itemize}
+
+
+
+%\bibliographystyle{plain}
+%\bibliography{Assignment2}
+
+\end{document}
