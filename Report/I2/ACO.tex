@@ -75,20 +75,23 @@ An instance of the Travelling Salesman Problem with Time Windows (TSPTW) can be 
 \end{itemize}
 
 As in \cite{lopez2010beam} the formal definition of the problem is:
-\begin{align} \label{eq:probform}
- \textbf{min} & &f(p) &= \sum\limits_{i=0}^{n} c(e_{p_{i}p_{k+i}}) \\
- \textbf{subject to} & &\Omega(p) &= \sum\limits_{i=0}^{n+1} \omega(p_{i}) = 0 \\
-\end{align}
-where
-\begin{equation} \label{eq:cv}
- \omega(p_{i}) \begin{cases}
- 1 & A_{p_i} < b_{p_i}  \\
- 0 & \text{otherwise} \\   
-  \end{cases}
+\begin{equation} \label{eq:probform}
+ \begin{array}{rl}
+  \textbf{min} & f(p)= \sum\limits_{i=0}^{n} c(e_{p_{i}p_{k+i}}) \\
+  \textbf{subject to} & \Omega(p)= \sum\limits_{i=0}^{n+1} \omega(p_{i}) = 0
+ \end{array}
 \end{equation}
 
-\begin{equation} \label{eq:at}
-A_{p_{i+1}} = \max(A_{p_i},a_i) + c(e_{p_{i}p_{k+i}})  
+where
+
+\begin{equation} \label{eq:cv}
+\begin{array}{c}
+ \omega(p_{i}) \begin{cases}
+                1 & A_{p_i} < b_{p_i}  \\
+                0 & \text{otherwise} \\   
+               \end{cases} \\
+ A_{p_{i+1}} = \max(A_{p_i},a_i) + c(e_{p_{i}p_{k+i}}) 
+\end{array}
 \end{equation}
 
 As one may notice in \ref{eq:probform} and \ref{eq:cv}, a feasible solution $p$ for the problem is a permutation where the constraints related to the time windows are met for every node $i$ in the permutation.
@@ -98,15 +101,15 @@ The proposed algorithm is an implementation of one of the extensions to the Ant 
 The main features of the algorithm are the following:
 \begin{itemize}
   \item Only iteration best or best-so-far ants update pheromone
-  \item $\tau_{\min} < \tau_{i,j}(t) < \tau_{\max} \forall t $ - Pheromone trails have explicit upper and lower limits
-  \item $\tau_{i,j}(0) = \tau_0 = \tau_{\max} \forall t $Pheromone trails initialized to upper limit
+  \item $\forall t \text{ } \tau_{\min} < \tau_{i,j}(t) < \tau_{\max}  $ - Pheromone trails have explicit upper and lower limits
+  \item $\tau_{i,j}(0) = \tau_0 = \tau_{\max}$ - Pheromone trails initialized to upper limit
   \item Pheromone trails are re-initialized when stagnated
 \end{itemize}
 
 \begin{algorithm}[!h]
   \caption{\maxmin Ant System for TSPTW - Outline}\label{maxmintsptw}
   \begin{algorithmic}[1]
-    \Procedure{ACO}{$\alpha,\beta,\rho,\tau_0,n_{ants},n_{cities},t_{max}$}\Comment{The main procedure}
+    \Procedure{ACO}{$\alpha,\beta,\rho,\tau_0,q_0,n_{ants},n_{cities},t_{max}$}\Comment{The main procedure}
     \Require $N$ - Node set
     \Require $E$ - Edge set 
     \Require $c$ - Edge cost function
@@ -116,7 +119,7 @@ The main features of the algorithm are the following:
       \ForAll {Ants}
         \State \emph{ConstructSolution}($\alpha,\beta$)
         \State \emph{IterativeImprovement}(INSERT,BEST-IMPROVEMENT)
-        \State \emph{UpdatePheromoneTrails}($\rho$)
+        \State \emph{UpdatePheromoneTrails}($\rho,q_0$)
       \EndFor
     \EndWhile
     \State \textbf{return} solution
@@ -174,6 +177,8 @@ The inizialization value $\tau_0$ is a parameter of the algorithm.
   \caption{Pheromone Initialization}\label{init}
   \begin{algorithmic}[1]
     \Procedure{InitalizePheromoneTrail}{$\tau_0,n_{cities}$}
+      \State $\tau_{\max} \gets $
+      \State $\tau_{\min} \gets $
       \State $i \gets 0$
       \State $j \gets 0$
       \For{$i < n_{cities}$} 
@@ -282,12 +287,22 @@ where
 \begin{algorithm}[!h]
   \caption{Pheromone Trails Update}\label{update}
   \begin{algorithmic}[1]
-    \Procedure{UpdatePheromoneTrails}{$\rho$}\Comment{The main procedure}
+    \Procedure{UpdatePheromoneTrails}{$\rho,q_0$}\Comment{The main procedure}
      \State $i \gets 0$
       \State $j \gets 0$
       \For{$i < n_{cities}$} 
-        \For{$j < i$} 
-          \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}$
+        \For{$j < i$}
+          \If{\emph{Random}() $< q_0$} 
+          \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bi}$
+          \Else
+          \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bo}$
+          \EndIf
+          \If{$\tau_{ij} < \tau_{\min}$} 
+            \State $\tau_{ij} \gets \tau_{\min}$
+          \EndIf
+          \If{$\tau_{ij} > \tau_{\max}$} 
+            \State $\tau_{ij} \gets \tau_{\max}$
+          \EndIf
           \State $\tau_{ji} \gets \tau_{ij}$
           \State $ j \gets j + 1$  
         \EndFor
@@ -298,17 +313,26 @@ where
 \end{algorithm} 
 
 \begin{equation}
-  \Delta\tau_{i,j} = \begin{cases}
-    \frac{1}{T_d} & e_{i,j} \in T^{\text{best}}  \\
+  \Delta\tau_{i,j}^{Bi} = \begin{cases}
+    \frac{1}{T_{d}^{\text{Bi}}} & e_{i,j} \in T^{\text{Bi}}  \\
     0 & \text{otherwise} \\
   \end{cases}
 \end{equation}
 
+\begin{equation}
+  \Delta\tau_{i,j}^{Bo} = \begin{cases}
+    \frac{1}{T_{d}^{\text{Bo}}} & e_{i,j} \in T^{\text{Bo}}  \\
+    0 & \text{otherwise} \\
+  \end{cases}
+\end{equation}
+
+
 where
 \begin{itemize}
 \item $e_{i,j}$ - Edge connecting node $i$ and $j$
-\item $T_d$ - Complete tour duration
-\item $T^{\text{best}}$ - Best iteration 
+\item $T_{d}^{i}$ - Complete tour duration of tour $i$
+\item $T^{\text{Bi}}$ - Best tour of the current iteration
+\item $T^{\text{Bo}}$ - Best tour overall 
 \end{itemize}
 
 
