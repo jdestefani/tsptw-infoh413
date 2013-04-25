@@ -48,7 +48,7 @@ In this implemetation a population of virtual agents (an ant colony) is used to 
 
 In the same fashion as the real insects, the ants are able to deposit virtual pheromone in the environment, to signal to the other ants the presence of promising solutions.
 
-The general outline of the implemented algorithm is the following (as in \cite{dorigo2006artificial}):
+The general outline of the implemented algorithm is the following: 
 
 \begin{algorithm}[!h]
   \caption{Ant Colony Optimization - Outline}\label{aco}
@@ -62,49 +62,28 @@ The general outline of the implemented algorithm is the following (as in \cite{d
 \end{algorithmic}
 \end{algorithm}
 
+The design of the solution construction and pheromone update mechanism is the main point of the algorithm.
+Implementation details of the basic ACO system, the Ant System can be found in \cite{dorigo2006artificial}.
 
-
-\subsection{Problem formulation}
-An instance of the Travelling Salesman Problem with Time Windows (TSPTW) can be expressed as a tuple $<N,E,c,t>$ where:
-\begin{itemize}
-  \item $N:\{0,\cdots,n\}$ - Node set 
-  \item $E:N\times N$ - Edge set
-  \item $c:E\mapsto \mathbb{R}$ - Edge cost function mapping a cost $c$ to every edge $e \in E$. 
-  \item $t:N\mapsto \mathbb{R}^2$ - Time window function mapping a couple of values $a_i,b_i$ representing respectively, the opening and closing time of the time window, such that $a_i<b_i$, to every node $i \in N$.
-  \item A candidate solution for the problem, in this case, is represented as a permutation $p$ of the nodes in $N$, where $p_i$ represents the $i^{th}$ solution component (node) in the sequence, such that $p_0 = 0 \forall p$.
-\end{itemize}
-
-As in \cite{lopez2010beam} the formal definition of the problem is:
-\begin{equation} \label{eq:probform}
- \begin{array}{rl}
-  \textbf{min} & f(p)= \sum\limits_{i=0}^{n} c(e_{p_{i}p_{k+i}}) \\
-  \textbf{subject to} & \Omega(p)= \sum\limits_{i=0}^{n+1} \omega(p_{i}) = 0
- \end{array}
-\end{equation}
-
-where
-
-\begin{equation} \label{eq:cv}
-\begin{array}{c}
- \omega(p_{i}) \begin{cases}
-                1 & A_{p_i} < b_{p_i}  \\
-                0 & \text{otherwise} \\   
-               \end{cases} \\
- A_{p_{i+1}} = \max(A_{p_i},a_i) + c(e_{p_{i}p_{k+i}}) 
-\end{array}
-\end{equation}
-
-As one may notice in \ref{eq:probform} and \ref{eq:cv}, a feasible solution $p$ for the problem is a permutation where the constraints related to the time windows are met for every node $i$ in the permutation.
-
-\subsection{Algorithm structure}
+\subsection{Algorithm structure} \label{sec:algstruc}
 The proposed algorithm is an implementation of one of the extensions to the Ant Colony Optimization metaheuristic framework, the \maxmin Ant System (cf. \cite{stutzle2000max}).
-The main features of the algorithm are the following:
+The main differences with respect to the basic ACO approach are the following:
 \begin{itemize}
-  \item Only iteration best or best-so-far ants update pheromone
+  \item Only iteration best or best-so-far ants update pheromone.
+  \item A local search after the solution generation is used to further improve the solutions found by the ants at each iteration.
   \item $\forall t \text{ } \tau_{\min} < \tau_{i,j}(t) < \tau_{\max}  $ - Pheromone trails have explicit upper and lower limits
-  \item $\tau_{i,j}(0) = \tau_0 = \tau_{\max}$ - Pheromone trails initialized to upper limit
-  \item Pheromone trails are re-initialized when stagnated
+  \item Pheromone trails are re-initialized when stagnated.
 \end{itemize}
+
+The aforementioned design choice were made because:
+
+\begin{itemize}
+    \item The initialzation of the pheromone trails to their upper bound favors diversification at the beginning of each trial.
+    \item The pheromone update rule favors exploitation of (intensification on) the best solutions at each iteration of the algorithm.
+    \item By bounding the intensity of the pheromone trails, the probability of stagnation (i.e. all the ants converging and exploiting a single sub-optimal tour) is reduced.
+    \item If the pheromone trails values for the solution components of a certain tour $s$ are equal to $\tau_{\max}$, the algorithm is said to be converged.
+  \end{itemize}
+  
 
 \begin{algorithm}[!h]
   \caption{\maxmin Ant System for TSPTW - Outline}\label{maxmintsptw}
@@ -116,7 +95,7 @@ The main features of the algorithm are the following:
     \Require $t$ - Time window function
     \State {\emph{InitalizePheromoneTrail}($\tau_0,n_{cities}$)}
     \While{\emph{!TerminationCondition}($t_{max}$)}
-      \ForAll {Ants}
+      \ForAll {Ant $k$}
         \State \emph{ConstructSolution}($\alpha,\beta$)
         \State \emph{IterativeImprovement}(INSERT,BEST-IMPROVEMENT)
         \State \emph{UpdatePheromoneTrails}($\rho,q_0$)
@@ -128,6 +107,8 @@ The main features of the algorithm are the following:
 \end{algorithmic}
 \end{algorithm}
 
+\begin{center}
+  
 \begin{minipage}{.45\textwidth}
 \centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3cm,
@@ -146,7 +127,6 @@ The main features of the algorithm are the following:
         (LS) edge [loop below] node {CDET(not \emph{LO})} (LS)
             edge               node {CDET(\emph{LO})} (CI);
 \end{tikzpicture}
-\captionof{figure}{\maxmin Ant System GLSM}
 \end{minipage}%
 \hspace{1.5cm}
 \begin{minipage}{.45\textwidth}
@@ -157,7 +137,10 @@ The main features of the algorithm are the following:
   \item \emph{LO} $\equiv$ \emph{LocalOptimum}()
 \end{itemize}
 \end{minipage}
+\captionof{figure}{\maxmin  Ant System GLSM}
+\end{center}
 
+\newpage
 In the implementation, an instance is completely defined by:
 \begin{itemize}
 \item \textbf{Cost matrix} - Encapsulating information on the node set $N$, edge set $E$, and weighting of each edge $c$.
@@ -165,14 +148,6 @@ In the implementation, an instance is completely defined by:
 \end{itemize}
 
 \subsubsection{Pheromone Initialization}
-As discussed in \ref{sec:intro}, the ACO methods are based on stigmergic communication among the agents by means of virtual pheromone.
-
-While the real ants can deposit pheromone anywhere in the environment, the virtual ants may only exchange informations concerning solutions components.
-
-For this reason, every admissible edge $e_{ij}$ of $E$ has an associated pheromone value $\tau_{ij}$, that have to be initialized at the beginning of the execution of the algorithm.
-
-The inizialization value $\tau_0$ is a parameter of the algorithm.
-
 \begin{algorithm}[!h]
   \caption{Pheromone Initialization}\label{init}
   \begin{algorithmic}[1]
@@ -193,6 +168,15 @@ The inizialization value $\tau_0$ is a parameter of the algorithm.
 \end{algorithmic}
 \end{algorithm}
 
+As discussed in \nameref{sec:intro}, the ACO methods are based on stigmergic communication among the agents by means of virtual pheromone.
+
+While the real ants can deposit pheromone anywhere in the environment, the virtual ants may only exchange informations concerning solutions components.
+
+For this reason, every admissible edge $e_{i,j}$ of $E$ has an associated pheromone value $\tau_{i,j}$, that have to be initialized at the beginning of the execution of the algorithm.
+
+The inizialization value $\tau_0$ is a parameter of the algorithm, for the \maxmin Ant System $\tau_0 = \tau_{i,j}(0) = \tau_{\max}$. 
+
+
 \subsubsection{Solution construction}
 \begin{algorithm}[!h]
   \caption{Solution Construction}\label{sol}
@@ -203,36 +187,52 @@ The inizialization value $\tau_0$ is a parameter of the algorithm.
       \State $s_1 \gets$ \emph{RandomCitySelection}() \Comment{Random choice of the starting city}
       \State $i \gets 1$
       \While{!\emph{SolutionComplete}()}
-        \State $k \gets $ \emph{RouletteWheelSelection}() \Comment{ $k$ stochastically chosen according to the probability distribution defined by $p_k$}
-        \State $s_i \gets k$ 
+        \State $s_i \gets $ \emph{RouletteWheelSelection}() \Comment{ $k$ stochastically chosen according to the probability distribution defined by \ref{eq:tranprob}} 
         \State $i \gets i+1$
       \EndWhile
     \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
-\begin{equation}
-p_k = \begin{cases}
-  \frac{[\tau_{i-1,k}]^\alpha \cdot [\eta_{i-1,k}]^\beta}{\sum_{j \in N(s_{i-1})} [\tau_{i-1,j}]^\alpha \cdot [\eta_{i-1,j}]^\beta} & k \in N(s_{i-1}) \\
+The solution construction process, used by every ant $k$ in the system, consist of a probabilistic selection of solution components.
+Every edge $e_{i,j}$ has a selection probability $p_{i,j}^k(t)$ (also called transition probability) defined as follows:
+
+\begin{equation} \label{eq:tranprob}
+p_{i,j}^k(t) = \begin{cases}
+  \frac{[\tau_{i,j}(t)]^\alpha \cdot [\eta_{i,j}]^\beta}{\sum_{k} \in A(s_{i}) [\tau_{k,j}(t)]^\alpha \cdot [\eta_{k,j}]^\beta} & j \in A(s_{i}) \\
  0 & \text{otherwise} \\
 \end{cases}
 \end{equation}
 
-\subsection{Possible heuristics}
-\subsubsection{Cheng and Mao, 2007}
-The local heuristics used in the current algorithm are similar to that proposed by Gambardella et al. [24] in their
-multiple ant colony system (MACS) designed to solve the vehicle routing problem with time windows (VRPTW).
+As one can see in \ref{eq:tranprob}, the transition probability is determined by a constant, locally available heuristic information $\eta_{i,j}$ and by the time varying pheromone trail $\tau_{i,j}(t)$.
+This probability is defined on the set $A(s_i)$ of available (i.e. not yet visited) cities while visiting solution component $s_i$.
+The value of the parameters $\alpha$ and $\beta$ determines the relative imporance of the heuristic information and the pheromone trail, respectively
 
-[24]  L.M. Gambardella, E.D. Taillard, G. Agazzi, MACS-VRPTW: A multiple ant colony system for vehicle routing problems with time windows,
-in: D. Corne, M. Dorigo, F. Glover (Eds.), New Ideas in Optimization, McGraw Hill, London, UK, 1999, pp. 63–76.
+\subsubsection{Admissible heuristics}
+The heuristic component $\eta_{i,j}$ is used to guide the selection of solution compoments towards those components that are included in optimal solution.
+
+\paragraph{Dorigo et al, 1996}
+The heuristic originally proposed by Dorigo et al, in \cite{dorigo1996ant}, for the TSP problem is:
+\begin{equation}
+  \eta_{i,j} = \frac{1}{c(e_{i,j})}
+\end{equation}
+
+The main idea behind this heuristic is that, if the selection process tends to select, at each step, the shortest connection between the current node and the following, the built tour should be of the shortest length.
+This heuristic is cited for explanation purposes, even though it cannot be used for the TSPTW problem, since it will guide the exploration only towards shortest solution, without taking into account the presence of the time windows.
+
+\paragraph{Cheng and Mao, 2007}
+The local heuristics used in \cite{cheng2007modified} are similar to that proposed by Gambardella et al. \cite{gambardella1999macs} in their multiple ant colony system (MACS) designed to solve the vehicle routing problem with time windows (VRPTW).
 
 \begin{equation}
-[\eta_{i-1,k}]^\beta = [g_{i-1,k}]^\beta \cdot [h_{i-1,k}]^\gamma
+[\eta_{i,j}]^\beta = [g_{i,j}]^\beta \cdot [h_{i,j}]^\gamma
 \end{equation}  
 
+The two components $g_{i,j}$ and $h_{i,j}$, are designed, respectively, to avoid lateness (that is, arriving in the node where the time windows is already terminated) and waiting times (i.e. arriving in the node before the time windows open).
+
+\subparagraph{Lateness avoidance}
 \begin{equation}
-g_{i-1,k} = \begin{cases}
- \frac{1}{1+e^{\delta \cdot (G_{i-1,k} - \mu)}}  &  G_{i-1,k} = b_k - t_k \geq 0 \\
+g_{i,j} = \begin{cases}
+ \frac{1}{1+e^{\delta \cdot (G_{i,j} - \mu)}}  &  G_{i,j} = b_j - t_j \geq 0 \\
 0 & \text{otherwise} \\
 \end{cases}
 \end{equation}
@@ -246,9 +246,10 @@ where
   \item $\delta$ - Parameter to control the slope of the sigmoidal function
 \end{itemize}
 
+\subparagraph{Waiting time avoidance}
 \begin{equation}
-h_{i-1,k} = \begin{cases}
- \frac{1}{1+e^{\lambda \cdot (H_{i-1,k} - \upsilon)}}  &  H_{i-1,k} = t_k - a_k \geq 0 \\
+h_{i,j} = \begin{cases}
+ \frac{1}{1+e^{\lambda \cdot (H_{i,j} - \upsilon)}}  &  H_{i,j} = t_j - a_j \geq 0 \\
 0 & \text{otherwise} \\
 \end{cases}
 \end{equation}
@@ -263,7 +264,8 @@ where
 \end{itemize}
 
 
-\subsubsection{Lopez-Ibanez and Blum, 2009}
+\paragraph{Lopez-Ibanez and Blum, 2009}
+The approach used in \cite{lopez2010beam} is instead, to perform a linear combination, based on $\lambda_i$ coefficients, of the normalized values of opening and closing times of the time windows and the travelling cost from one city to another.
 
 \begin{equation}
 \eta_{i-1,k} = \lambda_{a} \cdot \frac{a_{\max}-a_{k}}{a_{\max}-a_{\min}} + \lambda_{b} \cdot \frac{b_{\max}-b_{k}}{b_{\max}-b_{\min}} + \lambda_{c} \cdot \frac{c_{\max}-c_{i-1,k}}{c_{\max}-c_{\min}}
@@ -280,10 +282,12 @@ where
   \item $c_{i,j}$ - Travelling cost from node $i$ - $j$
   \item $c_{\max} = \max_j c_{i,j}$ - Maximum travelling cost from node $i$ 
   \item $c_{\min} = \min_j c_{i,j}$ - Minimum travelling cost from node $i$
-  \item $\lambda_{a},\lambda_{b},\lambda_{c}$ such that $\lambda_{a}+\lambda_{b}+\lambda_{c}=1$ - Randomly picked weights
+  \item $\lambda_{a},\lambda_{b},\lambda_{c}$ s.t. $\lambda_{a}+\lambda_{b}+\lambda_{c}=1$ - Randomly selected weights
 \end{itemize}
 
+In this implementation, the heuristic information will be computed according to \cite{lopez2010beam}
 
+\subsubsection{Pheromone Trails Update}
 \begin{algorithm}[!h]
   \caption{Pheromone Trails Update}\label{update}
   \begin{algorithmic}[1]
@@ -310,22 +314,25 @@ where
       \EndFor
     \EndProcedure
 \end{algorithmic}
-\end{algorithm} 
+\end{algorithm}
+
+As discussed in \nameref{sec:algstruc}, the pheromone update will be made by a single ant, being either the one who found the best solution in the current iteration: 
 
 \begin{equation}
   \Delta\tau_{i,j}^{Bi} = \begin{cases}
     \frac{1}{T_{d}^{\text{Bi}}} & e_{i,j} \in T^{\text{Bi}}  \\
-    0 & \text{otherwise} \\
-  \end{cases}
+    0 & \text{otherwise} 
+      \end{cases}
 \end{equation}
+
+Or the one having found the global best (best-so-far) solution:
 
 \begin{equation}
   \Delta\tau_{i,j}^{Bo} = \begin{cases}
     \frac{1}{T_{d}^{\text{Bo}}} & e_{i,j} \in T^{\text{Bo}}  \\
-    0 & \text{otherwise} \\
+    0 & \text{otherwise} 
   \end{cases}
 \end{equation}
-
 
 where
 \begin{itemize}
@@ -336,28 +343,35 @@ where
 \end{itemize}
 
 
+Provided that the best solution is known, the bounds on the pheromone values can be estimated as:
+\begin{equation}
+\begin{array}{lccr}
+  \hat{\tau}_{\max} = \frac{1}{\rho \cdot T_{d}^{\text{Go}}} & & & \hat{\tau}_{\min} = \frac{\hat{\tau}_{\max}}{a}
+\end{array}
+\end{equation}
+
  
-An Iterative Improvement algorithm generally starts from a candidate solution, which can be either generated randomly or using an heuristic, and improves the evaluation of the solution at each step by modifying the solution structure , until a local optimum is reached.
+% An Iterative Improvement algorithm generally starts from a candidate solution, which can be either generated randomly or using an heuristic, and improves the evaluation of the solution at each step by modifying the solution structure , until a local optimum is reached.
 
-In the previous problem, I considered different kinds of 2-opt neighborhood, and different pivoting rules.
+% In the previous problem, I considered different kinds of 2-opt neighborhood, and different pivoting rules.
 
-This means that, at each step, a new solution is constructed from the current best by modifying only two solution components (with Transpose,Exchange or Insert operations) and only the first/best improving solution will become the new best soluion.
+% This means that, at each step, a new solution is constructed from the current best by modifying only two solution components (with Transpose,Exchange or Insert operations) and only the first/best improving solution will become the new best soluion.
 
-The main limitation of such kind of algorithms is that they tend to get stuck in solutions that are locally optimum but not globally.
+% The main limitation of such kind of algorithms is that they tend to get stuck in solutions that are locally optimum but not globally.
 
-Provided that:
-\begin{itemize}
-\item A global optimum is optimal with respect to any kind of neighborhood. 
-\item A solution that is locally optimal with respect to a neighborhood may not be optimal with respect to other kinds of neighborhood
-\end{itemize}
-by dynamically changing the neighborhood type an algorithm is able to escape local optima.
+% Provided that:
+% \begin{itemize}
+% \item A global optimum is optimal with respect to any kind of neighborhood. 
+% \item A solution that is locally optimal with respect to a neighborhood may not be optimal with respect to other kinds of neighborhood
+% \end{itemize}
+% by dynamically changing the neighborhood type an algorithm is able to escape local optima.
 
-This section will analyse the results of the execution of two variable neighborhood descent algorithm, based on the previously analyzed iterative improvement algorithms :
-\begin{itemize}
-\item \textbf{Standard Variable Neighborhood Descent} (i.e. Changing neighborhood when a local optimum is encoutered, until the neighborhood chain is terminated and going back to the smallest neighborhood every time the local optimum is escaped.)
-\item \textbf{Piped Variable Neighborhood Descent} (i.e. Using the locally optimum solution found using one neighborhood type in the chain as the initial solution for the following type.)
-\end{itemize}
-The same metrics as in \ref{subsec:metric} will be used to evaluate the algorithms.
+% This section will analyse the results of the execution of two variable neighborhood descent algorithm, based on the previously analyzed iterative improvement algorithms :
+% \begin{itemize}
+% \item \textbf{Standard Variable Neighborhood Descent} (i.e. Changing neighborhood when a local optimum is encoutered, until the neighborhood chain is terminated and going back to the smallest neighborhood every time the local optimum is escaped.)
+% \item \textbf{Piped Variable Neighborhood Descent} (i.e. Using the locally optimum solution found using one neighborhood type in the chain as the initial solution for the following type.)
+% \end{itemize}
+% The same metrics as in \ref{subsec:metric} will be used to evaluate the algorithms.
 
 % \subsection{Experiment results}
 % \subsubsection{n80w20.001}

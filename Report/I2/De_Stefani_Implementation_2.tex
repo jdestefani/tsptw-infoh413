@@ -458,7 +458,6 @@ Each execution of the script will then generate the files:
 \end{itemize}
 
 The internal structure of the file is the following:
-
  
 \begin{tabular}{|c|c|c|c|}
 \hline
@@ -467,7 +466,39 @@ The internal structure of the file is the following:
 
 Each line contains the instance name, the percentage of infeasible runs, the mean PRDP and the mean runtime across [RUNS] runs.
 
-%\include{II}
+\section{Problem formulation}
+An instance of the Travelling Salesman Problem with Time Windows (TSPTW) can be expressed as a tuple $<N,E,c,t>$ where:
+\begin{itemize}
+  \item $N:\{0,\cdots,n\}$ - Node set 
+  \item $E:N\times N$ - Edge set
+  \item $c:E\mapsto \mathbb{R}$ - Edge cost function mapping a cost $c$ to every edge $e \in E$. 
+  \item $t:N\mapsto \mathbb{R}^2$ - Time window function mapping a couple of values $a_i,b_i$ representing respectively, the opening and closing time of the time window, such that $a_i<b_i$, to every node $i \in N$.
+  \item A candidate solution for the problem, in this case, is represented as a permutation $p$ of the nodes in $N$, where $p_i$ represents the $i^{th}$ solution component (node) in the sequence, such that $p_0 = 0 \forall p$.
+\end{itemize}
+
+As in \cite{lopez2010beam} the formal definition of the problem is:
+\begin{equation} \label{eq:probform}
+ \begin{array}{rl}
+  \textbf{min} & f(p)= \sum\limits_{i=0}^{n} c(e_{p_{i}p_{k+i}}) \\
+  \textbf{subject to} & \Omega(p)= \sum\limits_{i=0}^{n+1} \omega(p_{i}) = 0
+ \end{array}
+\end{equation}
+
+where
+
+\begin{equation} \label{eq:cv}
+\begin{array}{c}
+ \omega(p_{i}) \begin{cases}
+                1 & A_{p_i} < b_{p_i}  \\
+                0 & \text{otherwise} \\   
+               \end{cases} \\
+ A_{p_{i+1}} = \max(A_{p_i},a_i) + c(e_{p_{i}p_{k+i}}) 
+\end{array}
+\end{equation}
+
+As one may notice in \ref{eq:probform} and \ref{eq:cv}, a feasible solution $p$ for the problem is a permutation where the constraints related to the time windows are met for every node $i$ in the permutation.
+
+
 \include{ACO}
 \include{SA}
 
