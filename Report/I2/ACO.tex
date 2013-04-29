@@ -65,7 +65,7 @@ The general outline of the implemented algorithm is the following:
 The design of the solution construction and pheromone update mechanism is the main point of the algorithm.
 Implementation details of the basic ACO system, the Ant System can be found in \cite{dorigo2006artificial}.
 
-\subsection{Algorithm structure} \label{sec:algstruc}
+\subsection{Algorithm structure} \label{sec:algstrucACO}
 The proposed algorithm is an implementation of one of the extensions to the Ant Colony Optimization metaheuristic framework, the \maxmin Ant System (cf. \cite{stutzle2000max}).
 The main differences with respect to the basic ACO approach are the following:
 \begin{itemize}
@@ -88,7 +88,7 @@ The aforementioned design choice were made because:
 \begin{algorithm}[!h]
   \caption{\maxmin Ant System for TSPTW - Outline}\label{maxmintsptw}
   \begin{algorithmic}[1]
-    \Procedure{ACO}{$\alpha,\beta,\rho,\tau_0,q_0,n_{ants},n_{cities},t_{max}$}\Comment{The main procedure}
+    \Procedure{ACO}{$\alpha,\beta,\rho,\tau_0,p_b,t_{max}$}\Comment{The main procedure}
     \Require $N$ - Node set
     \Require $E$ - Edge set 
     \Require $c$ - Edge cost function
@@ -96,12 +96,15 @@ The aforementioned design choice were made because:
     \State {\emph{InitalizePheromoneTrail}($\tau_0,n_{cities}$)}
     \While{\emph{!TerminationCondition}($t_{max}$)}
       \ForAll {Ant $k$}
-        \State \emph{ConstructSolution}($\alpha,\beta$)
-        \State \emph{IterativeImprovement}(INSERT,BEST-IMPROVEMENT)
-        \State \emph{UpdatePheromoneTrails}($\rho,q_0$)
+        \State $s' \gets$ \emph{ConstructSolution}($\alpha,\beta$)
+        \If {\emph{IsImproved}($s,s'$)}
+          \State $s \gets s' $
+        \EndIf 
       \EndFor
+      \State $s \gets$\emph{IterativeImprovementIBI}()
+      \State \emph{UpdatePheromoneTrails}($\rho,p_b$)
     \EndWhile
-    \State \textbf{return} solution
+    \State \textbf{return} $s$
     \State
   \EndProcedure
 \end{algorithmic}
@@ -115,15 +118,17 @@ The aforementioned design choice were made because:
                     semithick]
   \tikzstyle{every state}=[fill=blue!20,draw=none,thick]
 
-  \node[initial,state] (Init)                    {};
-  \node[state]         (CI) [right of=Init]     {\emph{CI}};
-  \node[state]         (CS) [above right of=CI] {\emph{CS}};
-  \node[state]         (LS) [below right of=CI] {\emph{LS}};
+  \node[initial,state]    (Init)                   {};
+  \node[state]            (CI) [right of=Init]     {\emph{CI}};
+  \node[state]            (CS) [above right of=CI] {\emph{CS}};
+  \node[state]            (LS) [below right of=CI] {\emph{LS}};
+  \node[state,accepting]  (End)[below left of=CI]  {$\Omega$};
 
   \path (Init) edge              node {DET:\emph{IPT}()} (CI)
-        (CI) edge              node {DET} (CS)
-        (CS) edge [loop above] node {CDET(not \emph{SC})} (CS)
-            edge              node {CDET(\emph{SC})} (LS)
+        (CI) edge              node {CDET(not \emph{TC})} (CS)
+             edge [left]       node {CDET(\emph{TC})} (End)
+        (CS) edge [loop above] node {CDET(not \emph{CC})} (CS)
+            edge              node {CDET(\emph{CC})} (LS)
         (LS) edge [loop below] node {CDET(not \emph{LO})} (LS)
             edge               node {CDET(\emph{LO})} (CI);
 \end{tikzpicture}
@@ -131,10 +136,18 @@ The aforementioned design choice were made because:
 \hspace{1.5cm}
 \begin{minipage}{.45\textwidth}
 \centering
+\paragraph{Nodes}
 \begin{itemize}
-  \item \emph{IPT}() $\equiv$ \emph{InitializePheromoneTrail}()
-  \item \emph{SC} $\equiv$ \emph{SolutionComplete}()
+  \item \emph{CI} $\equiv$ Dummy node
+  \item \emph{CS} $\equiv$ \emph{ConstructSolution}($\alpha,\beta$)
+  \item \emph{LS} $\equiv$ \emph{IterativeImprovementIBI}()
+\end{itemize}
+\paragraph{Conditions}
+\begin{itemize}
+  \item \emph{IPT} $\equiv$ \emph{InitializePheromoneTrail}()
+  \item \emph{CC} $\equiv$ \emph{ConstructionComplete}()
   \item \emph{LO} $\equiv$ \emph{LocalOptimum}()
+  \item \emph{TC} $\equiv$ \emph{TerminationCondition}()
 \end{itemize}
 \end{minipage}
 \captionof{figure}{\maxmin  Ant System GLSM}
@@ -187,7 +200,7 @@ The inizialization value $\tau_0$ is a parameter of the algorithm, for the \maxm
       \State $s_1 \gets$ \emph{RandomCitySelection}() \Comment{Random choice of the starting city}
       \State $i \gets 1$
       \While{!\emph{SolutionComplete}()}
-        \State $s_i \gets $ \emph{RouletteWheelSelection}() \Comment{ $k$ stochastically chosen according to the probability distribution defined by \ref{eq:tranprob}} 
+        \State $s_i \gets $ \emph{RouletteWheelSelection}() \Comment{ $s_i$ stochastically chosen according to the probability distribution defined by \ref{eq:tranprob}} 
         \State $i \gets i+1$
       \EndWhile
     \EndProcedure
@@ -206,7 +219,31 @@ p_{i,j}^k(t) = \begin{cases}
 
 As one can see in \ref{eq:tranprob}, the transition probability is determined by a constant, locally available heuristic information $\eta_{i,j}$ and by the time varying pheromone trail $\tau_{i,j}(t)$.
 This probability is defined on the set $A(s_i)$ of available (i.e. not yet visited) cities while visiting solution component $s_i$.
-The value of the parameters $\alpha$ and $\beta$ determines the relative imporance of the heuristic information and the pheromone trail, respectively
+The value of the parameters $\alpha$ and $\beta$ determines the relative imporance of the heuristic information and the pheromone trail, respectively.
+
+\subsubsection{Solution improvement}
+\begin{algorithm}[!h]
+  \caption{Solution improvement}\label{sol}
+  \begin{algorithmic}[1]
+    \Procedure{IsImproving}{$s,s'$}\Comment{The main procedure}
+      \If {$\Omega(s') < \Omega(s)$}
+          \State \textbf{return true}
+      \Else
+           \If {$\Omega(s') == \Omega(s) \wedge f(s') < f(s)$}
+            \State \textbf{return true}
+           \EndIf
+      \EndIf
+      \State \textbf{return false}
+      \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+A solution $s'$ is considered improving the current best solution $s$ if and only if:
+\begin{itemize}
+  \item Either,it has a smaller number of constraints violation (i.e. $\Omega(s') < \Omega(s)$)
+  \item Or, it has the same number of constraints violations ($\Omega(s') == \Omega(s)$) but the total tour duration is smaller ($f(s') < f(s)$).
+\end{itemize}
+
 
 \subsubsection{Admissible heuristics}
 The heuristic component $\eta_{i,j}$ is used to guide the selection of solution compoments towards those components that are included in optimal solution.
@@ -218,7 +255,7 @@ The heuristic originally proposed by Dorigo et al, in \cite{dorigo1996ant}, for 
 \end{equation}
 
 The main idea behind this heuristic is that, if the selection process tends to select, at each step, the shortest connection between the current node and the following, the built tour should be of the shortest length.
-This heuristic is cited for explanation purposes, even though it cannot be used for the TSPTW problem, since it will guide the exploration only towards shortest solution, without taking into account the presence of the time windows.
+This heuristic is cited for explanation purposes, even though it cannot be used for the TSPTW problem, since it will guide the exploration only towards shorter solutions, without taking into account the presence of the time windows.
 
 \paragraph{Cheng and Mao, 2007}
 The local heuristics used in \cite{cheng2007modified} are similar to that proposed by Gambardella et al. \cite{gambardella1999macs} in their multiple ant colony system (MACS) designed to solve the vehicle routing problem with time windows (VRPTW).
@@ -267,7 +304,7 @@ where
 \paragraph{Lopez-Ibanez and Blum, 2009}
 The approach used in \cite{lopez2010beam} is instead, to perform a linear combination, based on $\lambda_i$ coefficients, of the normalized values of opening and closing times of the time windows and the travelling cost from one city to another.
 
-\begin{equation}
+\begin{equation} \label{eq:heuristic}
 \eta_{i-1,k} = \lambda_{a} \cdot \frac{a_{\max}-a_{k}}{a_{\max}-a_{\min}} + \lambda_{b} \cdot \frac{b_{\max}-b_{k}}{b_{\max}-b_{\min}} + \lambda_{c} \cdot \frac{c_{\max}-c_{i-1,k}}{c_{\max}-c_{\min}}
 \end{equation}
 
@@ -287,16 +324,16 @@ where
 
 In this implementation, the heuristic information will be computed according to \cite{lopez2010beam}
 
-\subsubsection{Pheromone Trails Update}
+\subsubsection{Pheromone trails update}
 \begin{algorithm}[!h]
   \caption{Pheromone Trails Update}\label{update}
   \begin{algorithmic}[1]
-    \Procedure{UpdatePheromoneTrails}{$\rho,q_0$}\Comment{The main procedure}
+    \Procedure{UpdatePheromoneTrails}{$\rho,p_b$}\Comment{The main procedure}
      \State $i \gets 0$
       \State $j \gets 0$
       \For{$i < n_{cities}$} 
         \For{$j < i$}
-          \If{\emph{Random}() $< q_0$} 
+          \If{\emph{Random}() $< p_b$} 
           \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bi}$
           \Else
           \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bo}$
@@ -316,7 +353,7 @@ In this implementation, the heuristic information will be computed according to 
 \end{algorithmic}
 \end{algorithm}
 
-As discussed in \nameref{sec:algstruc}, the pheromone update will be made by a single ant, being either the one who found the best solution in the current iteration: 
+As discussed in \nameref{sec:algstrucACO}, the pheromone update will be made by a single ant, being either the one who found the best solution in the current iteration: 
 
 \begin{equation}
   \Delta\tau_{i,j}^{Bi} = \begin{cases}
@@ -343,12 +380,75 @@ where
 \end{itemize}
 
 
-Provided that the best solution is known, the bounds on the pheromone values can be estimated as:
+Provided that the best solution is known, the bounds on the pheromone values can be estimated by:
 \begin{equation}
 \begin{array}{lccr}
   \hat{\tau}_{\max} = \frac{1}{\rho \cdot T_{d}^{\text{Go}}} & & & \hat{\tau}_{\min} = \frac{\hat{\tau}_{\max}}{a}
 \end{array}
 \end{equation}
+
+\subsubsection{Local search}
+\begin{algorithm}[!h]
+  \caption{Iterative Improvement - (Insert neighborhood with best improve pivoting rule)}\label{locsearch}
+  \begin{algorithmic}[1]
+    \Procedure{IterativeImprovementIBI}{$s$}\Comment{The main procedure}
+      \State $s^{*} \gets s$ 
+      \For {$i \in \{1,\cdots,|N|\}$}
+        \For {$j \in \{1,\cdots,|N|\}$}
+          \If{ $i == j \vee  j == i-1 $}
+				    \State \textbf{continue}
+			    \EndIf
+			    \State $s' \gets$ \emph{InsertTourComponent}($s,i,j$)
+			    \If {\emph{IsImproved}($s^{*},s'$)}
+          \State $s^{*} \gets s'$
+        \EndIf
+        \EndFor
+      \EndFor
+      \State \textbf{return} $s^{*}$
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!h]
+  \caption{Insert neighbor solution computation}\label{locsearch}
+  \begin{algorithmic}[1]
+    \Procedure{InsertTourComponent}{$s,i,j$}\Comment{The main procedure}
+      \State \Comment{$s_i$ reprents the $i^{th}$ component of the solution}
+      \State $e \gets s_i$
+      \If{i<j}
+      \State $k \gets i$
+        \While{$k < j$}
+				  \State $s_i \gets s_{i+1}$
+				  \State $k \gets k+1$
+			  \EndWhile
+			\Else
+			\State $k \gets i$
+        \While{$k > j$}
+				  \State $s_i \gets s_{i-1}$
+				  \State $k \gets k-1$
+			  \EndWhile
+			\EndIf
+			\State $s_j \gets e$
+     \State \textbf{return} $s$
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+
+The solution construction process, used by every ant $k$ in the system, consist of a probabilistic selection of solution components.
+Every edge $e_{i,j}$ has a selection probability $p_{i,j}^k(t)$ (also called transition probability) defined as follows:
+
+\begin{equation} 
+p_{i,j}^k(t) = \begin{cases}
+  \frac{[\tau_{i,j}(t)]^\alpha \cdot [\eta_{i,j}]^\beta}{\sum_{k} \in A(s_{i}) [\tau_{k,j}(t)]^\alpha \cdot [\eta_{k,j}]^\beta} & j \in A(s_{i}) \\
+ 0 & \text{otherwise} \\
+\end{cases}
+\end{equation}
+
+As one can see in \ref{eq:tranprob}, the transition probability is determined by a constant, locally available heuristic information $\eta_{i,j}$ and by the time varying pheromone trail $\tau_{i,j}(t)$.
+This probability is defined on the set $A(s_i)$ of available (i.e. not yet visited) cities while visiting solution component $s_i$.
+The value of the parameters $\alpha$ and $\beta$ determines the relative imporance of the heuristic information and the pheromone trail, respectively.
+
 
  
 % An Iterative Improvement algorithm generally starts from a candidate solution, which can be either generated randomly or using an heuristic, and improves the evaluation of the solution at each step by modifying the solution structure , until a local optimum is reached.
@@ -789,28 +889,28 @@ Provided that the best solution is known, the bounds on the pheromone values can
 % \label{tab:p.tie}
 % \end{center}
 
-\subsection{Results discussion}
-By looking at tables \ref{tab:s.tei}, \ref{tab:s.tie}, \ref{tab:p.tei}, \ref{tab:p.tie} one can see that:
-\begin{itemize}
+% \subsection{Results discussion}
+% By looking at tables \ref{tab:s.tei}, \ref{tab:s.tie}, \ref{tab:p.tei}, \ref{tab:p.tie} one can see that:
+% \begin{itemize}
 
-\item For some instances (e.g. $n80w20.002$,$n80w20.003$) the algorithm are not able to converge to a feasible solution, as shown in the corresponding boxplots, since the PRPD distribution is centered around 12000-15000, thus indicating the presence of at least 1 constraint violations in most of the cases.
+% \item For some instances (e.g. $n80w20.002$,$n80w20.003$) the algorithm are not able to converge to a feasible solution, as shown in the corresponding boxplots, since the PRPD distribution is centered around 12000-15000, thus indicating the presence of at least 1 constraint violations in most of the cases.
 
-\item For some other instances (e.g. $n80w20.004$,$n80w20.005$) the algorithms are able to converge to feasible solutions and to the best-known one, but having a right-skewed distribution towards higher values of PRPD.
+% \item For some other instances (e.g. $n80w20.004$,$n80w20.005$) the algorithms are able to converge to feasible solutions and to the best-known one, but having a right-skewed distribution towards higher values of PRPD.
 
-\item For the remaining instances, except for some outlier values, the algorithms are able to converge to the best-known solution in most of the runs , even though the average PRPD is not closer to 0. This is due to the fact that the mean of a distribution is sensible to outliers and the penalisation for a constraint violations is extremely high when compared to the mean value.
+% \item For the remaining instances, except for some outlier values, the algorithms are able to converge to the best-known solution in most of the runs , even though the average PRPD is not closer to 0. This is due to the fact that the mean of a distribution is sensible to outliers and the penalisation for a constraint violations is extremely high when compared to the mean value.
       
-\item The algorithm ordering in terms of runtimes is $s.tie < p.tie < p.tei < s.tei$ for the  $n80w20.X$ instances while $s.tie < p.tei < s.tei < p.tie$ for $n80w200.X$ ones. The choice to explore the Insert Neighborhood before the Exchange one allows to reduce the computation time for the $n80w20.X$ instances, with a similar solution quality.
+% \item The algorithm ordering in terms of runtimes is $s.tie < p.tie < p.tei < s.tei$ for the  $n80w20.X$ instances while $s.tie < p.tei < s.tei < p.tie$ for $n80w200.X$ ones. The choice to explore the Insert Neighborhood before the Exchange one allows to reduce the computation time for the $n80w20.X$ instances, with a similar solution quality.
 
-\item The algorithms are more effective on the $n80w200.X$ instances then the $n80w20.X$ once, since they have a lower percentage of infeasible runs and a lower PRPD.
+% \item The algorithms are more effective on the $n80w200.X$ instances then the $n80w20.X$ once, since they have a lower percentage of infeasible runs and a lower PRPD.
 
-\item The standard variable neighborhood descent with Transpose-Insert-Exchange neighborhood chain (s.tie) outperforms all the other algorithms in terms of solution quality and runtime.
+% \item The standard variable neighborhood descent with Transpose-Insert-Exchange neighborhood chain (s.tie) outperforms all the other algorithms in terms of solution quality and runtime.
 
-\item Tables \ref{tab:w.11}, \ref{tab:w.12}, \ref{tab:w.13}, \ref{tab:w.14}, \ref{tab:w.15}, \ref{tab:w.16}, \ref{tab:w.17}, \ref{tab:w.18}, \ref{tab:w.19}, \ref{tab:w.20} contain, in any case, p-values considerably smaller than the significance level ($\alpha=0.05$). 
+% \item Tables \ref{tab:w.11}, \ref{tab:w.12}, \ref{tab:w.13}, \ref{tab:w.14}, \ref{tab:w.15}, \ref{tab:w.16}, \ref{tab:w.17}, \ref{tab:w.18}, \ref{tab:w.19}, \ref{tab:w.20} contain, in any case, p-values considerably smaller than the significance level ($\alpha=0.05$). 
 
-This implies that the null hypothesis corresponding to the equality of the median values of the differences of the two distributions can be rejected, hence assessing the existence of a statistically significant difference among the solution quality generated by analyzed algorithms.
+% This implies that the null hypothesis corresponding to the equality of the median values of the differences of the two distributions can be rejected, hence assessing the existence of a statistically significant difference among the solution quality generated by analyzed algorithms.
 
-\item By looking at the Cpu time, one can see that the instances \emph{n80w20.X} have generally lower runtimes than the \emph{n80w200.X} ones. They can then be considered, with respect to the variable neighborhood descent algorithms, simpler (quickier to solve) instances with respect to the latter.
+% \item By looking at the Cpu time, one can see that the instances \emph{n80w20.X} have generally lower runtimes than the \emph{n80w200.X} ones. They can then be considered, with respect to the variable neighborhood descent algorithms, simpler (quickier to solve) instances with respect to the latter.
 
-\end{itemize}
+% \end{itemize}
 
 \end{homeworkProblem}
