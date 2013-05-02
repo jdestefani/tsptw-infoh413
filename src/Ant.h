@@ -12,15 +12,15 @@
 #include "CandidateSolution.h"
 
 
-class Ant: public CandidateSolution {
+class Ant{
 public:
-	Ant(){
-		CandidateSolution::CandidateSolution();
+	Ant():
+	    m_cAntSolution(){
 		m_vecVisitedCities.reserve(1);
 	}
 
-	Ant(const std::vector<unsigned int>& tour){
-		CandidateSolution::CandidateSolution(tour);
+	Ant(const std::vector<unsigned int>& tour):
+		m_cAntSolution(tour){
 		for(unsigned int i=0; i < tour.size(); i++){
 			m_vecVisitedCities.push_back(false);
 		}
@@ -37,9 +37,16 @@ public:
 		m_vecVisitedCities[city_index] = true;
 	}
 
+	CandidateSolution& GetAntSolution() const {
+		return m_cAntSolution;
+	}
 
+	void SetAntSolution(const CandidateSolution& cAntSolution) {
+		m_cAntSolution = cAntSolution;
+	}
 
 private:
+	CandidateSolution m_cAntSolution;
 	std::vector<unsigned int> m_vecVisitedCities;
 };
 

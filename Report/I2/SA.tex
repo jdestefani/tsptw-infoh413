@@ -173,7 +173,9 @@ The runtime is computed (using the user defined function \verb|ComputeRunTime|) 
 \begin{algorithmic}
 \Procedure{Proposal mechanism}{} 
   \State $i \gets $ \emph{UniformRandom}($1,|N|$)
-  \State $j \gets $ \emph{UniformRandom}($1,|N|$)  
+  \While {$i = j$}
+    \State $j \gets $ \emph{UniformRandom}($1,|N|$)
+  \EndWhile  
   \State \textbf{return} \emph{InsertTourComponent}($s,i,j$)   
 \EndProcedure
 \end{algorithmic}

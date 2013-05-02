@@ -63,6 +63,13 @@ public:
 		m_unConstraintViolations(0),
 		m_fSolutionEvaluation(0.0f){
 	}
+
+	CandidateSolution(const CandidateSolution& cs):
+			m_vecTour(cs.GetTour()),
+			m_unTourDuration(cs.GetTourDuration()),
+			m_unConstraintViolations(cs.GetConstraintViolations()),
+			m_fSolutionEvaluation(cs.GetTourDuration()){
+	}
 	virtual ~CandidateSolution();
 
 	inline double GetSolutionEvaluation() const {
@@ -96,6 +103,17 @@ public:
 	void SetTour(const std::vector<unsigned int>& vecTour) {
 		m_vecTour = vecTour;
 		}
+
+
+	CandidateSolution& operator=(const CandidateSolution& c_cs) {
+		if(this != &c_cs) {
+			SetTour(c_cs.GetTour());
+			SetConstraintViolations(c_cs.GetConstraintViolations());
+			SetTourDuration(c_cs.GetTourDuration());
+		}
+		return *this;
+	}
+
 
 	friend inline std::ostream& operator<<(std::ostream& output, const CandidateSolution& solution){
 		output << "Tour: ";

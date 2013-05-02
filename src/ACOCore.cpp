@@ -29,18 +29,27 @@ void ACOCore::ACO() {
 	struct timespec sBeginTime;
 	struct timespec sEndTime;
 	unsigned int iterations = 0;
+	double m_lfExecutionTime = 0.0f;
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
-	ConstructSolutions();
-	LocalSearch();
-	PheromoneUpdate();
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
-	m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
+	do{
+		ConstructSolutions();
+		UpdateBestSolutions();
+
+		/*Local search*/
+		m_cHeuristicCore.SetCurrentSolution(m_cCurrentBestSolution);
+		m_cHeuristicCore.ComputeNeighborhood();
+
+		PheromoneUpdate();
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
+		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
+	}while(m_lfRunTime < m_lfTMax);
+
 
 	std::cout << "Solution found in " << m_lfRunTime << " s" << std::endl;
-	std::cout << m_cCurrentSolution;
+	std::cout << m_cCurrentBestSolution;
 	std::cout << std::endl << std::endl;
-	m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_lfRunTime);
+	m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentBestSolution.GetTourDuration(),m_cCurrentBestSolution.GetConstraintViolations(),m_lfRunTime);
 }
 
 
@@ -52,18 +61,46 @@ void ACOCore::PheromoneUpdate() {
 }
 
 void ACOCore::ConstructSolutions() {
+	m_unIterationBestSolution = 0;
 	for(unsigned int i=0; i<m_vecAnts.size(); i++){
 		m_vecAnts[i].ResetVisitedCities();
 		ConstructSolutionAnt(i);
+		/* Update best so far solution */
+		if(m_vecAnts[i].GetAntSolution() >= m_cCurrentBestSolution){
+			m_cCurrentBestSolution(m_vecAnts[i].GetAntSolution());
+		}
+		/* Update iteration best solution */
+		if(m_vecAnts[i].GetAntSolution() >= m_vecAnts[i].GetAntSolution()){
+			m_unIterationBestSolution = i;
+		}
 	}
 
+}
+
+void ACOCore::UpdateBestSolutions() {
+	int  bestSolution = -1;
+	m_unIterationBestSolution = 0;
+
+	for(unsigned int i=0; i<m_vecAnts.size(); i++){
+		/* Update best so far solution */
+		if(m_vecAnts[i].GetAntSolution() >= m_cCurrentBestSolution){
+			bestSolution = i;
+		}
+		/* Update iteration best solution */
+		if(m_vecAnts[i].GetAntSolution() >= m_vecAnts[i].GetAntSolution()){
+			m_unIterationBestSolution = i;
+		}
+	}
+	if(bestSolution > 0){
+		m_cCurrentBestSolution(m_vecAnts[bestSolution].GetAntSolution());
+	}
 }
 
 unsigned int ACOCore::RouletteWheelSelection(unsigned int ant_index,unsigned int step) {
 	double rouletteWheel[m_unCities];
 	double rouletteWheelSum = 0.0f;
 	double drawnNumber = 0.0f;
-	unsigned int previouslyVisitedCity = m_vecAnts[ant_index].GetTour().at(step-1);
+	unsigned int previouslyVisitedCity = m_vecAnts[ant_index].GetAntSolution().GetTour().at(step-1);
 	std::vector<bool> &visitedCities = m_vecAnts[ant_index].GetVisitedCities();
 	unsigned int i=0;
 
@@ -96,27 +133,47 @@ unsigned int ACOCore::RouletteWheelSelection(unsigned int ant_index,unsigned int
 void ACOCore::PheromoneEvaporation() {
 	for(unsigned int i=0; i<m_cPheromoneMatrix.GetRows(); i++){
 		for(unsigned int j=i; j<m_cPheromoneMatrix.GetColumns(); j++){
-			m_cPheromoneMatrix.SetElement(i,j,m_cPheromoneMatrix(i,j)*(1-m_lfRho));
+			m_cPheromoneMatrix.SetElement(i,j,SaturatePheromone(m_cPheromoneMatrix(i,j)*(1-m_lfRho)));
 			m_cPheromoneMatrix.SetElement(j,i,m_cPheromoneMatrix(i,j));
 		}
 	}
 }
 
 void ACOCore::PheromoneDeposit(unsigned int ant_index) {
-	//Define how the pheromone update will be performed
-	double pheromoneUpdate = 1.0f/m_vecAnts[ant_index].GetTourDuration();
+	double pheromoneUpdate;
 	unsigned int currentCity=0;
 	unsigned int nextCity=0;
+	CandidateSolution bestSolution;
 
-	for	(unsigned int i=1; i<m_vecAnts[ant_index].GetTour().size()-1; i++){
-		currentCity = m_vecAnts[ant_index].GetTour().at(i);
-		nextCity = m_vecAnts[ant_index].GetTour().at(i+1);
-		m_cPheromoneMatrix.SetElement(currentCity,nextCity,m_cPheromoneMatrix(currentCity,nextCity)+pheromoneUpdate);
+	/* Probabilistic MAX-MIN update */
+	if((float(rand())/RAND_MAX) < m_lfEpsilon){
+		/*Update pheromone trails according to iteration best solution*/
+		bestSolution.SetTour(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetTour());
+		bestSolution.SetConstraintViolations(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetConstraintViolations());
+		bestSolution.SetTourDuration(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetTourDuration());
+	}
+	else{
+		/*Update pheromone trails according to global best solution*/
+		bestSolution.SetTour(m_cCurrentBestSolution.GetTour());
+		bestSolution.SetConstraintViolations(m_cCurrentBestSolution.GetConstraintViolations());
+		bestSolution.SetTourDuration(m_cCurrentBestSolution.GetTourDuration());
+
+	}
+
+	pheromoneUpdate = 1.0f/bestSolution.GetTourDuration();
+
+	for(unsigned int i=1; i<bestSolution.GetTour().size()-1; i++){
+		currentCity = bestSolution.GetTour().at(i);
+		nextCity = bestSolution.GetTour().at(i+1);
+		m_cPheromoneMatrix.SetElement(currentCity,nextCity,SaturatePheromone(m_cPheromoneMatrix(currentCity,nextCity)+pheromoneUpdate));
 		m_cPheromoneMatrix.SetElement(nextCity,currentCity,m_cPheromoneMatrix(currentCity,nextCity));
 	}
 
 }
 
+bool ACOCore::TerminationCondition() {
+
+}
 
 void ACOCore::ConstructSolutionAnt(unsigned int ant_index) {
 	std::vector<unsigned int> constructedTour;
@@ -137,7 +194,7 @@ void ACOCore::ConstructSolutionAnt(unsigned int ant_index) {
 		m_vecAnts[ant_index].SetVisitedCity(chosenCity);
 	}
 	/*4. Evaluate solution */
-	m_vecAnts[ant_index].SetTour(constructedTour);
+	m_vecAnts[ant_index].GetAntSolution().SetTour(constructedTour);
 	ComputeTourLengthAndConstraintsViolations(m_vecAnts[ant_index]);
 }
 
@@ -146,14 +203,14 @@ void ACOCore::ComputeTourLengthAndConstraintsViolations(Ant& currentAnt) {
 	unsigned int arrivalTimeAccumulator = 0;
 	unsigned int i=0;
 	unsigned int constraintViolations = 0;
-	std::vector<unsigned int> currentTour = currentAnt.GetTour();
+	std::vector<unsigned int> currentTour = currentAnt.GetAntSolution().GetTour();
 
 	/**Reset data*/
-	currentAnt.SetTourDuration(0);
-	currentAnt.SetConstraintViolations(0);
+	currentAnt.GetAntSolution().SetTourDuration(0);
+	currentAnt.GetAntSolution().SetConstraintViolations(0);
 
 	/**Compute Tour Length*/
-	for(; i<currentAnt.GetTour().size();i++){
+	for(; i<currentAnt.GetAntSolution().GetTour().size();i++){
 		/**Compute Constraint Violations and Waiting Times*/
 		/*If the agent arrives in a city before the corresponding time window, delay it until the time window starts*/
 		if(arrivalTimeAccumulator < (m_vecTimeWindows.at(currentTour.at(i)).GetLowerBound())){
@@ -164,7 +221,7 @@ void ACOCore::ComputeTourLengthAndConstraintsViolations(Ant& currentAnt) {
 			constraintViolations++;
 		}
 
-		if(i < currentAnt.GetTour().size()-1 ){
+		if(i < currentAnt.GetAntSolution().GetTour().size()-1 ){
 			arrivalTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(i),currentTour.at(i+1));
 			travelTimeAccumulator+=m_pcDistanceMatrix->GetElement(currentTour.at(i),currentTour.at(i+1));
 		}
@@ -183,8 +240,12 @@ void ACOCore::ComputeTourLengthAndConstraintsViolations(Ant& currentAnt) {
 		constraintViolations++;
 	}
 
-	currentAnt.SetTourDuration(travelTimeAccumulator);
-	currentAnt.SetConstraintViolations(constraintViolations);
+	currentAnt.GetAntSolution().SetTourDuration(travelTimeAccumulator);
+	currentAnt.GetAntSolution().SetConstraintViolations(constraintViolations);
 	//candidateSolution.ComputeSolutionEvaluation();
 
+}
+
+double ACOCore::SaturatePheromone(double pheromoneValue) {
+	return pheromoneValue < m_lfTauMin ? m_lfTauMin : pheromoneValue > m_lfTauMax ? m_lfTauMax : pheromoneValue;
 }

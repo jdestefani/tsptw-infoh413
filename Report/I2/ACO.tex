@@ -102,7 +102,7 @@ The aforementioned design choice were made because:
         \EndIf 
       \EndFor
       \State $s \gets$\emph{IterativeImprovementIBI}()
-      \State \emph{UpdatePheromoneTrails}($\rho,p_b$)
+      \State \emph{UpdatePheromoneTrails}($\rho,\varepsilon$)
     \EndWhile
     \State \textbf{return} $s$
     \State
@@ -333,7 +333,7 @@ In this implementation, the heuristic information will be computed according to 
       \State $j \gets 0$
       \For{$i < n_{cities}$} 
         \For{$j < i$}
-          \If{\emph{Random}() $< p_b$} 
+          \If{\emph{Random}() $< \varepsilon$} 
           \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bi}$
           \Else
           \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bo}$
@@ -395,7 +395,7 @@ Provided that the best solution is known, the bounds on the pheromone values can
       \State $s^{*} \gets s$ 
       \For {$i \in \{1,\cdots,|N|\}$}
         \For {$j \in \{1,\cdots,|N|\}$}
-          \If{ $i == j \vee  j == i-1 $}
+          \If{ $i = j \vee  j = i-1 $}
 				    \State \textbf{continue}
 			    \EndIf
 			    \State $s' \gets$ \emph{InsertTourComponent}($s,i,j$)

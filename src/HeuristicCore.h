@@ -154,6 +154,8 @@ public:
 	void UpdateSolution();
 	void ComputeTourLengthAndConstraintsViolations(CandidateSolution&);
 	void ComputeRunTime(struct timespec&,struct timespec&);
+	void SwapTourComponents(std::vector<unsigned int>&,unsigned int,unsigned int);
+	void InsertTourComponent(std::vector<unsigned int>&,unsigned int,unsigned int);
 	bool IsLocalOptimum();
 
 private:
@@ -215,8 +217,7 @@ private:
 	void UpdateListTourDistances();
 	void ComputeTourLengthAndConstraintsViolationsDifferential(unsigned int,unsigned int);
 	void UpdateBestExchange(unsigned int,unsigned int,unsigned int,unsigned int);
-	void SwapTourComponents(std::vector<unsigned int>&,unsigned int,unsigned int);
-	void InsertTourComponent(std::vector<unsigned int>&,unsigned int,unsigned int);
+
 
 };
 
