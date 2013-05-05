@@ -41,7 +41,7 @@ fi
 
 declare -A bestSolutions
 
-#Manual encoding of best solutions
+# Manual encoding of best solutions
 bestSolutions[n80w20.001.txt]=616
 bestSolutions[n80w20.002.txt]=737
 bestSolutions[n80w20.003.txt]=667
@@ -62,13 +62,11 @@ generateRandomSeeds $2 $3
 instanceDir="./instances/"
 instanceName=$1
 
-
-./TSPTW-VND --standard --TEI --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-VND --standard --TIE --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-VND --piped --TEI --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-VND --piped --TIE --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+# Command line interface for the algorithms still to define
+./TSPTW-ACO --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-SA  --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
 
 
 
-Rscript processDataVND.R standard.tei.$instanceName standard.tie.$instanceName piped.tei.$instanceName piped.tie.$instanceName
+Rscript processDataSLS.R ACO.$instanceName SA.$instanceName
 

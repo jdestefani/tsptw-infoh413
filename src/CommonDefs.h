@@ -70,7 +70,13 @@ typedef enum {
 typedef enum {
 	BEST_IMPROVEMENT,
 	FIRST_IMPROVEMENT
-}ESolutionUpdate;
+} ESolutionUpdate;
+
+typedef enum {
+	ANT_COLONY_OPTIMIZATION,
+	SIMULATED_ANNEALING
+} ESLSType;
+
 
 /*
       METHOD:         Computation of the time passed by two time instants.

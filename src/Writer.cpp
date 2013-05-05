@@ -51,6 +51,7 @@ const std::string Writer::NEIGHBORHOOD_CHAIN_TIE="tie";
 const std::string Writer::VND_TYPE_STANDARD="standard";
 const std::string Writer::VND_TYPE_PIPED="piped";
 const std::string Writer::ACO="ACO";
+const std::string Writer::SA="SA";
 const std::string Writer::SEPARATOR=".";
 
 void Writer::OpenRFile() {
@@ -77,6 +78,16 @@ void Writer::FlushRFile() {
 	/*Flush results*/
 	for(std::list<SResultsData>::iterator itList=m_listResults.begin(); itList != m_listResults.end(); ++itList){
 		m_ofsRResults << (*itList).seed << "\t" << (*itList).constraintViolations << "\t" << (*itList).cpuRunTime << "\t" << (*itList).ComputePRDP(m_unKnownBest) << std::endl;
+	}
+	m_ofsRResults.close();
+
+}
+
+void Writer::FlushRFileSLS() {
+	m_ofsRResults << "Seed\tCV\tPRPD" << std::endl;
+	/*Flush results*/
+	for(std::list<SResultsData>::iterator itList=m_listResults.begin(); itList != m_listResults.end(); ++itList){
+		m_ofsRResults << (*itList).seed << "\t" << (*itList).constraintViolations << "\t" << (*itList).ComputePRDP(m_unKnownBest) << std::endl;
 	}
 	m_ofsRResults.close();
 
