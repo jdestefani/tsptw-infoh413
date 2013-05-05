@@ -7,6 +7,39 @@
 
 #include "ACOCore.h"
 
+
+void ACOCore::InitializeHeuristicValues() {
+	unsigned int currA;
+	unsigned int currB;
+
+	m_unAMin = m_vecTimeWindows.at(0).GetLowerBound();
+	m_unAMax = m_vecTimeWindows.at(0).GetLowerBound();
+	m_unBMin = m_vecTimeWindows.at(0).GetUpperBound();
+	m_unBMax = m_vecTimeWindows.at(0).GetUpperBound();
+
+	for(unsigned int i=1; i < m_vecTimeWindows.size(); i++){
+		currA = m_vecTimeWindows.at(i).GetLowerBound();
+		currB = m_vecTimeWindows.at(i).GetUpperBound();
+
+		if(currA < m_unAMin){
+			m_unAMin = currA;
+		}
+		if(currA > m_unAMax){
+			m_unAMax = currA;
+		}
+		if(currB < m_unBMin){
+			m_unBMin = currB;
+		}
+		if(currA > m_unBMax){
+			m_unBMax = currB;
+		}
+
+	}
+
+	m_unCMin = m_pcDistanceMatrix->GetMin();
+	m_unCMax = m_pcDistanceMatrix->GetMax();
+}
+
 /*
       METHOD:         Run the chosen II algorithm for the desired number of runs.
       INPUT:          none
@@ -43,7 +76,7 @@ void ACOCore::ACO() {
 		PheromoneUpdate();
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
 		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
-	}while(m_lfRunTime < m_lfTMax);
+	}while(m_lfRunTime < m_lfTMax || TerminationCondition());
 
 
 	std::cout << "Solution found in " << m_lfRunTime << " s" << std::endl;
@@ -111,7 +144,7 @@ unsigned int ACOCore::RouletteWheelSelection(unsigned int ant_index,unsigned int
 			rouletteWheel[i] = 0.0f;
 		}
 		else{
-			rouletteWheel[i] = pow(m_cPheromoneMatrix.GetElement(previouslyVisitedCity,i),m_lfAlpha) * m_cHeuristicMatrix.GetElement(previouslyVisitedCity,i);
+			rouletteWheel[i] = pow(m_cPheromoneMatrix.GetElement(previouslyVisitedCity,i),m_lfAlpha) * ComputeHeuristic(previouslyVisitedCity,i);
 			rouletteWheelSum += rouletteWheel[i];
 		}
 
@@ -147,16 +180,17 @@ void ACOCore::PheromoneDeposit(unsigned int ant_index) {
 
 	/* Probabilistic MAX-MIN update */
 	if((float(rand())/RAND_MAX) < m_lfEpsilon){
-		/*Update pheromone trails according to iteration best solution*/
-		bestSolution.SetTour(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetTour());
-		bestSolution.SetConstraintViolations(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetConstraintViolations());
-		bestSolution.SetTourDuration(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetTourDuration());
-	}
-	else{
 		/*Update pheromone trails according to global best solution*/
 		bestSolution.SetTour(m_cCurrentBestSolution.GetTour());
 		bestSolution.SetConstraintViolations(m_cCurrentBestSolution.GetConstraintViolations());
 		bestSolution.SetTourDuration(m_cCurrentBestSolution.GetTourDuration());
+
+	}
+	else{
+		/*Update pheromone trails according to iteration best solution*/
+		bestSolution.SetTour(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetTour());
+		bestSolution.SetConstraintViolations(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetConstraintViolations());
+		bestSolution.SetTourDuration(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetTourDuration());
 
 	}
 
@@ -172,7 +206,11 @@ void ACOCore::PheromoneDeposit(unsigned int ant_index) {
 }
 
 bool ACOCore::TerminationCondition() {
-
+	if(m_cCurrentBestSolution.GetTourDuration() == m_unGlobalOptimum &&
+			m_cCurrentBestSolution.GetConstraintViolations() == 0){
+		return true;
+	}
+	return false;
 }
 
 void ACOCore::ConstructSolutionAnt(unsigned int ant_index) {
@@ -196,6 +234,14 @@ void ACOCore::ConstructSolutionAnt(unsigned int ant_index) {
 	/*4. Evaluate solution */
 	m_vecAnts[ant_index].GetAntSolution().SetTour(constructedTour);
 	ComputeTourLengthAndConstraintsViolations(m_vecAnts[ant_index]);
+}
+
+double ACOCore::ComputeHeuristic(unsigned int city_index,unsigned int next_city_index){
+	double aComponent = m_lfLambdaA*((m_unAMax-m_vecTimeWindows.at(next_city_index).GetLowerBound())/(m_unAMax-m_unAMin));
+	double bComponent = m_lfLambdaB*((m_unBMax-m_vecTimeWindows.at(next_city_index).GetUpperBound())/(m_unBMax-m_unBMin));
+	double cComponent = m_lfLambdaC*((m_unCMax-m_pcDistanceMatrix(city_index,next_city_index))/(m_unCMax-m_unCMin));
+
+	return aComponent+bComponent+cComponent;
 }
 
 void ACOCore::ComputeTourLengthAndConstraintsViolations(Ant& currentAnt) {
@@ -246,6 +292,10 @@ void ACOCore::ComputeTourLengthAndConstraintsViolations(Ant& currentAnt) {
 
 }
 
+
+
 double ACOCore::SaturatePheromone(double pheromoneValue) {
 	return pheromoneValue < m_lfTauMin ? m_lfTauMin : pheromoneValue > m_lfTauMax ? m_lfTauMax : pheromoneValue;
 }
+
+

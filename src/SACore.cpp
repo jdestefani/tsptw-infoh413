@@ -17,6 +17,7 @@ void SACore::Run() {
 		m_lfSeed = m_vecSeeds.at(i);
 		std::srand ( unsigned ( m_lfSeed ) );
 		std::cout << "Run " << i+1 << " - seed " << m_lfSeed << std::endl;
+		m_unIterations = 0;
 		SA();
 	}
 	m_wriResultsWriter.FlushRFile();
@@ -33,6 +34,7 @@ void SACore::SA() {
 			m_cCurrentSolution = m_cProposedSolution;
 		}
 		UpdateTemperature();
+		m_unIterations++;
 	}while(!TerminationCondition());
 
 }
@@ -74,5 +76,15 @@ bool SACore::AcceptanceCriterion()
 
 void SACore::UpdateTemperature()
 {
-	m_lfT *= m_lfAlpha;
+	if((m_unIterations % m_unL) == 0){
+		m_lfT *= m_lfAlpha;
+	}
+}
+
+bool SACore::TerminationCondition() {
+	if(m_cCurrentSolution.GetTourDuration() == m_unGlobalOptimum &&
+				m_cCurrentSolution.GetConstraintViolations() == 0){
+			return true;
+		}
+		return false;
 }

@@ -43,7 +43,9 @@ public:
 		 m_unRuns(runs),
 		 m_lfSeed(0.0f),
 		 m_lfRunTime(0.0f),
-		 m_lfT(t_zero){}
+		 m_lfT(t_zero),
+		 m_unGlobalOptimum(best_known_solution),
+		 m_unIterations(0){}
 
 	virtual ~SACore();
 	void SA();
@@ -51,6 +53,7 @@ public:
 	void ProposalMechanism();
 	bool AcceptanceCriterion();
 	void UpdateTemperature();
+	bool TerminationCondition();
 
 private:
 		const NumericMatrix<unsigned int>* m_pcDistanceMatrix;
@@ -61,12 +64,16 @@ private:
 
 		double m_lfAlpha;
 		double m_lfT;
+		unsigned int m_unL;
 		double m_lfSeed;
 		unsigned int m_unRuns;
 		unsigned int m_unCities;
 		CandidateSolution m_cCurrentSolution;
 		CandidateSolution m_cProposedSolution;
 		double m_lfRunTime;
+		unsigned int m_unGlobalOptimum;
+
+		unsigned int m_unIterations;
 
 };
 

@@ -16,6 +16,7 @@
 #include "CommonDefs.h"
 #include "NumericMatrix.h"
 #include "HeuristicCore.h"
+#include "TimeWindow.h"
 
 class ACOCore {
 public:
@@ -57,7 +58,8 @@ public:
 	 m_unRuns(runs),
 	 m_lfSeed(0.0f),
 	 m_lfRunTime(0.0f),
-	 m_unIterationBestSolution(0){
+	 m_unIterationBestSolution(0),
+	 m_unGlobalOptimum(best_known_solution){
 		/*Initialize ants*/
 		for(unsigned int i=0; i < ant_number; i++){
 			Ant currentAnt;
@@ -69,7 +71,7 @@ public:
 		for(unsigned int i=0; i < m_unCities; i++){
 			for(unsigned int j=0; j < i; j++){
 				m_cPheromoneMatrix.SetElement(i,j,tau_zero);
-				m_cHeuristicMatrix.SetElement(j,i,m_cHeuristicMatrix(i,j));
+				m_cPheromoneMatrix.SetElement(j,i,m_cPheromoneMatrix(i,j));
 			}
 		}
 
@@ -77,14 +79,13 @@ public:
 		m_lfTauMax = 1.0f/m_lfRho*best_known_solution;
 		m_lfTauMin = m_lfTauMax/A;
 
-		/*Precompute all the heuristic values*/
-		m_cHeuristicMatrix(m_unCities,m_unCities);
-		for(unsigned int i=0; i < m_unCities; i++){
-			for(unsigned int j=0; j < i; j++){
-				m_cHeuristicMatrix.SetElement(i,j,pow(1.0f/m_pcDistanceMatrix->GetElement(i,j),m_lfBeta));
-				m_cHeuristicMatrix.SetElement(j,i,m_cHeuristicMatrix(i,j));
-			}
-		}
+		/*Initialize lambda values*/
+		m_lfLambdaA = float(rand())/RAND_MAX;
+		m_lfLambdaB = (float(rand())/RAND_MAX)*(1-m_lfLambdaA);
+		m_lfLambdaC = (1-m_lfLambdaA-m_lfLambdaB);
+
+		/*Initialize values required to compute heuristic*/
+		InitializeHeuristicValues();
 	};
 
 	virtual ~ACOCore();
@@ -106,7 +107,6 @@ private:
 	const std::vector<TimeWindow>& m_vecTimeWindows;
 	const std::vector<unsigned int>& m_vecSeeds;
 	NumericMatrix<double> m_cPheromoneMatrix;
-	NumericMatrix<double> m_cHeuristicMatrix;
 	std::vector<Ant> m_vecAnts;
 	Writer m_wriResultsWriter;
 	HeuristicCore m_cHeuristicCore;
@@ -119,17 +119,29 @@ private:
 	double m_lfTauMax;
 	double m_lfTauMin;
 	double m_lfSeed;
+	double m_lfLambdaA;
+	double m_lfLambdaB;
+	double m_lfLambdaC;
+	unsigned int m_unAMax;
+	unsigned int m_unAMin;
+	unsigned int m_unBMax;
+	unsigned int m_unBMin;
+	unsigned int m_unCMax;
+	unsigned int m_unCMin;
 	unsigned int m_unRuns;
 	unsigned int m_unCities;
 	unsigned int m_unAntNumber;
 	CandidateSolution m_cCurrentBestSolution;
 	unsigned int m_unIterationBestSolution;
 	double m_lfRunTime;
+	unsigned int m_unGlobalOptimum;
 
+	void InitializeHeuristicValues();
 	void PheromoneEvaporation();
 	void PheromoneDeposit(unsigned int);
 	void ConstructSolutionAnt(unsigned int);
 	double SaturatePheromone(double);
+	double ComputeHeuristic(unsigned int,unsigned int);
 
 };
 

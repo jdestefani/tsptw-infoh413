@@ -88,13 +88,13 @@ The aforementioned design choice were made because:
 \begin{algorithm}[!h]
   \caption{\maxmin Ant System for TSPTW - Outline}\label{maxmintsptw}
   \begin{algorithmic}[1]
-    \Procedure{ACO}{$\alpha,\beta,\rho,\tau_0,p_b,t_{max}$}\Comment{The main procedure}
+    \Procedure{ACO}{$\alpha,\beta,\rho,\tau_0,p_b,t_{\max},f_{best}$}\Comment{The main procedure}
     \Require $N$ - Node set
     \Require $E$ - Edge set 
     \Require $c$ - Edge cost function
     \Require $t$ - Time window function
     \State {\emph{InitalizePheromoneTrail}($\tau_0,n_{cities}$)}
-    \While{\emph{!TerminationCondition}($t_{max}$)}
+    \While{\emph{!TerminationCondition}($s,t_{max},f_{best}$)}
       \ForAll {Ant $k$}
         \State $s' \gets$ \emph{ConstructSolution}($\alpha,\beta$)
         \If {\emph{IsImproved}($s,s'$)}
@@ -147,7 +147,7 @@ The aforementioned design choice were made because:
   \item \emph{IPT} $\equiv$ \emph{InitializePheromoneTrail}()
   \item \emph{CC} $\equiv$ \emph{ConstructionComplete}()
   \item \emph{LO} $\equiv$ \emph{LocalOptimum}()
-  \item \emph{TC} $\equiv$ \emph{TerminationCondition}()
+  \item \emph{TC} $\equiv$ \emph{TerminationCondition}($s,t_{max},f_{best}$)
 \end{itemize}
 \end{minipage}
 \captionof{figure}{\maxmin  Ant System GLSM}
@@ -229,7 +229,7 @@ The value of the parameters $\alpha$ and $\beta$ determines the relative imporan
       \If {$\Omega(s') < \Omega(s)$}
           \State \textbf{return true}
       \Else
-           \If {$\Omega(s') == \Omega(s) \wedge f(s') < f(s)$}
+           \If {$\Omega(s') = \Omega(s) \wedge f(s') < f(s)$}
             \State \textbf{return true}
            \EndIf
       \EndIf
@@ -301,8 +301,8 @@ where
 \end{itemize}
 
 
-\paragraph{Lopez-Ibanez and Blum, 2009}
-The approach used in \cite{lopez2010beam} is instead, to perform a linear combination, based on $\lambda_i$ coefficients, of the normalized values of opening and closing times of the time windows and the travelling cost from one city to another.
+\paragraph{Lopez-Ibanez and Blum, 2010}
+The approach used in \cite{lopez2010beam} is a linear combination based on $\lambda_i$ coefficients, of the normalized values of opening and closing times of the time windows and the travelling cost from one city to another.
 
 \begin{equation} \label{eq:heuristic}
 \eta_{i-1,k} = \lambda_{a} \cdot \frac{a_{\max}-a_{k}}{a_{\max}-a_{\min}} + \lambda_{b} \cdot \frac{b_{\max}-b_{k}}{b_{\max}-b_{\min}} + \lambda_{c} \cdot \frac{c_{\max}-c_{i-1,k}}{c_{\max}-c_{\min}}
@@ -311,12 +311,12 @@ The approach used in \cite{lopez2010beam} is instead, to perform a linear combin
 where
 \begin{itemize}
   \item $a_i$ - Opening time of time window $i$
-  \item $a_{\max} = \max_{j \in N(i)} a_{j}$ - Maximum time window opening time in the neighborhood of node $i$
-  \item $a_{\min} = \min_{j \in N(i)} a_{j}$ - Minimum time window opening time in the neighborhood of node $i$
+  \item $a_{\max} = \max_{j \in N} a_{j}$ - Maximum time window opening time in the neighborhood of node $i$
+  \item $a_{\min} = \min_{j \in N} a_{j}$ - Minimum time window opening time in the neighborhood of node $i$
   \item $b_i$ - Closing time of time window $i$
-  \item $b_{\max} = \max_{j \in N(i)} b_{j}$ - Maximum time window closing time in the neighborhood of node $i$
-  \item $b_{\min} = \min_{j \in N(i)} b_{j}$ - Minimum time window closing time in the neighborhood of node $i$
-  \item $c_{i,j}$ - Travelling cost from node $i$ - $j$
+  \item $b_{\max} = \max_{j \in N} b_{j}$ - Maximum time window closing time in the neighborhood of node $i$
+  \item $b_{\min} = \min_{j \in N} b_{j}$ - Minimum time window closing time in the neighborhood of node $i$
+  \item $c_{i,j}$ - Travelling cost from node $i$ to node $j$
   \item $c_{\max} = \max_j c_{i,j}$ - Maximum travelling cost from node $i$ 
   \item $c_{\min} = \min_j c_{i,j}$ - Minimum travelling cost from node $i$
   \item $\lambda_{a},\lambda_{b},\lambda_{c}$ s.t. $\lambda_{a}+\lambda_{b}+\lambda_{c}=1$ - Randomly selected weights
@@ -399,7 +399,7 @@ Provided that the best solution is known, the bounds on the pheromone values can
 				    \State \textbf{continue}
 			    \EndIf
 			    \State $s' \gets$ \emph{InsertTourComponent}($s,i,j$)
-			    \If {\emph{IsImproved}($s^{*},s'$)}
+			    \If {\emph{IsImproving}($s^{*},s'$)}
           \State $s^{*} \gets s'$
         \EndIf
         \EndFor
@@ -449,6 +449,18 @@ As one can see in \ref{eq:tranprob}, the transition probability is determined by
 This probability is defined on the set $A(s_i)$ of available (i.e. not yet visited) cities while visiting solution component $s_i$.
 The value of the parameters $\alpha$ and $\beta$ determines the relative imporance of the heuristic information and the pheromone trail, respectively.
 
+\subsubsection{Termination condition}
+\begin{algorithm}[!h]
+  \caption{Termination Condition}\label{termcond}
+  \begin{algorithmic}[1]
+    \Procedure{TerminationCondintion}{$s,t_{\max},s_{best}$}
+          \If{ $(f(s) = f_{best} \wedge \Omega(s) = 0) \vee  t > t_{\max} $}
+				    \State \textbf{return true}
+			    \EndIf
+      \State \textbf{return false}
+    \EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
  
 % An Iterative Improvement algorithm generally starts from a candidate solution, which can be either generated randomly or using an heuristic, and improves the evaluation of the solution at each step by modifying the solution structure , until a local optimum is reached.

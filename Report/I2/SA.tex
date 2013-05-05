@@ -85,11 +85,11 @@ The runtime is computed (using the user defined function \verb|ComputeRunTime|) 
 \caption{Simulated Annealing TSPTW}
 \label{SA:TSPTW}
 \begin{algorithmic}
-\Procedure{SimulatedAnnealing}{}    
+\Procedure{SimulatedAnnealing}{$t_{\max},f_{best}$}    
   \Require Annealing schedule
   \State $s \gets$ \emph{InitialSolution}() \Comment{Heuristic or random permutation}
   \State $T \gets T_0$ 
-  \While{!\emph{TerminationCondition}()}
+  \While{!\emph{TerminationCondition}($s,t_{\max},f_{best}$)}
     \State $s' \gets$ \emph{ProposalMechanism()} \Comment{(Often) Uniform random choice  in $N(s)$}
     \If{\emph{AcceptanceCriterion}($s,s',T$)} \Comment{(Often) Metropolis condition}
       \State $s \gets s'$
@@ -158,12 +158,16 @@ The runtime is computed (using the user defined function \verb|ComputeRunTime|) 
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}
-\caption{Termination condition}
-\label{SA:Term}
-\begin{algorithmic}
-\Procedure{Termination condition}{}
-\EndProcedure
+\subsubsection{Termination condition}
+\begin{algorithm}[!h]
+  \caption{Termination Condition}\label{SA:Term}
+  \begin{algorithmic}[1]
+    \Procedure{TerminationCondintion}{$s,t_{\max},s_{best}$}
+          \If{ $(f(s) = f_{best} \wedge \Omega(s) = 0) \vee  t > t_{\max} $}
+				    \State \textbf{return true}
+			    \EndIf
+      \State \textbf{return false}
+    \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
@@ -186,7 +190,7 @@ The runtime is computed (using the user defined function \verb|ComputeRunTime|) 
 \label{saTSPTW}
 \begin{algorithmic}
 \Procedure{Acceptance criterion}{$s,s',T$}
-\If {\emph{IsImproved}($s,s',t$)}
+\If {\emph{IsImproving}($s,s',t$)}
   \State \textbf{return} $1$
 \Else
   \State \textbf{return} $e^{\frac{f(s)-f(s')}{T}}$

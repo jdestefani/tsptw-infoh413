@@ -498,7 +498,7 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 
 	/*Tries to allocate cities in order to avoid constraint violations*/
 	/*If that is not possible, order cities according to the closing time of the time window*/
-	while(timeWindows.size()>0){
+	/*while(timeWindows.size()>0){
 		unsigned int j=0;
 		//nextCityDistances = m_vecDistanceMatrix.at(i-1);
 		for(; j<timeWindows.size(); j++){
@@ -523,7 +523,7 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 			}
 		}
 
-	}
+	}*/
 
 	/*Perturbate locally the generated solution with decreasing intensity*/
 	while(perturbations > 0){

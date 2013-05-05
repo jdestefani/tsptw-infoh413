@@ -49,6 +49,22 @@
 #include "HeuristicCore.h"
 #include "CommonDefs.h"
 
+/*Table 2
+Compressed Annealing Parameters for TSPTW
+Parameter
+Cooling coefficient (ALPHA )
+Initial acceptance ratio ( 0 )
+Compression coefficient ( )
+Pressure cap ratio ( )
+Iterations per temperature ( )
+Minimum number of temperature changes
+Value
+0 95
+0 94
+0 06
+0 9999
+30,000
+100*/
 
 
 #define DEFAULT_INIT_FUNCTION RANDOM;
