@@ -46,30 +46,14 @@
 #include <time.h>
 
 #include "InstanceReader.h"
-#include "HeuristicCore.h"
+#include "SACore.h"
 #include "CommonDefs.h"
 
-/*Table 2
-Compressed Annealing Parameters for TSPTW
-Parameter
-Cooling coefficient (ALPHA )
-Initial acceptance ratio ( 0 )
-Compression coefficient ( )
-Pressure cap ratio ( )
-Iterations per temperature ( )
-Minimum number of temperature changes
-Value
-0 95
-0 94
-0 06
-0 9999
-30,000
-100*/
-
-
-#define DEFAULT_INIT_FUNCTION RANDOM;
-#define DEFAULT_NEIGHBORHOOD_TYPE INSERT;
-#define DEFAULT_SOLUTION_UPDATE FIRST_IMPROVEMENT;
+#define DEFAULT_ALPHA 0.95f;
+#define DEFAULT_X_ZERO 0.94f;
+#define DEFAULT_T_MAX 10.0f;
+#define DEFAULT_T_ZERO 100.0f;
+#define DEFAULT_IPT 30000;
 #define DEFAULT_RUNS 1;
 #define DEFAULT_SEED 0.0f;
 #define DEFAULT_BEST_KNOWN_SOLUTION INT_MAX;
@@ -90,16 +74,15 @@ int main (int argc, char **argv)
 	int c;
 	char* inputFileName=NULL;
 	char* seedsFileName=NULL;
-	ENeighborhoodType neighborhoodType=DEFAULT_NEIGHBORHOOD_TYPE;
-	EInitFunction initFunction=DEFAULT_INIT_FUNCTION;
-	ESolutionUpdate solutionUpdate=DEFAULT_SOLUTION_UPDATE;
+	double alpha=DEFAULT_ALPHA;
+	double x_zero=DEFAULT_X_ZERO;
+	double t_max=DEFAULT_T_MAX;
+	double T_zero=DEFAULT_T_ZERO;
+	unsigned int ipt=DEFAULT_IPT;
+
+
 	unsigned int runs=DEFAULT_RUNS;
 	unsigned int bestKnownSolution = DEFAULT_BEST_KNOWN_SOLUTION;
-	bool setInitFunction=false;
-	bool setPivotingRule=false;
-	bool setNeighborhood=false;
-
-
 
 	std::cout << std::endl;
 	if(argc > 1){
@@ -112,23 +95,21 @@ int main (int argc, char **argv)
 					{"brief",   no_argument,       &verbose_flag, 0},
 					/* These options don't set a flag.
                   We distinguish them by their indices. */
-					{"first-imp",     no_argument,       0, 'f'},
-					{"best-imp",  no_argument,       0, 'b'},
-					{"transpose",     no_argument,       0, 't'},
-					{"exchange",  no_argument,       0, 'e'},
-					{"insert",  no_argument,       0, 'n'},
-					{"input",    required_argument, 0, 'i'},
-					{"random",     no_argument,       0, 'd'},
-					{"heuristic",  no_argument,       0, 'h'},
-					{"runs",  optional_argument,       0, 'r'},
-					{"seed",  optional_argument,       0, 's'},
-					{"known-best",  optional_argument,       0, 'k'},
+					{"alpha",		required_argument, 		0, 'a'},
+					{"T-zero",  	required_argument, 		0, 'z'},
+					{"x-zero",     	required_argument, 		0, 'x'},
+					{"ipt",  		required_argument,		0, 'p'},
+					{"t-max",  		required_argument, 		0, 't'},
+					{"input",   	required_argument, 		0, 'i'},
+					{"runs",  		required_argument,      0, 'r'},
+					{"seed",  		required_argument,      0, 's'},
+					{"known-best",  required_argument,      0, 'k'},
 					{0, 0, 0, 0}
 			};
 			/* getopt_long stores the option index here. */
 			int option_index = 0;
 
-			c = getopt_long (argc, argv, "fbteni:dhr:s:k:",
+			c = getopt_long (argc, argv, "a:z:x:p:t:i:r:s:k:",
 					long_options, &option_index);
 
 			/* Detect the end of the options. */
@@ -147,88 +128,60 @@ int main (int argc, char **argv)
 				printf ("\n");
 				break;
 
-			case 'd':
-				if(!setInitFunction){
-					initFunction = RANDOM;
-					setInitFunction=true;
+			case 'a':
+				if(optarg != NULL){
+					alpha = optarg;
 				}
 				else{
-					std::cerr << "[Error] - Multiple initialization functions chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Missing alpha value." << std::endl << std::endl;
 					usage();
-					exit(-4);
+					exit(0);
 				}
 				break;
 
-			case 'h':
-				if(!setInitFunction){
-					initFunction = HEURISTIC;
-					setInitFunction = true;
+			case 'z':
+				if(optarg != NULL){
+					T_zero = optarg;
 				}
 				else{
-					std::cerr << "[Error] - Multiple initialization functions chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Missing initial temperature value." << std::endl << std::endl;
 					usage();
-					exit(-4);
+					exit(0);
 				}
 				break;
 
 
-			case 'f':
-				if(!setPivotingRule){
-					solutionUpdate = FIRST_IMPROVEMENT;
-					setPivotingRule=true;
+			case 'x':
+				if(optarg != NULL){
+					x_zero = optarg;
 				}
 				else{
-					std::cerr << "[Error] - Multiple pivoting rules chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Missing initial acceptance ration value." << std::endl << std::endl;
 					usage();
-					exit(-2);
+					exit(0);
 				}
 				break;
 
-			case 'b':
-				if(!setPivotingRule){
-					solutionUpdate = BEST_IMPROVEMENT;
-					setPivotingRule=true;
+			case 'p':
+				if(optarg != NULL){
+					ipt = optarg;
 				}
 				else{
-					std::cerr << "[Error] - Multiple pivoting rules chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Missing iteration per temperature value." << std::endl << std::endl;
 					usage();
-					exit(-2);
+					exit(0);
 				}
 				break;
+
 
 			case 't':
-				if(!setNeighborhood){
-					neighborhoodType = TRANSPOSE;
-					setNeighborhood = true;
+				if(optarg != NULL){
+					t_max = optarg;
 				}
 				else{
-					std::cerr << "[Error] - Multiple neighborhood types chosen." << std::endl << std::endl;
+					std::cerr << "[Error] - Missing maximum runtime value." << std::endl << std::endl;
 					usage();
-					exit(-3);
-				}
-				break;
-
-			case 'e':
-				if(!setNeighborhood){
-					neighborhoodType = EXCHANGE;
-					setNeighborhood = true;
-				}
-				else{
-					std::cerr << "[Error] - Multiple neighborhood types chosen." << std::endl << std::endl;
-					usage();
-					exit(-3);
-				}
-				break;
-
-			case 'n':
-				if(!setNeighborhood){
-					neighborhoodType = INSERT;
-					setNeighborhood = true;
-				}
-				else{
-					std::cerr << "[Error] - Multiple neighborhood types chosen." << std::endl << std::endl;
-					usage();
-					exit(-3);
+					exit(0);
 				}
 				break;
 
@@ -318,49 +271,11 @@ int main (int argc, char **argv)
 	std::cout << "Solver parameters:" << std::endl;
 
 	std::cout << "\tInstance: " << inputFileName << std::endl;
-
-	std::cout << "\tInitialization function: ";
-	switch (initFunction) {
-	case RANDOM:
-		std::cout << "Random" << std::endl;
-		break;
-	case HEURISTIC:
-		std::cout << "Heuristic" << std::endl;
-		break;
-	default:
-		std::cout << " " << std::endl;
-		break;
-	}
-
-	std::cout << "\tNeighborhood: ";
-	switch (neighborhoodType) {
-	case EXCHANGE:
-		std::cout << "Exchange" << std::endl;
-		break;
-	case TRANSPOSE:
-		std::cout << "Transpose" << std::endl;
-		break;
-	case INSERT:
-		std::cout << "Insert" << std::endl;
-		break;
-	default:
-		std::cout << "" << std::endl;
-		break;
-	}
-
-	std::cout << "\tPivoting rule: ";
-	switch (solutionUpdate) {
-	case BEST_IMPROVEMENT:
-		std::cout << "Best improvement" << std::endl;
-		break;
-	case FIRST_IMPROVEMENT:
-		std::cout << "First improvement" << std::endl;
-		break;
-	default:
-		std::cout << "" << std::endl;
-		break;
-	}
-
+	std::cout << "\tAlpha: " << alpha << std::endl;
+	std::cout << "\tT-zero: " << T_zero << std::endl;
+	std::cout << "\tX-zero: " << x_zero << std::endl;
+	std::cout << "\tIPT: " << ipt << std::endl;
+	std::cout << "\tMaximum runtime: " << t_max << std::endl;
 	std::cout << "\tSeeds file: " << seedsFileName << std::endl;
 	std::cout << "\tRuns: " << runs << std::endl;
 	std::cout << "\tBest known solution: " << bestKnownSolution << std::endl;
@@ -382,17 +297,23 @@ int main (int argc, char **argv)
 				std::cerr << "[Error] - Read error on " << seedsFileName << std::endl << std::endl;
 				exit(-1);
 			}
-			HeuristicCore solverCore(instanceReader.GetPDistanceMatrix(),
-										 instanceReader.GetTimeWindows(),
-										 instanceReader.GetCities(),
-										 initFunction,
-										 neighborhoodType,
-										 solutionUpdate,
-										 instanceReader.GetSeeds(),
-										 runs,
-										 inputFileName,
-										 bestKnownSolution);
-			solverCore.RunII();
+
+
+			SACore solverCore(
+					instanceReader.GetPDistanceMatrix(),
+					instanceReader.GetTimeWindows(),
+					instanceReader.GetCities(),
+					alpha,
+					T_zero,
+					x_zero,
+					instanceReader.GetSeeds(),
+					runs,
+					t_max,
+					inputFileName,
+					bestKnownSolution);
+
+
+			solverCore.Run();
 			return EXIT_SUCCESS;
 			exit(0);
 		}
@@ -427,42 +348,17 @@ void version(void)
 
 void usage(void)
 {
-  std::cout << "Usage: TSPTW-ACO [PARAMETERS] -i [INPUTFILE] -s [SEEDSFILE]" << std::endl << std::endl;
+  std::cout << "Usage: TSPTW-SA [PARAMETERS] -i [INPUTFILE] -s [SEEDSFILE]" << std::endl << std::endl;
   std::cout << "Flag \t\t Argument \t Description" << std::endl;
-  std::cout << "-a,--alpha \t [Opt,Alpha] \t\t Influence of pheromone trails." << std::endl;
-  std::cout << "-b,--beta\t [Opt,Beta] \t\t Influence of heuristic information." << std::endl;
-  std::cout << "-h,--rho \t [Opt,Alpha] \t\t Pheromone trail evaporation." << std::endl;
-  std::cout << "-n,--ants \t [Opt,Alpha] \t\t Number of ants." << std::endl;
-  std::cout << "-i,--input\t [Req,Path] \t Path to instance to be given as input to the program" << std::endl;
+  std::cout << "-a,--alpha \t [Opt,Alpha] \t\t Temperature decaying coefficient." << std::endl;
+  std::cout << "-z,--T-zero \t [Opt,Tau_zero] \t\t Initial temperature value." << std::endl;
+  std::cout << "-x,--x_zero \t [Opt,Epsilon] \t\t Initial accepting ratio." << std::endl;
+  std::cout << "-p,--ipt \t [Opt,Epsilon] \t\t Iterations per temperature." << std::endl;
+  std::cout << "-t,--t-max \t [Opt,T-Max] \t\t Maximum runtime for each run." << std::endl;
+  std::cout << "-i,--input\t [Req,Path] \t Path to instance to be given as input to the program." << std::endl;
   std::cout << "-r,--runs\t [Opt,Runs] \t Number of runs of the algorithm. 1 if omitted." << std::endl;
   std::cout << "-s,--seed\t [Req,Seed] \t Path to the file containing the list of seeds." << std::endl;
   std::cout << "-k,--known-best\t [Opt,Best] \t Best known solution for the analyzed instance. INT_MAX if omitted." << std::endl;
   version();
 }
-
--r, --tries          # number of independent trials
--s, --tours          # number of steps in each trial
--t, --time           # maximum time for each trial
-    --seed           # seed for the random number generator
--i, --tsplibfile     f inputfile (TSPLIB format necessary)
--o, --optimum        # stop if tour better or equal optimum is found
--m, --ants           # number of ants
--g, --nnants         # nearest neighbours in tour construction
--a, --alpha          # alpha (influence of pheromone trails)
--b, --beta           # beta (influence of heuristic information)
--e, --rho            # rho: pheromone trail evaporation
--q, --q0             # q_0: prob. of best choice in tour construction
--c, --elitistants    # number of elitist ants
--f, --rasranks       # number of ranks in rank-based Ant System
--k, --nnls           # No. of nearest neighbors for local search
--l, --localsearch    0: no local search   1: 2-opt   2: 2.5-opt   3: 3-opt
--d, --dlb            1 use don't look bits in local search
--u, --as               apply basic Ant System
--v, --eas              apply elitist Ant System
--w, --ras              apply rank-based version of Ant System
--x, --mmas             apply MAX-MIN ant system
--y, --bwas             apply best-worst ant system
--z, --acs              apply ant colony system
--h, --help             display the help text and exit
-
 

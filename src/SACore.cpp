@@ -15,7 +15,7 @@ void SACore::Run() {
 	m_wriResultsWriter.OpenRFile();
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_lfSeed = m_vecSeeds.at(i);
-		std::srand ( unsigned ( m_lfSeed ) );
+		std::srand( unsigned ( m_lfSeed ) );
 		std::cout << "Run " << i+1 << " - seed " << m_lfSeed << std::endl;
 		m_unIterations = 0;
 		SA();
@@ -24,10 +24,15 @@ void SACore::Run() {
 }
 
 void SACore::SA() {
+	struct timespec sBeginTime;
+	struct timespec sEndTime;
+
+	InitTemperature();
 	/*Generate initial solution using heuristic*/
 	m_cHeuristicCore.GenerateInitialSolution();
 	m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolution();
 
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
 	do{
 		ProposalMechanism();
 		if(AcceptanceCriterion()){
@@ -35,7 +40,9 @@ void SACore::SA() {
 		}
 		UpdateTemperature();
 		m_unIterations++;
-	}while(!TerminationCondition());
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
+		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
+	}while(m_lfRunTime < m_lfTMax || TerminationCondition());
 
 }
 
@@ -74,9 +81,29 @@ bool SACore::AcceptanceCriterion()
 	return false;
 }
 
+
+void SACore::InitTemperature() {
+	unsigned int i=0;
+	CandidateSolution m_cSolution1;
+	CandidateSolution m_cSolution2;
+	double accumulator = 0.0f;
+
+	while(i < R){
+		m_cHeuristicCore.GenerateRandomInitialSolution();
+		m_cSolution1 = m_cHeuristicCore.GetCurrentSolution();
+		m_cHeuristicCore.GenerateRandomInitialSolution();
+		m_cSolution2 = m_cHeuristicCore.GetCurrentSolution();
+		accumulator = m_cSolution1.GetTourDuration() - m_cSolution2.GetTourDuration();
+		i++;
+	}
+
+	accumulator /= i+1;
+	m_lfT = accumulator / log(1/m_lfX_zero);
+}
+
 void SACore::UpdateTemperature()
 {
-	if((m_unIterations % m_unL) == 0){
+	if((m_unIterations % m_unIPT) == 0){
 		m_lfT *= m_lfAlpha;
 	}
 }
@@ -88,3 +115,5 @@ bool SACore::TerminationCondition() {
 		}
 		return false;
 }
+
+

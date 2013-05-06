@@ -52,7 +52,9 @@ void ACOCore::Run() {
 		m_lfSeed = m_vecSeeds.at(i);
 		std::srand ( unsigned ( m_lfSeed ) );
 		std::cout << "Run " << i+1 << " - seed " << m_lfSeed << std::endl;
+		m_unIterations = 0;
 		ACO();
+
 	}
 	m_wriResultsWriter.FlushRFile();
 }
@@ -61,8 +63,6 @@ void ACOCore::Run() {
 void ACOCore::ACO() {
 	struct timespec sBeginTime;
 	struct timespec sEndTime;
-	unsigned int iterations = 0;
-	double m_lfExecutionTime = 0.0f;
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
 	do{
@@ -76,6 +76,7 @@ void ACOCore::ACO() {
 		PheromoneUpdate();
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
 		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
+		m_unIterations++;
 	}while(m_lfRunTime < m_lfTMax || TerminationCondition());
 
 

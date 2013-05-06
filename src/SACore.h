@@ -11,17 +11,20 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 class SACore {
 public:
 	SACore(const NumericMatrix<unsigned int>* distance_matrix,
 			const std::vector<TimeWindow>& vec_time_windows,
 				unsigned int cities_number,
-				unsigned int ant_number,
 				double alpha,
-				double t_zero,
+				double T_zero,
+				double x_zero,
+				unsigned int ipt,
 				const std::vector<unsigned int>& vec_seeds,
 				unsigned int runs,
+				double t_max,
 				std::string input_filename,
 				unsigned int best_known_solution):
 		 m_pcDistanceMatrix(distance_matrix),
@@ -40,12 +43,15 @@ public:
 				 input_filename,
 				 best_known_solution),
 		 m_lfAlpha(alpha),
+		 m_lfT(T_zero),
+		 m_lfX_zero(x_zero),
+		 m_unIPT(ipt),
+		 m_unGlobalOptimum(best_known_solution),
+		 m_unIterations(0),
 		 m_unRuns(runs),
 		 m_lfSeed(0.0f),
 		 m_lfRunTime(0.0f),
-		 m_lfT(t_zero),
-		 m_unGlobalOptimum(best_known_solution),
-		 m_unIterations(0){}
+		 m_lfTMax(t_max){}
 
 	virtual ~SACore();
 	void SA();
@@ -54,6 +60,7 @@ public:
 	bool AcceptanceCriterion();
 	void UpdateTemperature();
 	bool TerminationCondition();
+	void InitTemperature();
 
 private:
 		const NumericMatrix<unsigned int>* m_pcDistanceMatrix;
@@ -63,8 +70,10 @@ private:
 		HeuristicCore m_cHeuristicCore;
 
 		double m_lfAlpha;
+		double m_lfX_zero;
 		double m_lfT;
-		unsigned int m_unL;
+		double m_lfTMax;
+		unsigned int m_unIPT;
 		double m_lfSeed;
 		unsigned int m_unRuns;
 		unsigned int m_unCities;
@@ -74,6 +83,7 @@ private:
 		unsigned int m_unGlobalOptimum;
 
 		unsigned int m_unIterations;
+		static const unsigned int R=5000;
 
 };
 

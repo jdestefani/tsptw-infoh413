@@ -47,7 +47,7 @@
 #include <limits.h>
 
 #include "InstanceReader.h"
-#include "HeuristicCore.h"
+#include "ACOCore.h"
 #include "CommonDefs.h"
 
 
@@ -326,20 +326,21 @@ int main (int argc, char **argv)
 				std::cerr << "[Error] - Read error on " << seedsFileName << std::endl << std::endl;
 				exit(-1);
 			}
-			ACOCore solverCore(instanceReader.GetPDistanceMatrix(),
-										 instanceReader.GetTimeWindows(),
-										 instanceReader.GetCities(),
-										 ants,
-										 alpha,
-										 beta,
-										 rho,
-										 tau_zero,
-										 epsilon,
-										 max_runtime,
-										 instanceReader.GetSeeds(),
-										 runs,
-										 inputFileName,
-										 bestKnownSolution);
+			ACOCore solverCore(
+					instanceReader.GetPDistanceMatrix(),
+					instanceReader.GetTimeWindows(),
+					instanceReader.GetCities(),
+					ants,
+					alpha,
+					beta,
+					rho,
+					tau_zero,
+					epsilon,
+					max_runtime,
+					instanceReader.GetSeeds(),
+					runs,
+					inputFileName,
+					bestKnownSolution);
 			solverCore.Run();
 			return EXIT_SUCCESS;
 			exit(0);

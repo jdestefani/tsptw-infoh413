@@ -8,8 +8,8 @@
 #ifndef ACOCORE_H_
 #define ACOCORE_H_
 
-#include <climits>
-#include <cstdlib>
+#include <limits.h>
+#include <stdlib.h>
 
 #include "Ant.h"
 #include "Writer.h"
@@ -59,7 +59,8 @@ public:
 	 m_lfSeed(0.0f),
 	 m_lfRunTime(0.0f),
 	 m_unIterationBestSolution(0),
-	 m_unGlobalOptimum(best_known_solution){
+	 m_unGlobalOptimum(best_known_solution),
+	 m_unIterations(0){
 		/*Initialize ants*/
 		for(unsigned int i=0; i < ant_number; i++){
 			Ant currentAnt;
@@ -134,6 +135,7 @@ private:
 	CandidateSolution m_cCurrentBestSolution;
 	unsigned int m_unIterationBestSolution;
 	double m_lfRunTime;
+	unsigned int m_unIterations;
 	unsigned int m_unGlobalOptimum;
 
 	void InitializeHeuristicValues();
