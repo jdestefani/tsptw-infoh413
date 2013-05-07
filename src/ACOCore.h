@@ -10,6 +10,7 @@
 
 #include <limits.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "Ant.h"
 #include "Writer.h"
@@ -17,6 +18,7 @@
 #include "NumericMatrix.h"
 #include "HeuristicCore.h"
 #include "TimeWindow.h"
+#include "CandidateSolution.h"
 
 class ACOCore {
 public:
@@ -44,17 +46,17 @@ public:
 	 m_lfTMax(t_max),
 	 m_unAntNumber(ant_number),
 	 m_vecSeeds(vec_seeds),
-	 m_wriResultsWriter(input_filename,best_known_solution),
+	 m_wriResultsWriter(input_filename,best_known_solution,ANT_COLONY_OPTIMIZATION),
 	 m_cHeuristicCore(distance_matrix,
-			 vec_time_windows,
-			 cities_number,
-			 HEURISTIC,
-			 INSERT,
-			 BEST_IMPROVEMENT,
-			 vec_seeds,
-			 runs,
-			 input_filename,
-			 best_known_solution),
+			 	 	  vec_time_windows,
+			 	 	  cities_number,
+			 	 	  HEURISTIC,
+			 	 	  INSERT,
+			 	 	  BEST_IMPROVEMENT,
+			 	 	  vec_seeds,
+			 	 	  runs,
+			 	 	  input_filename,
+			 	 	  best_known_solution),
 	 m_unRuns(runs),
 	 m_lfSeed(0.0f),
 	 m_lfRunTime(0.0f),

@@ -144,6 +144,10 @@ public:
 		m_listSolutionNeighborhood = listSolutionNeighborhood;
 	}
 
+	inline void SetInitFunction(EInitFunction eInitFunction) {
+				m_eInitFunction = eInitFunction;
+	}
+
 	void RunII();
 	void RunVND();
 	void IterativeImprovement();
@@ -153,7 +157,6 @@ public:
 	void ComputeNeighborhood();
 	void UpdateSolution();
 	void ComputeTourLengthAndConstraintsViolations(CandidateSolution&);
-	void ComputeRunTime(struct timespec&,struct timespec&);
 	void SwapTourComponents(std::vector<unsigned int>&,unsigned int,unsigned int);
 	void InsertTourComponent(std::vector<unsigned int>&,unsigned int,unsigned int);
 	bool IsLocalOptimum();
@@ -180,7 +183,7 @@ private:
 						constraintViolations = 0;
 					}
 
-		};
+	};
 
 	static const double HEURISTIC_Q = 0.6f;
 

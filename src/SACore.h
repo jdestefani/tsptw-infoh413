@@ -13,6 +13,12 @@
 #include <math.h>
 #include <time.h>
 
+#include "NumericMatrix.h"
+#include "CandidateSolution.h"
+#include "CommonDefs.h"
+#include "HeuristicCore.h"
+#include "Writer.h"
+
 class SACore {
 public:
 	SACore(const NumericMatrix<unsigned int>* distance_matrix,
@@ -31,7 +37,7 @@ public:
 		 m_vecTimeWindows(vec_time_windows),
 		 m_unCities(cities_number),
 		 m_vecSeeds(vec_seeds),
-		 m_wriResultsWriter(input_filename,best_known_solution),
+		 m_wriResultsWriter(input_filename,best_known_solution,SIMULATED_ANNEALING),
 		 m_cHeuristicCore(distance_matrix,
 				 vec_time_windows,
 				 cities_number,

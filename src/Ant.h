@@ -28,7 +28,7 @@ public:
 
 	virtual ~Ant();
 
-	void ResetVisitedCities();
+
 	const std::vector<unsigned int>& GetVisitedCities() const {
 		return m_vecVisitedCities;
 	}
@@ -43,6 +43,16 @@ public:
 
 	void SetAntSolution(const CandidateSolution& cAntSolution) {
 		m_cAntSolution = cAntSolution;
+	}
+
+	void ResetVisitedCities(){
+		for(unsigned int i=0; i < m_vecVisitedCities.size() ; i++){
+			m_vecVisitedCities[i] = false;
+		}
+	}
+
+	bool IsVisited(unsigned int i){
+		return m_vecVisitedCities[i];
 	}
 
 private:

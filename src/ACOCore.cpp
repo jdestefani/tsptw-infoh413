@@ -100,11 +100,11 @@ void ACOCore::ConstructSolutions() {
 		m_vecAnts[i].ResetVisitedCities();
 		ConstructSolutionAnt(i);
 		/* Update best so far solution */
-		if(m_vecAnts[i].GetAntSolution() >= m_cCurrentBestSolution){
-			m_cCurrentBestSolution(m_vecAnts[i].GetAntSolution());
+		if(m_vecAnts[i].GetAntSolution() <= m_cCurrentBestSolution){
+			m_cCurrentBestSolution = m_vecAnts[i].GetAntSolution();
 		}
 		/* Update iteration best solution */
-		if(m_vecAnts[i].GetAntSolution() >= m_vecAnts[i].GetAntSolution()){
+		if(m_vecAnts[i].GetAntSolution() <= m_vecAnts[i].GetAntSolution()){
 			m_unIterationBestSolution = i;
 		}
 	}
@@ -117,16 +117,16 @@ void ACOCore::UpdateBestSolutions() {
 
 	for(unsigned int i=0; i<m_vecAnts.size(); i++){
 		/* Update best so far solution */
-		if(m_vecAnts[i].GetAntSolution() >= m_cCurrentBestSolution){
+		if(m_vecAnts[i].GetAntSolution() <= m_cCurrentBestSolution){
 			bestSolution = i;
 		}
 		/* Update iteration best solution */
-		if(m_vecAnts[i].GetAntSolution() >= m_vecAnts[i].GetAntSolution()){
+		if(m_vecAnts[i].GetAntSolution() <= m_vecAnts[i].GetAntSolution()){
 			m_unIterationBestSolution = i;
 		}
 	}
 	if(bestSolution > 0){
-		m_cCurrentBestSolution(m_vecAnts[bestSolution].GetAntSolution());
+		m_cCurrentBestSolution = m_vecAnts[bestSolution].GetAntSolution();
 	}
 }
 
@@ -135,13 +135,12 @@ unsigned int ACOCore::RouletteWheelSelection(unsigned int ant_index,unsigned int
 	double rouletteWheelSum = 0.0f;
 	double drawnNumber = 0.0f;
 	unsigned int previouslyVisitedCity = m_vecAnts[ant_index].GetAntSolution().GetTour().at(step-1);
-	std::vector<bool> &visitedCities = m_vecAnts[ant_index].GetVisitedCities();
 	unsigned int i=0;
 
 	/*Roulette-wheel selection*/
 	/*1. Roulette-wheel generation*/
 	for(; i<m_unCities;i++){
-		if(visitedCities[i]){
+		if(m_vecAnts[ant_index].IsVisited(i)){
 			rouletteWheel[i] = 0.0f;
 		}
 		else{

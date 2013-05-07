@@ -29,6 +29,7 @@ void SACore::SA() {
 
 	InitTemperature();
 	/*Generate initial solution using heuristic*/
+	m_cHeuristicCore.SetInitFunction(HEURISTIC);
 	m_cHeuristicCore.GenerateInitialSolution();
 	m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolution();
 
@@ -88,10 +89,11 @@ void SACore::InitTemperature() {
 	CandidateSolution m_cSolution2;
 	double accumulator = 0.0f;
 
+	m_cHeuristicCore.SetInitFunction(RANDOM);
 	while(i < R){
-		m_cHeuristicCore.GenerateRandomInitialSolution();
+		m_cHeuristicCore.GenerateInitialSolution();
 		m_cSolution1 = m_cHeuristicCore.GetCurrentSolution();
-		m_cHeuristicCore.GenerateRandomInitialSolution();
+		m_cHeuristicCore.GenerateInitialSolution();
 		m_cSolution2 = m_cHeuristicCore.GetCurrentSolution();
 		accumulator = m_cSolution1.GetTourDuration() - m_cSolution2.GetTourDuration();
 		i++;

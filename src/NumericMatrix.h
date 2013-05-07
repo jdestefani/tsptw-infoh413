@@ -43,7 +43,7 @@
 #define MATRIX_H_
 
 #include <assert.h>
-
+#include <iostream>
 
 template<class T>
 class NumericMatrix{
@@ -195,11 +195,11 @@ class NumericMatrix{
 	}
 
 	inline T GetMin() const{
-		T min=this(0,0);
-		for(unsigned int i = 0; i < this->m_unRows; i++) {
-			for(unsigned int j = 0; j < this->m_unRows; j++) {
-				if(min < this(i,j)){
-					min = this(i,j);
+		T min=(*this)(0,0);
+		for(unsigned int i = 0; i < m_unRows; i++) {
+			for(unsigned int j = 0; j < m_unColumns; j++) {
+				if(min < (*this)(i,j)){
+					min = (*this)(i,j);
 				}
 			}
 		}
@@ -207,11 +207,11 @@ class NumericMatrix{
 	}
 
 	inline T GetMax() const{
-		T max=this(0,0);
-		for(unsigned int i = 0; i < this->m_unRows; i++) {
-			for(unsigned int j = 0; j < this->m_unRows; j++) {
-				if(max > this(i,j)){
-					max = this(i,j);
+		T max=(*this)(0,0);
+		for(unsigned int i = 0; i < m_unRows; i++) {
+			for(unsigned int j = 0; j < m_unColumns; j++) {
+				if(max > (*this)(i,j)){
+					max = (*this)(i,j);
 				}
 			}
 		}

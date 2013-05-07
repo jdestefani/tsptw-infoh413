@@ -243,7 +243,7 @@
 
 \title{
 \vspace{2in}
-\textmd{\textbf{\hmwkClass:\\ \hmwkTitle}}\\
+\textmd{\textbf{\hmwkClass:\\ The Traveling Salesman Problem with Time Windows \\ Stochastic Local Search Algorithms}}\\
 %\normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate}\\
 \vspace{0.1in}\large{\textit{\hmwkClassInstructor\ }}
 \vspace{3in}
@@ -268,14 +268,31 @@
 \tableofcontents
 \newpage
 
-\section{Implementation}
-The heuristic solver had been written using the C++ programming language, in order to be able to take adventage of the functionalities offered by the Standard Template Library (STL).
+\section{Report Outline}
+The main objective of this implementation exercise is to compare the performance of two stochastic local search (SLS), whose
+implementation will be built on top of the perturbative local search methods from the first implementation exercise.
 
-By combining an object-oriented approach with those functionalities, I built a modular application core (\emph{HeuristicCore}) that has been used for the two exercises required for this implementation.
+The \nameref{impl} section will discuss the general code structure and how to run the program and interpret the results.
 
-The core is directly linked with the reader (\emph{InstanceReader}) which reads the files containing all the informations to run the simulation (distance matrix, time windows vector and seeds list) and the writer (\emph{Writer}) which outputs the results of the simulation in a CSV file.
+The first algorithm implemented is a population-based one, presented in detail in section \nameref{aco}.
+It consist of an implementation of the \maxmin Ant System (cf. \cite{stutzle2000max}) to the TSPTW problem, using the heuristic proposed in \cite{lopez2010beam}. 
 
-Two different command line front-ends, sharing the same underlying structure, but having a different set of parameters, have been developed to distinguish the iterative-improvement interface from the variable neighborhood descent one. 
+On the other hand, the second algorithm can be classified as simple SLS.
+It is an implementation of the Simulated Annealing metheuristic (cf. \cite{kirkpatrick1983optimization}), whose detailed description can be found in section \nameref{sa}.
+
+Section \nameref{results} shows the results obtained by the implemented algorithms on the proposed set of instances, along with their analysis.
+
+\section{Implementation}\label{impl}
+The implementations had been written using the C++ programming language, in order to take advantage of the functionalities offered by the Standard Template Library (STL).
+
+The modular and object oriented approach applied in the first implementation exercise allowed to build I/O software modules (\emph{InstanceReader} and \emph{Writer}) that have been re-used here.
+
+Furthermore, the same conceptual division among the command line interface \emph{TSPTW-X} and the actual implementation \emph{XCore} (X being ACO and SA, in this case) has been maintained to favor encapsulation.
+
+The cores are directly linked with the reader (\emph{InstanceReader}) which reads the files containing all the informations to run the simulation (distance matrix, time windows vector and seeds list) and the writer (\emph{Writer}) which outputs the results of the simulation in a CSV file.
+In addition to the previous exercise, the solver core (\emph{HeuristicCore}) is used to give access to the already implemented perturbative local search methods.
+
+Two different command line front-ends, sharing the same underlying structure, but having a different set of parameters, have been developed to distinguish the ACO command-line interface from the SA one. 
 
 The global program structure is depicted here:
 
@@ -284,20 +301,27 @@ The global program structure is depicted here:
  
   % Draw diagram elements
   
-  \path \component {1}{HeuristicCore};
-  \path (p1.north)+(-2.0,+1.5) \component{2}{InstanceReader};
-  \path (p1.north)+(+2.0,+1.5) \component{3}{Writer};
-  \path (p2.west)+(-3.0,0.0) \component{4}{TSPTW-II};
-  \path (p2.west)+(-3.0,-2.0) \component{5}{TSPTW-VND}; 
+  \path \component {1}{InstanceReader};
+  \path (p1.north)+(-2.0,+1.5) \component{3}{TSPTW-ACO};
+  \path (p1.south)+(-2.0,-1.5) \component{4}{TSPTW-SA};
+  \path (p3.east)+(+3.0,0.0) \component{5}{ACOCore};
+  \path (p4.east)+(+3.0,0.0) \component{6}{SACore};
+  \path (p1.east)+(+2.5,0.0) \component{7}{HeuristicCore};
+  \path (p7.east)+(+2.5,+0.0) \component {2}{Writer};
      
   % Draw arrows between elements
-  \path [line] (p2.south) -> node [above] {} (p1);
-  \path [line] (p1) -> node [above, midway] {} (p3.south);
-  \path [line] (p4.east) -> node [above] {} (p2.west);
-  \path [line] (p5.east) -> node [above] {} (p2.south);
-  \path [line] (p4.south) -> node [above] {} (p1.west);
-  \path [line] (p5.east) -> node [above] {} (p1.west);
-  
+  \path [line] (p3.south) -> node [above] {} (p1);
+  \path [line] (p4.north) -> node [above] {} (p1);
+  \path [line] (p1.north) -> node [above, midway] {} (p5.south);
+  \path [line] (p1.south) -> node [above, midway] {} (p6.north);
+  \path [line] (p3.east) -> node [above] {} (p5.west);
+  \path [line] (p4.east) -> node [above] {} (p6.west);
+  \path [line] (p5.south) -> node [above] {} (p2.north);
+  \path [line] (p6.north) -> node [above] {} (p2.south);
+  \path [line] (p5.south) -> node [above] {} (p7.north);
+  \path [line] (p6.north) -> node [above] {} (p7.south);
+  \path [line] (p7.south) -> node [above] {} (p6.north);
+  \path [line] (p7.north) -> node [above] {} (p5.south);
   %\backgroundSquare{p1}{p1}{p3}{p3}{Presentation}
 
  \end{tikzpicture}
@@ -305,20 +329,22 @@ The global program structure is depicted here:
 \end{center}
 
 The names of the nodes corresponds to those of the implementation (.cpp) and header files for the corresponding classes.
-In addition to these, a class to represent the time windows (TimeWindow.h) and another one to represent the candidate solution as
-a user defined data type (CandidateSolution.\{h,cpp\}) have been implemented.
 
+In addition to these, a class to represent the time windows (TimeWindow.h), one to represent the candidate solution as
+a user defined data type (CandidateSolution.\{h,cpp\}) and one to implement the virtual ant (Ant.h) have been implemented.
+
+In order to improve the performances of the algorithm a template class called \emph{NumericMatrix} has been created to reduce the computation time due to the access to the matrices (distance and pheromone).
 
 \subsection{How to compile the program?}
 The software was developed in C++98 under Linux (Debian Wheezy), using the GNU g++ (Debian 4.7.2-5) 4.7.2 compiler and tested in this environment. 
 The software is distributed as a compressed tar file, containing both the source code (in the \verb|src| folder) and the scripts and instances (in the \verb|bin| and \verb|bin\instances| respectively).
-To install the program, first obtain the file TSPTW.V1.0.tar.gz. 
+To install the program, first obtain the file TSPTW.V1.1.tar.gz. 
 
 Unzip the file by typing:
 
 \begin{center}
 \begin{verbatim}
-gunzip TSPTW.V1.0.tar.gz
+gunzip TSPTW.V1.1.tar.gz
 \end{verbatim}
 \end{center}
 
@@ -326,7 +352,7 @@ and then unpack it by typing:
 
 \begin{center}
 \begin{verbatim}
-tar -xvf TSPTW.V1.0.tar
+tar -xvf TSPTW.V1.1.tar
 \end{verbatim}
 \end{center}
 
@@ -340,10 +366,10 @@ make all
 \end{center}
 
 the Makefile will trigger the compilation of the files,
-producing the executables 'TSPTW-II' and 'TSPTW-VND" in the \verb|bin| folder.
+producing the executables 'TSPTW-II','TSPTW-VND','TSPTW-ACO','TSPTW-SA' in the \verb|bin| folder.
 
 \textbf{Note:} The code is written in C++98. Hence, the code should be
-reasonable portable to other Operating Systems than Linux or Unix.
+reasonably portable to other Operating Systems than Linux or Unix.
 
 \subsection{How to run the program?}
 
@@ -358,10 +384,10 @@ The design choice to separate the two different kind of metaheuristic is made in
 By launching\footnote{The squared-bracket notation implies that the formal parameters to the script have to be substituted by their actual value.}:
 \begin{center}
 \begin{verbatim}
-./TSPTW-II [PARAMETERS] -i [INPUT_FILE] -s [SEEDS_FILE]
+./TSPTW-ACO [PARAMETERS] -i [INPUT_FILE] -s [SEEDS_FILE]
 \end{verbatim}
 \begin{verbatim}
-./TSPTW-VND [PARAMETERS] -i [INPUT_FILE] -s [SEEDS_FILE]
+./TSPTW-SA [PARAMETERS] -i [INPUT_FILE] -s [SEEDS_FILE]
 \end{verbatim}
 \end{center}
 
@@ -409,18 +435,19 @@ Every experiment produces a single file:
 				
 					 
 \textbf{Examples:} \begin{verbatim}
-exchange.best.n80w200.004.txt
-standard.tei.n80w20.003.txt
+ACO.n80w200.004.txt
+SA.n80w20.003.txt
 \end{verbatim}
 
 
-The internal structure of the file is the following: \begin{tabular}{|c|c|c|c|}
+The internal structure of the file is the following: 
+\begin{tabular}{|c|c|c|c|}
 \hline
-\textbf{Seed}	&	\textbf{CV} & \textbf{CpuTime} & \textbf{PRPD} \\ \hline
+\textbf{Seed}	&	\textbf{CV} & \textbf{PRPD} \\ \hline
 \end{tabular}
 
 For each run of the algorithm, the program writes in the file, using a tabulation as separator,
-the used seed, the number of constraints violations, the cpu runtime and the penalised relative percentage deviation.
+the used seed, the number of constraints violations and the penalised relative percentage deviation.
 
 
 \subsubsection{Script execution}
@@ -501,6 +528,7 @@ As one may notice in \ref{eq:probform} and \ref{eq:cv}, a feasible solution $p$ 
 
 \include{ACO}
 \include{SA}
+\include{Results}
 
 
 \section{Conclusions}

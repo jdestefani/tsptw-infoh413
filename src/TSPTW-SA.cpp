@@ -12,7 +12,7 @@
 ######################################################
 
       Version: 1.0
-      File:    TSPTW-ACO.cpp
+      File:    TSPTW-SA.cpp
       Author:  Jacopo De Stefani
       Purpose: Command line parameter parser and algorithm launcher
       Check:   README and gpl.txt

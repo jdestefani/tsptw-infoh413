@@ -272,7 +272,7 @@ void HeuristicCore::PipedVariableNeighborhoodDescent() {
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
 */
-void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {
+/*void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {
 	struct timespec temp;
 		if ((s_end_time.tv_nsec-s_begin_time.tv_nsec)<0) {
 			temp.tv_sec = s_end_time.tv_sec-s_begin_time.tv_sec-1;
@@ -282,7 +282,7 @@ void HeuristicCore::ComputeRunTime(struct timespec& s_begin_time, struct timespe
 			temp.tv_nsec = s_end_time.tv_nsec-s_begin_time.tv_nsec;
 		}
 	m_fRunTime = temp.tv_sec+temp.tv_nsec/(10e9);
-}
+}*/
 
 /*
       METHOD:         Wrapper for the functions used to generate the neighborhood chains for the VND algorithm.

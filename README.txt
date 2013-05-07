@@ -10,8 +10,7 @@
 ########## the TSP problem with Time Windows #########
 ######################################################
 
-	  Version: 1.0
-      File:    CandidateSolution.h
+	  Version: 1.1
       Author:  Jacopo De Stefani
 
 
@@ -23,7 +22,7 @@ GNU General Public Licence, which is included in file gpl.txt.
 If you use TSPTW in your research, I would appreciate a citation in
 your publication(s). Please cite it as
 
-Jacopo De Stefani. TSPTW, Version 1.0. Available from
+Jacopo De Stefani. TSPTW, Version 1.1. Available from
 https://code.google.com/p/tsptw-infoh413/, 2013.
 
 This software package provides an implementation of various metaheuristics
@@ -36,6 +35,13 @@ The software tries to provide a reasonably efficient object-oriented
 implementation of these metaheuristics while at the same time aiming for 
 extensibility, readability and understandability of the code.
 
+UPDATES for version 1.1: 
+
+- Implemented NumericMatrix template class to improve performances
+  (NumericMatrix.h)
+
+- Implemented SA and MINMAX Antsystem.
+
 
 
 =========
@@ -47,58 +53,75 @@ files, the instances and the launcher and postprocessing scripts
 are located in the bin folder.
 
 The GNU General Public Licence:
-gpl.txt
+	gpl.txt
 
-The command line parameter parser and core launcher,
-respectively for Iterative Improvement and Variable Neighborhood descent:
-TSPTW-II.cpp
-TSPTW-VND.cpp
+The command line parameter parser and core launchers,
+	TSPTW-II.cpp
+	TSPTW-VND.cpp
+	TSPTW-SA.cpp
+	TSPTW-ACO.cpp
+
+User-defined template class to implement numeric matrices:
+	NumericMatrices.h
 
 User-defined data type to model the time window:
-TimeWindow.h
+	TimeWindow.h
 
 User-defined data type to model the candidate solution:
-CandidateSolution.h
-CandidateSolution.cpp
+	CandidateSolution.h
+	CandidateSolution.cpp
+
+User-defined data type to model a virtual ant:
+	Ant.h
 
 Seed and Instance files reader:
-InstanceReader.h
-InstanceReader.cpp
+	InstanceReader.h
+	InstanceReader.cpp
 
-Program core containing all the metaheuristics implementation:
-HeuristicCore.h
-HeuristicCore.cpp
+Program core containing the II and VND metaheuristics implementation:
+	HeuristicCore.h
+	HeuristicCore.cpp
+
+Program core containing the ACO metaheuristics implementation:
+	ACOCore.h
+	ACOCore.cpp
+
+Program core containing the SA metaheuristics implementation:
+	SACore.h
+	SACore.cpp
 
 Writer of the run results to the output file
-Writer.h
-Writer.cpp
+	Writer.h
+	Writer.cpp
 
 Global data types:
-CommonDefs.h
+	CommonDefs.h
 
 Makefile
 
 R scripts to process data:
-processDataII.r
-processDataVND.r
+	processDataII.r
+	processDataVND.r
+	processDataSLS.r
 
 Bash script to launch all the algorithm variants on a single instance
 and process data:
-launchTSPTW-II.sh
-launchTSPTW-VND.sh
+	launchTSPTW-II.sh
+	launchTSPTW-VND.sh
+	launchTSPTW-SLS.sh
 
 
 Instances: 
-  n80w20.001.txt
-  n80w20.002.txt
-  n80w20.003.txt
-  n80w20.004.txt
-  n80w20.005.txt
-  n80w200.001.txt
-  n80w200.002.txt
-  n80w200.003.txt
-  n80w200.004.txt
-  n80w200.005.txt
+	n80w20.001.txt
+	n80w20.002.txt
+	n80w20.003.txt
+	n80w20.004.txt
+	n80w20.005.txt
+	n80w200.001.txt
+	n80w200.002.txt
+	n80w200.003.txt
+	n80w200.004.txt
+	n80w200.005.txt
 
 
 =====
@@ -110,14 +133,14 @@ The software was developed in C++98 under Linux (Debian Wheezy),
 using the GNU g++ (Debian 4.7.2-5) 4.7.2 compiler and tested in this environment. 
 The software is distributed as a compressed tar file, containing both the source code (in the src folder) and the scripts and instances (in the bin and bin\instances respectively).
 
-To install the program, first obtain the file TSPTW.V1.0.tar.gz. Unzip
+To install the program, first obtain the file TSPTW.V1.1.tar.gz. Unzip
 the file by typing
 
-gunzip TSPTW.V1.0.tar.gz
+gunzip TSPTW.V1.1.tar.gz
 
 and then unpack it by typing 
 
-tar -xvf TSPTW.V1.0.tar
+tar -xvf TSPTW.V1.1.tar
 
 The software will be extracted in a new folder TSPTW.V1.0
 
@@ -125,10 +148,10 @@ Finally by launching:
 
 make all
 
-the Makefile will trigger the compilation of the files, producing the executables 'TSPTW-II' and 'TSPTW-VND" in the bin folder.
+the Makefile will trigger the compilation of the files, producing the executables 'TSPTW-II','TSPTW-VND','TSPTW-ACO' and 'TSPTW-SA' in the bin folder.
 
 Note: The code is written in C++98. Hence, the code should be
-reasonable portable to other Operating Systems than Linux or Unix.
+reasonably portable to other Operating Systems than Linux or Unix.
 
 
 ======
@@ -167,6 +190,7 @@ Flag 		 	Argument 	 Description
 -r,--runs	 	[Opt,Runs] 	 Number of runs of the algorithm. 1 if omitted.
 -s,--seed	 	[Req,Seed] 	 Path to the file containing the list of seeds.
 -k,--known-best	[Opt,Best] 	 Best known solution for the analyzed instance. INT_MAX if omitted.
+
 
 
 For each of the parameters, in the column argument it is indicated whether

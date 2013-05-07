@@ -70,6 +70,7 @@ public:
 			m_unConstraintViolations(cs.GetConstraintViolations()),
 			m_fSolutionEvaluation(cs.GetTourDuration()){
 	}
+
 	virtual ~CandidateSolution();
 
 	inline double GetSolutionEvaluation() const {
@@ -106,7 +107,7 @@ public:
 
 
 	CandidateSolution& operator=(const CandidateSolution& c_cs) {
-		if(this != &c_cs) {
+		if(!(this->IsTourEqual(c_cs.GetTour()))) {
 			SetTour(c_cs.GetTour());
 			SetConstraintViolations(c_cs.GetConstraintViolations());
 			SetTourDuration(c_cs.GetTourDuration());
