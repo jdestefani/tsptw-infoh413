@@ -37,6 +37,7 @@ public:
 			std::string input_filename,
 			unsigned int best_known_solution):
 	 m_pcDistanceMatrix(distance_matrix),
+	 m_cPheromoneMatrix(cities_number,cities_number),
 	 m_vecTimeWindows(vec_time_windows),
 	 m_lfAlpha(alpha),
 	 m_lfBeta(beta),

@@ -51,7 +51,7 @@ void SACore::ProposalMechanism()
 {
 	unsigned int i=(float(rand())/RAND_MAX)*m_unCities;
 	unsigned j=0;
-	std::vector<unsigned int>& currentTour = m_cCurrentSolution.GetTour();
+	std::vector<unsigned int> currentTour = m_cCurrentSolution.GetTour();
 
 	do{
 		j=(float(rand())/RAND_MAX)*m_unCities;
@@ -64,18 +64,19 @@ void SACore::ProposalMechanism()
 
 bool SACore::AcceptanceCriterion()
 {
+	m_cProposedSolution.ComputeSolutionEvaluation();
+	m_cCurrentSolution.ComputeSolutionEvaluation();
 
-	if(m_cProposedSolution < m_cCurrentSolution){
+	if(m_cProposedSolution.GetSolutionEvaluation() <= m_cCurrentSolution.GetSolutionEvaluation()){
+		m_unTemperatureChangesStationary = 0;
 		return true;
 	}
 
-	if(m_cProposedSolution <= m_cCurrentSolution){
-		return true;
-	}
-
-	double metropolisValue = exp((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
+	//double metropolisValue = exp((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
+	double metropolisValue = ExpLUT((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
 
 	if((float(rand())/RAND_MAX) <= metropolisValue){
+		m_unTemperatureChangesStationary = 0;
 		return true;
 	}
 
@@ -85,17 +86,14 @@ bool SACore::AcceptanceCriterion()
 
 void SACore::InitTemperature() {
 	unsigned int i=0;
-	CandidateSolution m_cSolution1;
-	CandidateSolution m_cSolution2;
 	double accumulator = 0.0f;
 
 	m_cHeuristicCore.SetInitFunction(RANDOM);
 	while(i < R){
 		m_cHeuristicCore.GenerateInitialSolution();
-		m_cSolution1 = m_cHeuristicCore.GetCurrentSolution();
-		m_cHeuristicCore.GenerateInitialSolution();
-		m_cSolution2 = m_cHeuristicCore.GetCurrentSolution();
-		accumulator = m_cSolution1.GetTourDuration() - m_cSolution2.GetTourDuration();
+		m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolution();
+		ProposalMechanism();
+		accumulator = abs(m_cCurrentSolution.GetTourDuration() - m_cProposedSolution.GetTourDuration());
 		i++;
 	}
 
@@ -107,15 +105,43 @@ void SACore::UpdateTemperature()
 {
 	if((m_unIterations % m_unIPT) == 0){
 		m_lfT *= m_lfAlpha;
+		m_unTemperatureChanges++;
+		m_unTemperatureChangesStationary++;
 	}
 }
 
 bool SACore::TerminationCondition() {
 	if(m_cCurrentSolution.GetTourDuration() == m_unGlobalOptimum &&
-				m_cCurrentSolution.GetConstraintViolations() == 0){
+			m_cCurrentSolution.GetConstraintViolations() == 0){
+		return true;
+	}
+
+	if(m_unTemperatureChanges > m_unLowerBoundTemperatureChanges){
+
+		if(m_unTemperatureChangesStationary > CONVERGENCE_THRESHOLD){
 			return true;
 		}
+	}
 		return false;
 }
 
+void SACore::PrecomputeLUT() {
+	for(unsigned int i=0 ; i < LUT_UPPERBOUND ; i+= LUT_UPPERBOUND/LUT_RESOLUTION){
+		m_vecMetropolisLUT.push_back(exp(-i));
+	}
+}
 
+double SACore::ExpLUT(double value) {
+	unsigned int index = 0;
+
+	if(value <= 0.0f){
+		return 1.0f;
+	}
+	if(value >= LUT_UPPERBOUND){
+		return 0.0f;
+	}
+
+	index = (unsigned int) abs(value)/(LUT_UPPERBOUND/LUT_RESOLUTION);
+
+	return m_vecMetropolisLUT[index];
+}

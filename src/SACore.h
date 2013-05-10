@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <map>
 
 #include "NumericMatrix.h"
 #include "CandidateSolution.h"
@@ -31,6 +32,7 @@ public:
 				const std::vector<unsigned int>& vec_seeds,
 				unsigned int runs,
 				double t_max,
+				unsigned int lbtc,
 				std::string input_filename,
 				unsigned int best_known_solution):
 		 m_pcDistanceMatrix(distance_matrix),
@@ -52,12 +54,15 @@ public:
 		 m_lfT(T_zero),
 		 m_lfX_zero(x_zero),
 		 m_unIPT(ipt),
+		 m_lfTMax(t_max),
+		 m_unLowerBoundTemperatureChanges(lbtc),
 		 m_unGlobalOptimum(best_known_solution),
-		 m_unIterations(0),
 		 m_unRuns(runs),
 		 m_lfSeed(0.0f),
 		 m_lfRunTime(0.0f),
-		 m_lfTMax(t_max){}
+		 m_unIterations(0),
+		 m_unTemperatureChanges(0),
+		 m_unTemperatureChangesStationary(0){}
 
 	virtual ~SACore();
 	void SA();
@@ -87,9 +92,19 @@ private:
 		CandidateSolution m_cProposedSolution;
 		double m_lfRunTime;
 		unsigned int m_unGlobalOptimum;
+		unsigned int m_unLowerBoundTemperatureChanges;
 
 		unsigned int m_unIterations;
+		unsigned int m_unTemperatureChanges;
+		unsigned int m_unTemperatureChangesStationary;
 		static const unsigned int R=5000;
+		static const unsigned int CONVERGENCE_THRESHOLD=75;
+		static const unsigned int LUT_UPPERBOUND = 4;
+		static const unsigned int LUT_RESOLUTION = 10000;
+		std::vector<double> m_vecMetropolisLUT;
+
+		void PrecomputeLUT();
+		double ExpLUT(double value);
 
 };
 

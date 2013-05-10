@@ -160,6 +160,8 @@ private:
 	unsigned int m_unTourDuration;
 	unsigned int m_unConstraintViolations;
 	double m_fSolutionEvaluation;
+
+	static const unsigned int PENALITY=10^2;
 };
 
 #endif /* CANDIDATESOLUTION_H_ */

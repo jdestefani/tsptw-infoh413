@@ -110,7 +110,7 @@ std::string CandidateSolution::ToString() {
  }
 
 void CandidateSolution::ComputeSolutionEvaluation() {
-	m_fSolutionEvaluation = m_unTourDuration + m_unConstraintViolations;
+	m_fSolutionEvaluation = m_unTourDuration + PENALITY*m_unConstraintViolations;
 }
 
 

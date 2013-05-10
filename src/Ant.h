@@ -37,7 +37,7 @@ public:
 		m_vecVisitedCities[city_index] = true;
 	}
 
-	CandidateSolution& GetAntSolution() const {
+	CandidateSolution& GetAntSolution(){
 		return m_cAntSolution;
 	}
 
@@ -54,6 +54,7 @@ public:
 	bool IsVisited(unsigned int i){
 		return m_vecVisitedCities[i];
 	}
+
 
 private:
 	CandidateSolution m_cAntSolution;

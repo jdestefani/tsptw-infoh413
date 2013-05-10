@@ -84,7 +84,7 @@ typedef enum {
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
 */
-double ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {
+inline double ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_end_time) {
 	struct timespec temp;
 		if ((s_end_time.tv_nsec-s_begin_time.tv_nsec)<0) {
 			temp.tv_sec = s_end_time.tv_sec-s_begin_time.tv_sec-1;

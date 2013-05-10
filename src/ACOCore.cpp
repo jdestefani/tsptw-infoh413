@@ -239,7 +239,7 @@ void ACOCore::ConstructSolutionAnt(unsigned int ant_index) {
 double ACOCore::ComputeHeuristic(unsigned int city_index,unsigned int next_city_index){
 	double aComponent = m_lfLambdaA*((m_unAMax-m_vecTimeWindows.at(next_city_index).GetLowerBound())/(m_unAMax-m_unAMin));
 	double bComponent = m_lfLambdaB*((m_unBMax-m_vecTimeWindows.at(next_city_index).GetUpperBound())/(m_unBMax-m_unBMin));
-	double cComponent = m_lfLambdaC*((m_unCMax-m_pcDistanceMatrix(city_index,next_city_index))/(m_unCMax-m_unCMin));
+	double cComponent = m_lfLambdaC*((m_unCMax-(*m_pcDistanceMatrix)(city_index,next_city_index))/(m_unCMax-m_unCMin));
 
 	return aComponent+bComponent+cComponent;
 }

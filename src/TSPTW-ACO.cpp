@@ -137,7 +137,7 @@ int main (int argc, char **argv)
 
 			case 'a':
 				if(optarg != NULL){
-					alpha = optarg;
+					alpha = atof(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing alpha value." << std::endl << std::endl;
@@ -148,7 +148,7 @@ int main (int argc, char **argv)
 
 			case 'b':
 				if(optarg != NULL){
-					beta = optarg;
+					beta = atof(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing beta value." << std::endl << std::endl;
@@ -159,7 +159,7 @@ int main (int argc, char **argv)
 
 			case 'h':
 				if(optarg != NULL){
-					rho = optarg;
+					rho = atof(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing rho value." << std::endl << std::endl;
@@ -170,7 +170,7 @@ int main (int argc, char **argv)
 
 			case 'z':
 				if(optarg != NULL){
-					tau_zero = optarg;
+					tau_zero = atof(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing tau_zero value." << std::endl << std::endl;
@@ -181,7 +181,7 @@ int main (int argc, char **argv)
 
 			case 'e':
 				if(optarg != NULL){
-					epsilon = optarg;
+					epsilon = atof(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing epsilon value." << std::endl << std::endl;
@@ -192,10 +192,10 @@ int main (int argc, char **argv)
 
 			case 't':
 				if(optarg != NULL){
-					max_runtime = optarg;
+					max_runtime = atof(optarg);
 				}
 				else{
-					std::cerr << "[Error] - Missing epsilon value." << std::endl << std::endl;
+					std::cerr << "[Error] - Missing maximum run-time value." << std::endl << std::endl;
 					usage();
 					exit(0);
 				}
@@ -203,10 +203,10 @@ int main (int argc, char **argv)
 
 			case 'n':
 				if(optarg != NULL){
-					ants = optarg;
+					ants = atoi(optarg);
 				}
 				else{
-					std::cerr << "[Error] - Missing epsilon value." << std::endl << std::endl;
+					std::cerr << "[Error] - Missing number of ants." << std::endl << std::endl;
 					usage();
 					exit(0);
 				}
