@@ -54,6 +54,7 @@
 #define DEFAULT_T_MAX 10.0f;
 #define DEFAULT_T_ZERO 100.0f;
 #define DEFAULT_IPT 30000;
+#define DEFAULT_LBTU 100;
 #define DEFAULT_RUNS 1;
 #define DEFAULT_SEED 0.0f;
 #define DEFAULT_BEST_KNOWN_SOLUTION INT_MAX;
@@ -79,6 +80,7 @@ int main (int argc, char **argv)
 	double t_max=DEFAULT_T_MAX;
 	double T_zero=DEFAULT_T_ZERO;
 	unsigned int ipt=DEFAULT_IPT;
+	unsigned int lbtu = DEFAULT_LBTU;
 
 
 	unsigned int runs=DEFAULT_RUNS;
@@ -99,6 +101,7 @@ int main (int argc, char **argv)
 					{"T-zero",  	required_argument, 		0, 'z'},
 					{"x-zero",     	required_argument, 		0, 'x'},
 					{"ipt",  		required_argument,		0, 'p'},
+					{"lbtu",  		required_argument,		0, 'l'},
 					{"t-max",  		required_argument, 		0, 't'},
 					{"input",   	required_argument, 		0, 'i'},
 					{"runs",  		required_argument,      0, 'r'},
@@ -109,7 +112,7 @@ int main (int argc, char **argv)
 			/* getopt_long stores the option index here. */
 			int option_index = 0;
 
-			c = getopt_long (argc, argv, "a:z:x:p:t:i:r:s:k:",
+			c = getopt_long (argc, argv, "a:z:x:p:l:t:i:r:s:k:",
 					long_options, &option_index);
 
 			/* Detect the end of the options. */
@@ -130,7 +133,7 @@ int main (int argc, char **argv)
 
 			case 'a':
 				if(optarg != NULL){
-					alpha = optarg;
+					alpha = atof(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing alpha value." << std::endl << std::endl;
@@ -141,7 +144,7 @@ int main (int argc, char **argv)
 
 			case 'z':
 				if(optarg != NULL){
-					T_zero = optarg;
+					T_zero = atof(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing initial temperature value." << std::endl << std::endl;
@@ -153,10 +156,10 @@ int main (int argc, char **argv)
 
 			case 'x':
 				if(optarg != NULL){
-					x_zero = optarg;
+					x_zero = atof(optarg);
 				}
 				else{
-					std::cerr << "[Error] - Missing initial acceptance ration value." << std::endl << std::endl;
+					std::cerr << "[Error] - Missing initial acceptance ratio value." << std::endl << std::endl;
 					usage();
 					exit(0);
 				}
@@ -164,7 +167,7 @@ int main (int argc, char **argv)
 
 			case 'p':
 				if(optarg != NULL){
-					ipt = optarg;
+					ipt = atoi(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing iteration per temperature value." << std::endl << std::endl;
@@ -173,10 +176,20 @@ int main (int argc, char **argv)
 				}
 				break;
 
+			case 'l':
+				if(optarg != NULL){
+					lbtu = atoi(optarg);
+				}
+				else{
+					std::cerr << "[Error] - Missing lower bound on temperature updates value." << std::endl << std::endl;
+					usage();
+					exit(0);
+				}
+				break;
 
 			case 't':
 				if(optarg != NULL){
-					t_max = optarg;
+					t_max = atof(optarg);
 				}
 				else{
 					std::cerr << "[Error] - Missing maximum runtime value." << std::endl << std::endl;
@@ -354,6 +367,7 @@ void usage(void)
   std::cout << "-z,--T-zero \t [Opt,Tau_zero] \t\t Initial temperature value." << std::endl;
   std::cout << "-x,--x_zero \t [Opt,Epsilon] \t\t Initial accepting ratio." << std::endl;
   std::cout << "-p,--ipt \t [Opt,Epsilon] \t\t Iterations per temperature." << std::endl;
+  std::cout << "-l,--lbtu \t [Opt,Epsilon] \t\t Lower bound on temperature updates." << std::endl;
   std::cout << "-t,--t-max \t [Opt,T-Max] \t\t Maximum runtime for each run." << std::endl;
   std::cout << "-i,--input\t [Req,Path] \t Path to instance to be given as input to the program." << std::endl;
   std::cout << "-r,--runs\t [Opt,Runs] \t Number of runs of the algorithm. 1 if omitted." << std::endl;

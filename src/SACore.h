@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
-#include <map>
 
 #include "NumericMatrix.h"
 #include "CandidateSolution.h"
@@ -29,10 +28,10 @@ public:
 				double T_zero,
 				double x_zero,
 				unsigned int ipt,
+				unsigned int lbtc,
+				double t_max,
 				const std::vector<unsigned int>& vec_seeds,
 				unsigned int runs,
-				double t_max,
-				unsigned int lbtc,
 				std::string input_filename,
 				unsigned int best_known_solution):
 		 m_pcDistanceMatrix(distance_matrix),
