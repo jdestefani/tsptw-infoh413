@@ -76,6 +76,10 @@ void ACOCore::ACO() {
 		PheromoneUpdate();
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
 		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
+		if(m_lfRunTime > m_wriResultsWriter.CurrSamplingTime()){
+			m_wriResultsWriter.AddSolutionQuality(m_cCurrentBestSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
+			m_wriResultsWriter.NextSamplingTime();
+		}
 		m_unIterations++;
 	}while(m_lfRunTime < m_lfTMax || TerminationCondition());
 
@@ -84,6 +88,10 @@ void ACOCore::ACO() {
 	std::cout << m_cCurrentBestSolution;
 	std::cout << std::endl << std::endl;
 	m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentBestSolution.GetTourDuration(),m_cCurrentBestSolution.GetConstraintViolations(),m_lfRunTime);
+
+	m_wriResultsWriter.FlushRTDList();
+	m_wriResultsWriter.ResetSolutionQualityList();
+	m_wriResultsWriter.RestartSamplingTime();
 }
 
 

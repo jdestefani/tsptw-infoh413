@@ -43,7 +43,7 @@ The simulated annealing method consider the different candidates solutions as th
 The general outline of the implemented algorithm is the following: 
 
 \begin{algorithm}[!h]
-  \caption{Simulated Annealing - Outline}\label{aco}
+  \caption{Simulated Annealing - Outline}\label{sa:outline}
   \begin{algorithmic}[1]
     \State \emph{GenerateInitialSolution}
     \State \emph{InitalizeTemperature} 
@@ -171,8 +171,7 @@ In this way, a solution is built by taking into account the heuristic informatio
 
 \subsubsection{Temperature initalization}
 \begin{algorithm}
-\caption{Temperature initialization}
-\label{saTInit}
+\caption{Temperature initialization}\label{saTInit}
 \begin{algorithmic}
 \Procedure{InitializeTemperature}{$\chi_0$}
   \State $a \gets 0$

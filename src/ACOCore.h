@@ -71,7 +71,6 @@ public:
 		}
 
 		/*Initialize pheromone matrix*/
-		m_cPheromoneMatrix(m_unCities,m_unCities);
 		for(unsigned int i=0; i < m_unCities; i++){
 			for(unsigned int j=0; j < i; j++){
 				m_cPheromoneMatrix.SetElement(i,j,tau_zero);
@@ -141,6 +140,7 @@ private:
 	double m_lfRunTime;
 	unsigned int m_unIterations;
 	unsigned int m_unGlobalOptimum;
+	std::list<double> m_listSamplingTimes;
 
 	void InitializeHeuristicValues();
 	void PheromoneEvaporation();

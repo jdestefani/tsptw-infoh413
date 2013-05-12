@@ -96,4 +96,8 @@ inline double ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_e
 	return temp.tv_sec+temp.tv_nsec/(10e9);
 }
 
+const unsigned int SAMPLES = 50;
+const int LOGAXISLOWERBOUND = -1;
+const int LOGAXISUPPERBOUND = 2;
+
 #endif /* COMMONDEFS_H_ */

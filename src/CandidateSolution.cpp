@@ -97,6 +97,10 @@ void CandidateSolution::Reset() {
 	m_unConstraintViolations = 0;
 }
 
+double CandidateSolution::ComputeRelativeSolutionQuality(double known_best) {
+	return ((m_unTourDuration + PENALITY*m_unConstraintViolations)/known_best)-1;
+}
+
 std::string CandidateSolution::ToString() {
 	std::stringstream outputString;
 	outputString << "Tour: ";

@@ -150,6 +150,7 @@ public:
 	void SwapSolutionComponents(unsigned int,unsigned int);
 	void InsertSolutionComponent(unsigned int,unsigned int);
 	void ComputeSolutionEvaluation();
+	double ComputeRelativeSolutionQuality(double);
 	void Reset();
 	std::string ToString();
 

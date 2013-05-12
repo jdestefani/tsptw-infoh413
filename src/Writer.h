@@ -46,6 +46,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <cmath>
 
 #include "CommonDefs.h"
 
@@ -56,20 +57,35 @@ public:
 		 unsigned int known_best,
 		 ESLSType sls_type):
 		 m_unKnownBest(known_best){
-				m_sOutputFileName = "";
-				switch (sls_type) {
-					case ANT_COLONY_OPTIMIZATION:
-						m_sOutputFileName.append(ACO);
-						break;
-					case SIMULATED_ANNEALING:
-						m_sOutputFileName.append(SA);
-						break;
-					default:
-						break;
-				}
-				m_sOutputFileName.append(SEPARATOR);
-				filename = filename.substr(0,filename.find_last_of('.'));
-				m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
+
+		double intervalLowerBound = 0.0f;
+		double intervalUpperBound = 0.0f;
+		m_sOutputFileName = "";
+
+		switch (sls_type) {
+		case ANT_COLONY_OPTIMIZATION:
+			m_sOutputFileName.append(ACO);
+			break;
+		case SIMULATED_ANNEALING:
+			m_sOutputFileName.append(SA);
+			break;
+		default:
+			break;
+		}
+		m_sOutputFileName.append(SEPARATOR);
+		filename = filename.substr(0,filename.find_last_of('.'));
+		m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
+
+		/*Initialize sampling times vector*/
+		for(unsigned int i=LOGAXISLOWERBOUND; i<LOGAXISUPPERBOUND ; i++){
+			intervalLowerBound = pow(10,i);
+			intervalUpperBound = pow(10,i+1);
+			for(unsigned int j=intervalLowerBound; j<intervalUpperBound ; j+= (intervalUpperBound-intervalLowerBound)/SAMPLES){
+				m_listSamplingTimes.push_back(j);
+			}
+		}
+
+		m_itNextSamplingTime = m_listSamplingTimes.begin();
 	};
 
 	Writer(std::string filename,
@@ -121,56 +137,61 @@ public:
 			   ENeighborhoodChain neighborhood_chain):
 		m_unKnownBest(known_best){
 
-			m_sOutputFileName = "";
+		m_sOutputFileName = "";
 
-			switch (vnd_type) {
-			case STANDARD_VND:
-				m_sOutputFileName.append(VND_TYPE_STANDARD);
-				break;
-			case PIPED_VND:
-				m_sOutputFileName.append(VND_TYPE_PIPED);
-				break;
-			default:
-				break;
-			}
-
-
-			m_sOutputFileName.append(SEPARATOR);
-
-			switch (neighborhood_chain) {
-			case TRANSPOSE_EXCHANGE_INSERT:
-				m_sOutputFileName.append(NEIGHBORHOOD_CHAIN_TEI);
-				break;
-			case TRANSPOSE_INSERT_EXCHANGE:
-				m_sOutputFileName.append(NEIGHBORHOOD_CHAIN_TIE);
-				break;
-			default:
-				break;
-			}
-
-
-			m_sOutputFileName.append(SEPARATOR);
-
-			filename = filename.substr(0,filename.find_last_of('.'));
-			m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
+		switch (vnd_type) {
+		case STANDARD_VND:
+			m_sOutputFileName.append(VND_TYPE_STANDARD);
+			break;
+		case PIPED_VND:
+			m_sOutputFileName.append(VND_TYPE_PIPED);
+			break;
+		default:
+			break;
 		}
+
+
+		m_sOutputFileName.append(SEPARATOR);
+
+		switch (neighborhood_chain) {
+		case TRANSPOSE_EXCHANGE_INSERT:
+			m_sOutputFileName.append(NEIGHBORHOOD_CHAIN_TEI);
+			break;
+		case TRANSPOSE_INSERT_EXCHANGE:
+			m_sOutputFileName.append(NEIGHBORHOOD_CHAIN_TIE);
+			break;
+		default:
+			break;
+		}
+
+
+		m_sOutputFileName.append(SEPARATOR);
+
+		filename = filename.substr(0,filename.find_last_of('.'));
+		m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
+
+	}
 
 	~Writer() {
 		if(m_ofsRResults.is_open()){
 			m_ofsRResults.close();
 		}
-		if(m_ofsTextResults.is_open()){
-			m_ofsTextResults.close();
+		if(m_ofsRTDResults.is_open()){
+			m_ofsRTDResults.close();
 		}
 	}
 
 
 	void OpenRFile();
-	void OpenTextResults();
+	void OpenRTDResults();
 	void FlushRFile();
-	void FlushRFileSLS();
+	void FlushRTDList();
 	void AddData(double,unsigned int,unsigned int,double);
-
+	void AddSolutionQuality(double);
+	void ResetSolutionQualityList();
+	double CurrSamplingTime();
+	void NextSamplingTime();
+	void RestartSamplingTime();
 
 
 private:
@@ -211,9 +232,11 @@ private:
 	std::string m_sOutputFileName;
 	unsigned int m_unKnownBest;
 	std::list<SResultsData> m_listResults;
+	std::list<double> m_listSolutionQuality;
+	std::list<double> m_listSamplingTimes;
+	std::list<double>::iterator m_itNextSamplingTime;
 	std::ofstream m_ofsRResults;
-	std::ofstream m_ofsCVRTD;
-	std::ofstream m_ofsRTD;
+	std::ofstream m_ofsRTDResults;
 
 
 };

@@ -54,6 +54,7 @@ const std::string Writer::ACO="ACO";
 const std::string Writer::SA="SA";
 const std::string Writer::SEPARATOR=".";
 
+
 void Writer::OpenRFile() {
 	// data file
 	std::cout << "\tOutput file: " << m_sOutputFileName << std::endl << std::endl;
@@ -64,13 +65,18 @@ void Writer::OpenRFile() {
 	}
 }
 
-void Writer::OpenTextResults() {
+void Writer::OpenRTDResults() {
 	// data file
-	m_ofsTextResults.open(m_sOutputFileName.append(".res").c_str());
+	m_ofsRTDResults.open(m_sOutputFileName.append(".res").c_str());
 	//LOG << "Opening " << m_sStatsFileName << std::endl;
-	if (m_ofsTextResults.fail()) {
+	if (m_ofsRTDResults.fail()) {
 		return;
 	}
+	m_ofsRTDResults << "Seed\t";
+	for(std::list<double>::iterator itList=m_listSamplingTimes.begin(); itList != m_listSamplingTimes.end(); ++itList){
+			m_ofsRTDResults << (*itList) << "\t" << std::endl;
+	}
+	m_ofsRTDResults << std::endl;
 }
 
 void Writer::FlushRFile() {
@@ -83,19 +89,36 @@ void Writer::FlushRFile() {
 
 }
 
-void Writer::FlushRFileSLS() {
-	m_ofsRResults << "Seed\tCV\tPRPD" << std::endl;
+void Writer::FlushRTDList() {
 	/*Flush results*/
-	for(std::list<SResultsData>::iterator itList=m_listResults.begin(); itList != m_listResults.end(); ++itList){
-		m_ofsRResults << (*itList).seed << "\t" << (*itList).constraintViolations << "\t" << (*itList).ComputePRDP(m_unKnownBest) << std::endl;
+	for(std::list<double>::iterator itList=m_listSolutionQuality.begin(); itList != m_listSolutionQuality.end(); ++itList){
+		m_ofsRTDResults << (*itList) << "\t" << std::endl;
 	}
-	m_ofsRResults.close();
-
+	m_ofsRTDResults << std::endl;
 }
-
 
 void Writer::AddData(double seed,unsigned int best_tour_length, unsigned int constraint_violations, double cpu_time) {
 	m_listResults.push_back(SResultsData(seed,best_tour_length,constraint_violations,cpu_time));
 }
 
+void Writer::AddSolutionQuality(double currentSample) {
+	m_listSolutionQuality.push_back(currentSample);
+}
 
+void Writer::ResetSolutionQualityList() {
+	m_listSolutionQuality.erase(m_listSolutionQuality.begin(),m_listSolutionQuality.end());
+}
+
+void Writer::NextSamplingTime() {
+	if(m_itNextSamplingTime != m_listSamplingTimes.end()){
+		m_itNextSamplingTime++;
+	}
+}
+
+double Writer::CurrSamplingTime() {
+	return *m_itNextSamplingTime;
+}
+
+void Writer::RestartSamplingTime() {
+	m_itNextSamplingTime = m_listSamplingTimes.begin();
+}

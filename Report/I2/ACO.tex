@@ -51,7 +51,7 @@ In the same fashion as the real insects, the ants are able to deposit virtual ph
 The general outline of the implemented algorithm is the following: 
 
 \begin{algorithm}[!h]
-  \caption{Ant Colony Optimization - Outline}\label{aco}
+  \caption{Ant Colony Optimization - Outline}\label{aco:outline}
   \begin{algorithmic}[1]
     \State \emph{InitalizePheromoneTrail} 
     \While{!(TerminationCondition)}
@@ -72,7 +72,7 @@ The main differences with respect to the basic ACO approach are the following:
   \item Only iteration best or best-so-far ants update pheromone.
   \item A local search after the solution generation is used to further improve the solutions found by the ants at each iteration.
   \item $\forall t \text{ } \tau_{\min} < \tau_{i,j}(t) < \tau_{\max}  $ - Pheromone trails have explicit upper and lower limits
-  \item Pheromone trails are re-initialized when stagnated.
+  % \item Pheromone trails are re-initialized when stagnated.
 \end{itemize}
 
 The aforementioned design choice were made because:
@@ -81,7 +81,7 @@ The aforementioned design choice were made because:
     \item The initialization of the pheromone trails to their upper bound favors diversification at the beginning of each trial.
     \item The pheromone update rule favors exploitation of (intensification on) the best solutions at each iteration of the algorithm.
     \item By bounding the intensity of the pheromone trails, the probability of stagnation (i.e. all the ants converging and exploiting a single sub-optimal tour) is reduced.
-    \item If the pheromone trails values for the solution components of a certain tour $s$ are equal to $\tau_{\max}$, the algorithm is said to be converged.
+    % \item If the pheromone trails values for the solution components of a certain tour $s$ are equal to $\tau_{\max}$, the algorithm is said to be converged.
   \end{itemize}
   
 
@@ -192,7 +192,7 @@ The initialization value $\tau_0$ is a parameter of the algorithm, for the \maxm
 
 \subsubsection{Solution construction}
 \begin{algorithm}[!h]
-  \caption{Solution Construction}\label{sol}
+  \caption{Solution Construction}\label{solConstr}
   \begin{algorithmic}[1]
     \Procedure{ConstructSolution}{$\alpha,\beta$}\Comment{The main procedure}
       \State \Comment{$s_i$ reprents the $i^{th}$ component of the solution}
@@ -223,7 +223,7 @@ The value of the parameters $\alpha$ and $\beta$ determines the relative importa
 
 \subsubsection{Solution improvement}
 \begin{algorithm}[!h]
-  \caption{Solution improvement}\label{sol}
+  \caption{Solution improvement}\label{solImprov}
   \begin{algorithmic}[1]
     \Procedure{IsImproving}{$s,s'$}\Comment{The main procedure}
       \If {$\Omega(s') < \Omega(s)$}
@@ -461,6 +461,8 @@ The value of the parameters $\alpha$ and $\beta$ determines the relative importa
     \EndProcedure
 \end{algorithmic}
 \end{algorithm}
+
+The algorithm will terminate if the maximum time limit is exceeded or, if the best known solution is constructed by one of the ants during an iteration.
 
 \subsubsection{Implementation parameters}
 \begin{center}
