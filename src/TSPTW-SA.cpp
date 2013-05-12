@@ -319,12 +319,13 @@ int main (int argc, char **argv)
 					alpha,
 					T_zero,
 					x_zero,
+					ipt,
+					lbtu,
+					t_max,
 					instanceReader.GetSeeds(),
 					runs,
-					t_max,
 					inputFileName,
 					bestKnownSolution);
-
 
 			solverCore.Run();
 			return EXIT_SUCCESS;
@@ -363,12 +364,12 @@ void usage(void)
 {
   std::cout << "Usage: TSPTW-SA [PARAMETERS] -i [INPUTFILE] -s [SEEDSFILE]" << std::endl << std::endl;
   std::cout << "Flag \t\t Argument \t Description" << std::endl;
-  std::cout << "-a,--alpha \t [Opt,Alpha] \t\t Temperature decaying coefficient." << std::endl;
-  std::cout << "-z,--T-zero \t [Opt,Tau_zero] \t\t Initial temperature value." << std::endl;
-  std::cout << "-x,--x_zero \t [Opt,Epsilon] \t\t Initial accepting ratio." << std::endl;
-  std::cout << "-p,--ipt \t [Opt,Epsilon] \t\t Iterations per temperature." << std::endl;
-  std::cout << "-l,--lbtu \t [Opt,Epsilon] \t\t Lower bound on temperature updates." << std::endl;
-  std::cout << "-t,--t-max \t [Opt,T-Max] \t\t Maximum runtime for each run." << std::endl;
+  std::cout << "-a,--alpha \t [Opt,Alpha] \t Temperature decaying coefficient." << std::endl;
+  std::cout << "-z,--T-zero \t [Opt,Tau_zero]  Initial temperature value." << std::endl;
+  std::cout << "-x,--x_zero \t [Opt,Epsilon] \t Initial accepting ratio." << std::endl;
+  std::cout << "-p,--ipt \t [Opt,Epsilon] \t Iterations per temperature." << std::endl;
+  std::cout << "-l,--lbtu \t [Opt,Epsilon] \t Lower bound on temperature updates." << std::endl;
+  std::cout << "-t,--t-max \t [Opt,T-Max] \t Maximum runtime for each run." << std::endl;
   std::cout << "-i,--input\t [Req,Path] \t Path to instance to be given as input to the program." << std::endl;
   std::cout << "-r,--runs\t [Opt,Runs] \t Number of runs of the algorithm. 1 if omitted." << std::endl;
   std::cout << "-s,--seed\t [Req,Seed] \t Path to the file containing the list of seeds." << std::endl;

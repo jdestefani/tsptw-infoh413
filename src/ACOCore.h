@@ -92,7 +92,8 @@ public:
 		InitializeHeuristicValues();
 	};
 
-	virtual ~ACOCore();
+	~ACOCore(){}
+
 	void Run();
 	void ACO();
 

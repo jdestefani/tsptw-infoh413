@@ -427,10 +427,10 @@ Neighborhood chain & 	-a,--TEI  , -b,--TIE \\ \hline
 \end{tabular}
 
 \paragraph{Output}
-Every experiment produces a single file:
+Each experiment produces a couple of files:
 \begin{itemize}
-  \item \textbf{(II)} $[pivoting\_rule].[neighborhood\_type].[INSTANCE\_NAME]$ with $[pivoting\_rule] \in \{first,best\}$ and $[neighborhood\_type] \in \{transpose,exchange,insert\}$ 
-  \item \textbf{(VND)} $[vnd\_type].[neighborhood\_chain].[INSTANCE\_NAME]$ with $[vnd\_type] \in \{standard,piped\}$ and $[neighborhood\_type] \in \{tei,tie\}$
+  \item \textbf{(ACO)} \verb|ACO.[INSTANCE_NAME].txt| and \verb|ACO.[INSTANCE_NAME].rtd|
+  \item \textbf{(SA)} \verb|SA.[INSTANCE_NAME].txt| and \verb|SA.[INSTANCE_NAME].rtd|
 \end{itemize} 
 				
 					 
@@ -440,24 +440,30 @@ SA.n80w20.003.txt
 \end{verbatim}
 
 
-The internal structure of the file is the following: 
-\begin{tabular}{|c|c|c|c|}
+The internal structure of the \verb|.txt| files is the following: 
+\begin{tabular}{|c|c|c|}
 \hline
 \textbf{Seed}	&	\textbf{CV} & \textbf{PRPD} \\ \hline
 \end{tabular}
 
-For each run of the algorithm, the program writes in the file, using a tabulation as separator,
-the used seed, the number of constraints violations and the penalized relative percentage deviation.
+For each run of the algorithm, the program writes in the file, using a tabulation as separator, the used seed, the number of constraints violations and the penalized relative percentage deviation.
+
+
+The internal structure of the \verb|.rtd| files is the following: 
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Seed}	&	\textbf{0.002} & \textbf{...} & \textbf{100}  \\ \hline
+\end{tabular}
+
+For each run of the algorithm, the program writes in the file, using a tabulation as separator, the seed of the run and the solution quality sampled at the time indicated in the column header, computed as described in \nameref{subsec:measure}.
+Each set of samples is separated from the following using a newline character.
 
 
 \subsubsection{Script execution}
 By launching:
 \begin{center}
 \begin{verbatim}
-./launchTSPTW-II.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
-\end{verbatim}
-\begin{verbatim}
-./launchTSPTW-VND.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
+./launchTSPTW-SLS.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
 \end{verbatim}
 \end{center}
 
@@ -465,7 +471,7 @@ The script will:
 \begin{enumerate}
   \item Create the files required by the data processing script to write statistics.
   \item Generate a seed file, named [SEEDS\_FILE] containing [RUNS] randomly generated seeds.
-  \item Launch the corresponding TSPTW program for [RUNS]  using all the possible combinations of input options.
+  \item Launch the TSPTW-ACO and the TSPTW-SA program for [RUNS] on [INSTANCE\_NAME] using the default parameter settings.
   \item Wait for the termination of all the previously launched experiment and call the R data processing script
 \end{enumerate}
 
@@ -475,21 +481,21 @@ The script assumes that all the instances are located into the instances folder,
 
 Each execution of the script will then generate the files:
 \begin{itemize}
-  \item $[INSTANCE\_NAME]-CpuTime.pdf$ containing the boxplots of the run-time distribution for each algorithm.
   \item $[INSTANCE\_NAME]-PRPD.pdf$ containing the box-plots of the PRPD distribution for each algorithm.
   \item 
         \begin{itemize}
-          \item \textbf{(II)} transpose.first, exchange.first, insert.first, transpose.best, exchange.best, insert.best 
-          \item \textbf{(VND)} standard.tei, standard.tie, piped.tei, piped.tie
+          \item \textbf{(ACO)} ACO.stats 
+          \item \textbf{(SA)} SA.stats
         \end{itemize}
 \end{itemize}
 
 The internal structure of the file is the following:
- 
+\begin{center}
 \begin{tabular}{|c|c|c|c|}
 \hline
 \textbf{Instance}	&	\textbf{Infeasible} & \textbf{mean(PRDP)} &	\textbf{mean(CpuTime)} \\ \hline
 \end{tabular}
+\end{center}
 
 Each line contains the instance name, the percentage of unfeasible runs, the mean PRDP and the mean run-time across [RUNS] runs.
 

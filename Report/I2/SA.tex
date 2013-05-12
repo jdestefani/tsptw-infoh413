@@ -30,55 +30,6 @@ of the iterative improvement algorithm for the hybrid SLS algorithm.
 \end{itemize}
 \end{enumerate}
 
-\subsection{Metric definitions}\label{subsec:metric}
-For each algorithm $k$, applied on instance $i$, using different randomly generated seeds one have to compute:
-\begin{itemize}
-  \item Number of constraint violations
-  \item Penalized relative percentage deviation (PRPD)
-  \item Computation time (CPU time)
-\end{itemize}
-
-In order to perform a statistical analysis of the results, each algorithm $k$ is launched 100 times on the same instance, computing the
-following statistics:
-\begin{itemize}
-  \item Percentage of unfeasible solutions (0.x has to be interpreted as x\%) 
-  \item Average Penalized relative percentage deviation.
-  \item Average Computation time (CPU time).
-\end{itemize}
-
-For each instance $i$, the distributions of PRPD and Cpu Times are displayed using box plots and the Wilcoxon signed rank test is performed, in order to assess the existence of a statistically significant difference among the results obtained by the different algorithms on the same instance. 
-
-\paragraph{Constraint Violations}
-In the standard formulation of the TSP problem, a solution to the problem is represented by a permutation of the different
-entities (solution components), that the hypothetical travelling salesman has to visit.
-
-The best solution for the problem is the permutation that minimizes the total travelling time (distance) among the cities.
-The presence of time windows introduce an additional constraint on the feasibility of the solution.
-
-In fact, each solution component has an associated time window within which it has to be visited in order to guarantee the feasibility of the tour.
-
-Arriving in a (city) before the opening of the corresponding time window involves a delay in the total travelling time (to wait for the time window to open) whereas the arrival after the closure of the time windows will generate a constraint violation.
-
-Thus, a solution is feasible if and only if all the time windows constraints are met, or in other words, if there are no constraint violations.
-
-In this case, the best solution is the feasible solution which minimizes the total travel time.
-
-\paragraph{Penalized Relative Percentage Deviation}
-The penalized relative percentage deviation (PRDP from now on) is a measure of the solution quality, with respect to the best known
-solution for the instance, taking into account a strong penalization for the violation of constraints.
-The PRPD is computed as follows:
-\begin{equation}
-pRPD_{kri} = 100 \cdot \frac{(f_{kri} + 10^4\cdot\Omega_{kri})-best_i}{best_i}
-\end{equation}
-
-\paragraph{Runtime}
-The runtime is a measure of both the quality and the time complexity of the algorithm.
-
-It is measured using the function \verb|int clock_gettime(clockid_t clk_id, struct timespect *tp)| from the \verb|time.h| library.
-
-The parameter \verb|clk_id=CLOCK_PROCESS_CPUTIME_ID|, is used to read the values from an high-resolution timer provided by the CPU for each process.
-
-The run-time is computed (using the user defined function \verb|ComputeRunTime|) as the difference, with a resolution of $10^-9$ s, from the time obtained using \verb|clock_gettime| at the beginning and the one obtained at the end of the simulation.
 
 \subsection{Introduction} \label{sec:introSA}
 The simulated annealing is a simple SLS method named after the homonym physical process used in material science to obtain desired properties on the processed material.
@@ -139,7 +90,7 @@ The design choices can be justified as follows:
 \caption{Simulated Annealing TSPTW}
 \label{SA:TSPTW}
 \begin{algorithmic}
-\Procedure{SimulatedAnnealing}{$\alpha,\chi_0,l,t_{\max},f_{best},T_{c_{\min}$}    
+\Procedure{SimulatedAnnealing}{$\alpha,\chi_0,l,t_{\max},f_{best},T_{c_{\min}}$}    
   \Require Annealing schedule
   \State $s \gets$ \emph{InitialSolution}()
   \State $T \gets$ \emph{InitializeTemperature}($\chi_0$) 
@@ -255,7 +206,6 @@ The initial temperature value is then computed according to the formula describe
 			  \EndIf
        
        \If{$T_{u} > T_{u_{\min}}$}
-			      
 			      \If{ $T_{us} > c_{t} $}
 				      \State \textbf{return true}
 			      \EndIf
@@ -295,7 +245,7 @@ The probabilistic proposal mechanism consist of a random uniform choice of a can
 \If {$f'(s) < f'(s')$}
   \State \textbf{return} $1$
 \Else
-  \State \textbf{return} $e^{\frac{f(s)-f(s')}{T}}$
+  \State \textbf{return} $e^{\frac{f'(s)-f'(s')}{T}}$
 \EndIf
 \EndProcedure
 \end{algorithmic}
@@ -337,5 +287,21 @@ In order to reduce the computation time, the computation of the exponential func
 The annealing schedule reduces the temperature of a coefficient $\alpha$ every $l$ time steps. 
 This schedule allows to favor exploration (i.e. higher likelihood of accepting worsening step) at the beginning of the execution while focusing on exploitation as the number of iterations increase.
 
+\subsubsection{Implementation parameters}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Parameter} & \textbf{Default} & \textbf{Selected} \\ \hline 
+$\alpha$ & 0.95 & 0.95 \\\hline 
+$\chi_0$ & 0.94 & 0.94 \\ \hline
+$T_0$ & 100 & 100 \\ \hline 
+$l$ & 30000 & 30000 \\ \hline 
+$LUBT$ & 100 & 100 \\ \hline 
+$t_{\max}$ & 10[s] & 10[s] \\
+\hline
+\end{tabular}
+\captionof{table}{SA - Algorithm parameters overview}
+\label{saParameters}
+\end{center}
 
 \end{homeworkProblem}		

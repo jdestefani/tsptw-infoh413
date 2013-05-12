@@ -26,7 +26,7 @@ public:
 		}
 	}
 
-	virtual ~Ant();
+	~Ant(){}
 
 
 	const std::vector<unsigned int>& GetVisitedCities() const {

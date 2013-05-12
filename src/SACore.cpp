@@ -8,7 +8,6 @@
 #include "SACore.h"
 
 SACore::~SACore() {
-	// TODO Auto-generated destructor stub
 }
 
 void SACore::Run() {

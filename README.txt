@@ -191,7 +191,34 @@ Flag 		 	Argument 	 Description
 -s,--seed	 	[Req,Seed] 	 Path to the file containing the list of seeds.
 -k,--known-best	[Opt,Best] 	 Best known solution for the analyzed instance. INT_MAX if omitted.
 
+Usage: TSPTW-ACO [PARAMETERS] -i [INPUTFILE] -s [SEEDSFILE]
 
+Flag 		 	Argument 	 	Description
+-a,--alpha 	 	[Opt,Alpha] 	Influence of pheromone trails.
+-b,--beta	 	[Opt,Beta] 	 	Influence of heuristic information.
+-h,--rho 	 	[Opt,Rho] 	 	Pheromone trail evaporation.
+-z,--tau-zero 	[Opt,Tau_zero]  Pheromone trail initial value.
+-e,--epsilon 	[Opt,Epsilon] 	Probability of choosing the best global solution instead of the best iteration one for pheromone update.
+-t,--t-max 	 	[Opt,T-Max] 	Maximum runtime for each run
+-n,--ants 	 	[Opt,Ants] 	 	Number of ants.
+-i,--input	 	[Req,Path] 	 	Path to instance to be given as input to the program
+-r,--runs	 	[Opt,Runs] 	 	Number of runs of the algorithm. 1 if omitted.
+-s,--seed	 	[Req,Seed] 	 	Path to the file containing the list of seeds.
+-k,--known-best	[Opt,Best] 	 	Best known solution for the analyzed instance. INT_MAX if omitted.
+
+Usage: TSPTW-SA [PARAMETERS] -i [INPUTFILE] -s [SEEDSFILE]
+
+Flag 		 	Argument 	 	Description
+-a,--alpha 	 	[Opt,Alpha] 	Temperature decaying coefficient.
+-z,--T-zero 	[Opt,Tau_zero]  Initial temperature value.
+-x,--x_zero 	[Opt,Epsilon] 	Initial accepting ratio.
+-p,--ipt 	 	[Opt,Epsilon] 	Iterations per temperature.
+-l,--lbtu 	 	[Opt,Epsilon] 	Lower bound on temperature updates.
+-t,--t-max 	 	[Opt,T-Max] 	Maximum runtime for each run.
+-i,--input	 	[Req,Path] 	 	Path to instance to be given as input to the program.
+-r,--runs	 	[Opt,Runs] 	 	Number of runs of the algorithm. 1 if omitted.
+-s,--seed	 	[Req,Seed] 	 	Path to the file containing the list of seeds.
+-k,--known-best	[Opt,Best] 	 	Best known solution for the analyzed instance. INT_MAX if omitted.
 
 For each of the parameters, in the column argument it is indicated whether
 an argument to the option is not required, optional or mandatory.
@@ -226,6 +253,10 @@ VND algorithm  		-t,--standard , -p,--piped
 Neighborhood chain 	-a,--TEI  , -b,--TIE 
 
 
+[TSPTW-ACO] and [TSPTW-SA]
+
+No mutually exclusive parameters.
+
 ==========================
 Default parameter settings
 ==========================
@@ -249,20 +280,50 @@ Runs: 1
 Known best: INT_MAX
 
 
+[TSPTW-ACO]
+
+Alpha: 1.0
+Beta: 2.0
+Rho: 0.8
+Tau_zero: 1.0
+Epsilon: 0.5
+Ants: 25
+Runs: 1
+Max run-time: 10[s]
+Seed: 0
+Known best: INT_MAX
+
+
+[TSPTW-SA]
+
+Alpha: 0.95
+X_zero: 0.94
+T_zero: 100.0
+Iteration per temperature: 30000
+Lower bound on temperature updates: 100
+Runs: 1
+Max run-time: 10[s]
+Seed: 0
+Known best: INT_MAX
+
+
 ==========================
 Examples
 ==========================
 
-Examples for running an experiments are:
+The commands to run an experiment are:
 
 ./TSPTW-II -h -f -t -i ./instances/n80w20.001.txt -s testseed -r 2 -k 616
 ./TSPTW-VND -t -a -i ./instances/n80w20.001.txt -s testseed -r 2 -k 616
+./TSPTW-ACO -a 1.5 -b 4.9 -h 0.7 -z 1.5 -e 0.8 -n 30 t 80 -i ./instances/n80w20.001.txt s testseed -r 2 -k 616
+./TSPTW-SA -a 0.8 -z 50 -x 0.99 -p 5000 -l 45 -t 80 -i ./instances/n80w20.001.txt s testseed -r 2 -k 616
 
 or
 
 ./TSPTW-II --heuristic --first-imp --transpose --input ./instances/n80w20.001.txt --seeds testseed -runs 2 --known-best 616
 ./TSPTW-VND --standard --TEI --input ./instances/n80w20.001.txt --seed testseed --runs 2 --known-best 616
-
+./TSPTW-ACO --alpha 1.5 --beta 4.9 --rho 0.7 --tau-zero 1.5 --epsilon 0.8 --ants 30 --t-max 80 --input ./instances/n80w20.001.txt --seed testseed --runs 2 --known-best 616
+./TSPTW-SA --alpha 0.8 --T-zero 50 --x_zero 0.99 --ipt 5000 --lbtu 45 --t-max 80 --input ./instances/n80w20.001.txt --seed testseed --runs 2 --known-best 616
 
 =======
 OUTPUT
@@ -286,16 +347,25 @@ Every experiment produces a single file:
 
 [TSPTW-II]
 
-<pivoting_rule>.<neighborhood_type>.<instance_name>
+<pivoting_rule>.<neighborhood_type>.<instance_name>.txt
 	{first,			{transpose,
 	 best}			 exchange,
 					 insert}
 
 [TSPTW-VND]
 
-<vnd_type>.[neighborhood_chain].<instance_name>
+<vnd_type>.[neighborhood_chain].<instance_name>.txt
 {standard,		{tei,
  piped}			 tie}
+
+[TSPTW-ACO]
+
+ACO.<instance_name>.txt
+	
+[TSPTW-SA]
+
+SA.<instance_name>.txt
+
  
 Ex: exchange.best.n80w200.004.txt
 	standard.tei.n80w20.003.txt
@@ -311,6 +381,8 @@ and the penalised relative percentage deviation, computed as:
 100*(((bestFoundSolution+constraintViolations*CONSTRAINT_VIOLATION_PENALTY)-known_best_solution)/known_best_solution)
 
 with CONSTRAINT_VIOLATION_PENALTY being 10^4.
+
+The fiel
 
 The CSV structure of the file allows for an easy manipulation and post-processing using R.
 
@@ -350,6 +422,36 @@ Each line is composed by:
 Instance	Infeasible	mean(PRDP)	mean(CpuTime)
 
 which represents: the instance name, the percentage of infeasible runs, the mean PRDP and the mean runtime across 100 runs.
+
+
+===============
+launchTSPTW-SLS 
+===============
+
+Usage : launchTSPTW-SLS [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
+
+The script takes as input exactly three parameters:
+[INSTANCE_NAME]: String indicating the instance name (all the instances are assumed to be in the instances folder)
+[RUNS] : Integer number indicating the number of runs of the algorithm
+[SEEDS_FILE] : String indicating the name of the file where the generated seeds will be stored.
+
+The script will then proceed to launch TSPTW-ACO and then TSPTW-SA using the default parameter and after completion of all the experiments,
+launch the corresponding processing script (processDataSLS.R) to process the results.
+
+The output of the script will be:
+
+<instanceName>-PRPD.pdf
+Update of ACO.stats (ACO) or SA.stats (SA) files.
+
+The .pdf files will containing respectively, the box plot comparing the solution quality of the different algorithms, measured in terms of PRPD.
+The latter files are CSV files having the same name as the algorithm to evaluate, containing one line for each instance.
+Each line is composed by:
+
+Instance	Infeasible	mean(PRDP)	mean(CpuTime)
+
+which represents: the instance name, the percentage of infeasible runs, the mean PRDP and the mean runtime across 100 runs.
+
+
 
 N.B. : In order to process the data, a working R distribution (including the package Rscript) must be installed.
 

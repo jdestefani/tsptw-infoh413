@@ -378,13 +378,13 @@ void usage(void)
 {
   std::cout << "Usage: TSPTW-ACO [PARAMETERS] -i [INPUTFILE] -s [SEEDSFILE]" << std::endl << std::endl;
   std::cout << "Flag \t\t Argument \t Description" << std::endl;
-  std::cout << "-a,--alpha \t [Opt,Alpha] \t\t Influence of pheromone trails." << std::endl;
-  std::cout << "-b,--beta\t [Opt,Beta] \t\t Influence of heuristic information." << std::endl;
-  std::cout << "-h,--rho \t [Opt,Rho] \t\t Pheromone trail evaporation." << std::endl;
-  std::cout << "-z,--tau-zero \t [Opt,Tau_zero] \t\t Pheromone trail initial value." << std::endl;
-  std::cout << "-e,--epsilon \t [Opt,Epsilon] \t\t Probability of choosing the best global solution instead of the best iteration one for pheromone update." << std::endl;
-  std::cout << "-t,--t-max \t [Opt,T-Max] \t\t Maximum runtime for each run" << std::endl;
-  std::cout << "-n,--ants \t [Opt,Ants] \t\t Number of ants." << std::endl;
+  std::cout << "-a,--alpha \t [Opt,Alpha] \t Influence of pheromone trails." << std::endl;
+  std::cout << "-b,--beta\t [Opt,Beta] \t Influence of heuristic information." << std::endl;
+  std::cout << "-h,--rho \t [Opt,Rho] \t Pheromone trail evaporation." << std::endl;
+  std::cout << "-z,--tau-zero \t [Opt,Tau_zero]  Pheromone trail initial value." << std::endl;
+  std::cout << "-e,--epsilon \t [Opt,Epsilon] \t Probability of choosing the best global solution instead of the best iteration one for pheromone update." << std::endl;
+  std::cout << "-t,--t-max \t [Opt,T-Max] \t Maximum runtime for each run" << std::endl;
+  std::cout << "-n,--ants \t [Opt,Ants] \t Number of ants." << std::endl;
   std::cout << "-i,--input\t [Req,Path] \t Path to instance to be given as input to the program" << std::endl;
   std::cout << "-r,--runs\t [Opt,Runs] \t Number of runs of the algorithm. 1 if omitted." << std::endl;
   std::cout << "-s,--seed\t [Req,Seed] \t Path to the file containing the list of seeds." << std::endl;

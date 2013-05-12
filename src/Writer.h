@@ -46,6 +46,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+
 #include "CommonDefs.h"
 
 class Writer {
@@ -54,7 +55,7 @@ public:
 	Writer(std::string filename,
 		 unsigned int known_best,
 		 ESLSType sls_type):
-		m_unKnownBest(known_best){
+		 m_unKnownBest(known_best){
 				m_sOutputFileName = "";
 				switch (sls_type) {
 					case ANT_COLONY_OPTIMIZATION:
@@ -211,7 +212,9 @@ private:
 	unsigned int m_unKnownBest;
 	std::list<SResultsData> m_listResults;
 	std::ofstream m_ofsRResults;
-	std::ofstream m_ofsTextResults;
+	std::ofstream m_ofsCVRTD;
+	std::ofstream m_ofsRTD;
+
 
 };
 
