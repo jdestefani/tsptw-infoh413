@@ -63,7 +63,12 @@ public:
 		 m_lfRunTime(0.0f),
 		 m_unIterations(0),
 		 m_unTemperatureChanges(0),
-		 m_unTemperatureChangesStationary(0){}
+		 m_unTemperatureChangesStationary(0),
+		 m_lfTimeOptimum(0.0f),
+		 m_cBestFeasibleSolution(){
+
+		m_cBestFeasibleSolution.SetTourDuration(INT_MAX);
+	}
 
 	virtual ~SACore();
 	void SA();
@@ -91,6 +96,7 @@ private:
 		unsigned int m_unCities;
 		CandidateSolution m_cCurrentSolution;
 		CandidateSolution m_cProposedSolution;
+		CandidateSolution m_cBestFeasibleSolution;
 		double m_lfRunTime;
 		unsigned int m_unGlobalOptimum;
 		unsigned int m_unLowerBoundTemperatureChanges;
@@ -98,14 +104,9 @@ private:
 		unsigned int m_unIterations;
 		unsigned int m_unTemperatureChanges;
 		unsigned int m_unTemperatureChangesStationary;
-		static const unsigned int R=50;
+		static const unsigned int R=5000;
 		static const unsigned int CONVERGENCE_THRESHOLD=75;
-		static const unsigned int LUT_UPPERBOUND = 4;
-		static const unsigned int LUT_RESOLUTION = 10000;
-		std::vector<double> m_vecMetropolisLUT;
-
-		void PrecomputeLUT();
-		double ExpLUT(double value);
+		double m_lfTimeOptimum;
 
 };
 

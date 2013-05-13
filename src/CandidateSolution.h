@@ -53,7 +53,7 @@ public:
 	CandidateSolution() :
 		m_unTourDuration(0),
 		m_unConstraintViolations(0),
-		m_fSolutionEvaluation(0.0f){
+		m_lfSolutionEvaluation(0.0f){
 		m_vecTour.reserve(1);
 	}
 
@@ -61,24 +61,24 @@ public:
 		m_vecTour(tour),
 		m_unTourDuration(0),
 		m_unConstraintViolations(0),
-		m_fSolutionEvaluation(0.0f){
+		m_lfSolutionEvaluation(0.0f){
 	}
 
 	CandidateSolution(const CandidateSolution& cs):
 			m_vecTour(cs.GetTour()),
 			m_unTourDuration(cs.GetTourDuration()),
 			m_unConstraintViolations(cs.GetConstraintViolations()),
-			m_fSolutionEvaluation(cs.GetTourDuration()){
+			m_lfSolutionEvaluation(cs.GetTourDuration()){
 	}
 
 	virtual ~CandidateSolution();
 
 	inline double GetSolutionEvaluation() const {
-		return m_fSolutionEvaluation;
+		return m_lfSolutionEvaluation;
 	}
 
 	inline void SetSolutionEvaluation(double fSolutionEvaluation) {
-		m_fSolutionEvaluation = fSolutionEvaluation;
+		m_lfSolutionEvaluation = fSolutionEvaluation;
 	}
 
 	inline unsigned int GetConstraintViolations() const {
@@ -160,9 +160,9 @@ private:
 	std::vector<unsigned int> m_vecTour;
 	unsigned int m_unTourDuration;
 	unsigned int m_unConstraintViolations;
-	double m_fSolutionEvaluation;
+	double m_lfSolutionEvaluation;
 
-	static const unsigned int PENALITY=10^2;
+	static const unsigned int PENALTY=10^4;
 };
 
 #endif /* CANDIDATESOLUTION_H_ */

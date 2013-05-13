@@ -26,10 +26,11 @@ void SACore::Run() {
 void SACore::SA() {
 	struct timespec sBeginTime;
 	struct timespec sEndTime;
+	unsigned int stagnatedIterations = 0;
 
 	InitTemperature();
 	/*Generate initial solution using heuristic*/
-	m_cHeuristicCore.SetInitFunction(RANDOM);
+	m_cHeuristicCore.SetInitFunction(HEURISTIC);
 	m_cHeuristicCore.GenerateInitialSolution();
 	//std::cout << m_cHeuristicCore.GetCurrentSolution();
 	m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
@@ -37,10 +38,31 @@ void SACore::SA() {
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
 	do{
 		ProposalMechanism();
+
 		if(AcceptanceCriterion()){
 			m_cCurrentSolution = m_cProposedSolution;
+			stagnatedIterations = 0;
 		}
+		/*If no proposed solution is accepted for a number of iterations corresponding
+		 * to the iteration per temperature value, perform a best-improvement local search in the 1-shift
+		 * insert neighborhood of the current solution.
+		 */
+
+		if(++stagnatedIterations > m_unIPT){
+			m_cHeuristicCore.SetCurrentSolution(m_cCurrentSolution);
+			m_cHeuristicCore.ComputeNeighborhood();
+			m_unIterations+=pow(m_unCities-1,2);
+			m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
+			if(m_cCurrentSolution.GetConstraintViolations() == 0
+					&& m_cCurrentSolution.GetTourDuration() < m_cBestFeasibleSolution.GetTourDuration()){
+				m_cBestFeasibleSolution = m_cCurrentSolution;
+			}
+			stagnatedIterations = 0;
+
+		}
+
 		UpdateTemperature();
+
 		m_unIterations++;
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
 		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
@@ -48,12 +70,20 @@ void SACore::SA() {
 			m_wriResultsWriter.AddSolutionQuality(m_cCurrentSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
 			m_wriResultsWriter.NextSamplingTime();
 		}
-	}while(m_lfRunTime < m_lfTMax || TerminationCondition());
+	}while(!TerminationCondition());
 
-	std::cout << "Solution found in " << m_lfRunTime << " s" << std::endl;
+	if(m_lfTimeOptimum > 0.0f){
+		std::cout << "Global optimum found in " << m_lfRunTime << " s (" << m_unIterations << " iterations)" << std::endl;
+		std::cout << m_cBestFeasibleSolution;
+		std::cout << std::endl << std::endl;
+		m_wriResultsWriter.AddData(m_lfSeed,m_cBestFeasibleSolution.GetTourDuration(),m_cBestFeasibleSolution.GetConstraintViolations(),m_lfTimeOptimum);
+	}
+	else{
+		std::cout << "Solution found in " << m_lfRunTime << " s (" << m_unIterations << " iterations)" << std::endl;
 		std::cout << m_cCurrentSolution;
 		std::cout << std::endl << std::endl;
 		m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_lfRunTime);
+	}
 
 	m_wriResultsWriter.FlushRTDList(m_lfSeed);
 	m_wriResultsWriter.ResetSolutionQualityList();
@@ -62,19 +92,20 @@ void SACore::SA() {
 
 void SACore::ProposalMechanism()
 {
-	unsigned int i=(float(rand())/RAND_MAX)*m_unCities;
+	unsigned int i=1+((float(rand())/RAND_MAX)*(m_unCities-1));
 	unsigned int j=0;
 	std::vector<unsigned int> currentTour = m_cCurrentSolution.GetTour();
 
 	do{
-		j=(float(rand())/RAND_MAX)*m_unCities;
+		j=1+((float(rand())/RAND_MAX)*(m_unCities-1));
 	}while(j==i);
 
+	//m_cHeuristicCore.SwapTourComponents(currentTour,i,j);
 	m_cHeuristicCore.InsertTourComponent(currentTour,i,j);
 	m_cProposedSolution.SetTour(currentTour);
 	m_cHeuristicCore.ComputeTourLengthAndConstraintsViolations(m_cProposedSolution);
-	std::cout << "Proposed Tour Length:" << m_cProposedSolution.GetTourDuration() << std::endl;
-	std::cout << "Proposed Tour CV:" << m_cProposedSolution.GetConstraintViolations() << std::endl;
+	//std::cout << "Proposed Tour Length:" << m_cProposedSolution.GetTourDuration() << std::endl;
+	//std::cout << "Proposed Tour CV:" << m_cProposedSolution.GetConstraintViolations() << std::endl;
 }
 
 bool SACore::AcceptanceCriterion()
@@ -87,8 +118,14 @@ bool SACore::AcceptanceCriterion()
 		return true;
 	}
 
-	double metropolisValue = exp((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
-	//double metropolisValue = ExpLUT((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
+	if(m_cProposedSolution.GetConstraintViolations() == 0){
+		m_unTemperatureChangesStationary = 0;
+		return true;
+	}
+
+	double metropolisValue = exp((m_cCurrentSolution.GetSolutionEvaluation()-m_cProposedSolution.GetSolutionEvaluation())/m_lfT);
+
+	//std::cout << "Metropolis value:" << metropolisValue << std::endl;
 
 	if((float(rand())/RAND_MAX) <= metropolisValue){
 		m_unTemperatureChangesStationary = 0;
@@ -103,17 +140,19 @@ void SACore::InitTemperature() {
 	unsigned int i=0;
 	double accumulator = 0.0f;
 
-	m_cHeuristicCore.SetInitFunction(RANDOM);
+	m_cHeuristicCore.SetInitFunction(HEURISTIC);
 	while(i < R){
 		m_cHeuristicCore.GenerateInitialSolution();
 		m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
 		ProposalMechanism();
-		accumulator = abs(m_cCurrentSolution.GetTourDuration() - m_cProposedSolution.GetTourDuration());
+		m_cProposedSolution.ComputeSolutionEvaluation();
+		m_cCurrentSolution.ComputeSolutionEvaluation();
+		accumulator += abs(m_cCurrentSolution.GetSolutionEvaluation()-m_cProposedSolution.GetSolutionEvaluation());
 		i++;
 	}
 
-	accumulator /= i+1;
-	m_lfT = accumulator / log(1/m_lfX_zero);
+	m_lfT = (accumulator/(i+1)) / -log(m_lfX_zero);
+	std::cout << "Initial T:" << m_lfT << std::endl;
 }
 
 void SACore::UpdateTemperature()
@@ -126,37 +165,22 @@ void SACore::UpdateTemperature()
 }
 
 bool SACore::TerminationCondition() {
+
 	if(m_cCurrentSolution.GetTourDuration() == m_unGlobalOptimum &&
 			m_cCurrentSolution.GetConstraintViolations() == 0){
-		return true;
+		m_cBestFeasibleSolution = m_cCurrentSolution;
+		m_lfTimeOptimum = m_lfRunTime;
 	}
 
-	if(m_unTemperatureChanges > m_unLowerBoundTemperatureChanges){
-
-		if(m_unTemperatureChangesStationary > CONVERGENCE_THRESHOLD){
-			return true;
+	if(m_lfRunTime < m_lfTMax){
+		if(m_unTemperatureChanges > m_unLowerBoundTemperatureChanges){
+			if(m_unTemperatureChangesStationary > CONVERGENCE_THRESHOLD){
+				return true;
+			}
+			return false;
 		}
-	}
 		return false;
+	}
+	return true;
 }
 
-void SACore::PrecomputeLUT() {
-	for(unsigned int i=0 ; i < LUT_UPPERBOUND ; i+= LUT_UPPERBOUND/LUT_RESOLUTION){
-		m_vecMetropolisLUT.push_back(exp(-i));
-	}
-}
-
-double SACore::ExpLUT(double value) {
-	unsigned int index = 0;
-
-	if(value <= 0.0f){
-		return 1.0f;
-	}
-	if(value >= LUT_UPPERBOUND){
-		return 0.0f;
-	}
-
-	index = (unsigned int) (abs(value)/double(LUT_UPPERBOUND/LUT_RESOLUTION));
-
-	return m_vecMetropolisLUT[index];
-}

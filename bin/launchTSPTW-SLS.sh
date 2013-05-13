@@ -2,6 +2,7 @@
 # $1 = Instance name
 # $2 = Runs
 # $3 = Seeds output file
+# $4 = Max runtime
 
 createReportFile() {
 	if [ ! -f $1 ]
@@ -29,11 +30,11 @@ generateRandomSeeds() {
 
 usage() {
 	echo 
-	echo "usage $0 [INSTANCE_NAME] [RUNS] [SEEDS_FILE]"
+	echo "usage $0 [INSTANCE_NAME] [RUNS] [SEEDS_FILE] [MAX_RUNTIME]"
 	echo 
 }
 
-if [ $# -ne 3 ]
+if [ $# -ne 4 ]
 then
 	usage
 	exit
@@ -63,10 +64,10 @@ instanceDir="./instances/"
 instanceName=$1
 
 # Command line interface for the algorithms still to define
-./TSPTW-ACO --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-SA  --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+#./TSPTW-ACO --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
+./TSPTW-SA  --input ${instanceDir}$1 -p 1000 -r $2 -s $3 -t $4 -k ${bestSolutions[$1]}
 
 
 
-Rscript processDataSLS.R ACO.$instanceName SA.$instanceName
+#Rscript processDataSLS.R ACO.$instanceName SA.$instanceName
 

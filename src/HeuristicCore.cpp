@@ -468,7 +468,7 @@ void HeuristicCore::GenerateRandomInitialSolution() {
 	std::random_shuffle(++currentTour.begin(),currentTour.end());
 	m_cCurrentSolution.SetTour(currentTour);
 	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
-	std::cout << m_cCurrentSolution << std::endl;
+	//std::cout << m_cCurrentSolution << std::endl;
 }
 
 /*
@@ -483,11 +483,15 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 	std::vector<unsigned int> currentTour;
 	std::vector<unsigned int> nextCityDistances;
 	unsigned int tourAccumulator = 0;
-	unsigned int i=0;
 	unsigned int perturbations = (float(rand())/RAND_MAX)*(m_vecTimeWindows.size()/10);
 
 
-	for(;i<2;i++){
+	for(unsigned int i=0;i<m_unCities;i++){
+		currentTour.push_back(timeWindows.at(i).GetCityNumber());
+
+	}
+	timeWindows.erase(timeWindows.begin(),timeWindows.end());
+	/*for(;i<2;i++){
 		currentTour.push_back(timeWindows.at(i).GetCityNumber());
 		if(i>0){
 			tourAccumulator += m_pcDistanceMatrix->GetElement(0,currentTour.at(i));
@@ -496,8 +500,8 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 	}
 	timeWindows.erase(timeWindows.begin(),timeWindows.begin()+i);
 
-	/*Tries to allocate cities in order to avoid constraint violations*/
-	/*If that is not possible, order cities according to the closing time of the time window*/
+	Tries to allocate cities in order to avoid constraint violations
+	If that is not possible, order cities according to the closing time of the time window
 	while(timeWindows.size()>0){
 		unsigned int j=0;
 		//nextCityDistances = m_vecDistanceMatrix.at(i-1);
@@ -523,7 +527,7 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 			}
 		}
 
-	}
+	}*/
 
 	/*Perturbate locally the generated solution with decreasing intensity*/
 	while(perturbations > 0){
