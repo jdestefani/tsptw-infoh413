@@ -50,6 +50,7 @@ void HeuristicCore::RunII() {
 	m_wriResultsWriter.OpenRFile();
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_fSeed = m_vecSeeds.at(i);
+		std::srand ( unsigned ( m_fSeed ) );
 		std::cout << "Run " << i+1 << " - seed " << m_fSeed << std::endl;
 		IterativeImprovement();
 	}
@@ -67,6 +68,7 @@ void HeuristicCore::RunVND() {
 	m_wriResultsWriter.OpenRFile();
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_fSeed = m_vecSeeds.at(i);
+		std::srand ( unsigned ( m_fSeed ) );
 		std::cout << "Run " << i+1 << " - seed " << m_fSeed << std::endl;
 		VariableNeighborhoodDescent();
 	}
@@ -459,7 +461,6 @@ void HeuristicCore::ComputeTourLengthAndConstraintsViolations(CandidateSolution&
 void HeuristicCore::GenerateRandomInitialSolution() {
 	unsigned int i=0;
 	std::vector<unsigned int> currentTour;
-	std::srand ( unsigned ( m_fSeed ) );
 
 	for(;i<m_unCities;i++){
 		currentTour.push_back(i);
@@ -483,7 +484,6 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 	std::vector<unsigned int> nextCityDistances;
 	unsigned int tourAccumulator = 0;
 	unsigned int i=0;
-	std::srand ( unsigned ( m_fSeed ) );
 	unsigned int perturbations = (float(rand())/RAND_MAX)*(m_vecTimeWindows.size()/10);
 
 
@@ -498,7 +498,7 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 
 	/*Tries to allocate cities in order to avoid constraint violations*/
 	/*If that is not possible, order cities according to the closing time of the time window*/
-	/*while(timeWindows.size()>0){
+	while(timeWindows.size()>0){
 		unsigned int j=0;
 		//nextCityDistances = m_vecDistanceMatrix.at(i-1);
 		for(; j<timeWindows.size(); j++){
@@ -523,16 +523,18 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 			}
 		}
 
-	}*/
+	}
 
 	/*Perturbate locally the generated solution with decreasing intensity*/
 	while(perturbations > 0){
 		unsigned int perturbationPoint = (float(rand())/RAND_MAX)*(currentTour.size()-1);
 		unsigned int perturbationIntensity = (float(rand())/RAND_MAX)*perturbations;
 		if(perturbationPoint+perturbationIntensity > currentTour.size()){
-			perturbationIntensity -= (perturbationIntensity+perturbationIntensity - currentTour.size());
+			perturbationIntensity -= (perturbationPoint+perturbationIntensity - currentTour.size());
 		}
-		std::random_shuffle(currentTour.begin()+1+perturbationPoint,currentTour.begin()+1+perturbationPoint+perturbationIntensity);
+		if(perturbationIntensity != 0){
+			std::random_shuffle(currentTour.begin()+1+perturbationPoint,currentTour.begin()+1+perturbationPoint+perturbationIntensity);
+		}
 		perturbations--;
 	}
 

@@ -107,11 +107,11 @@ public:
 
 
 	CandidateSolution& operator=(const CandidateSolution& c_cs) {
-		if(!(this->IsTourEqual(c_cs.GetTour()))) {
-			SetTour(c_cs.GetTour());
-			SetConstraintViolations(c_cs.GetConstraintViolations());
-			SetTourDuration(c_cs.GetTourDuration());
-		}
+		//if(!(this->IsTourEqual(c_cs.GetTour()))) {
+		SetTour(c_cs.GetTour());
+		SetConstraintViolations(c_cs.GetConstraintViolations());
+		SetTourDuration(c_cs.GetTourDuration());
+		//}
 		return *this;
 	}
 

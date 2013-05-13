@@ -9,10 +9,11 @@
 #define SACORE_H_
 
 #include <limits.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <math.h>
-#include <time.h>
-
+#include <ctime>
+#include <vector>
+#include <string>
 
 #include "NumericMatrix.h"
 #include "CandidateSolution.h"
@@ -97,7 +98,7 @@ private:
 		unsigned int m_unIterations;
 		unsigned int m_unTemperatureChanges;
 		unsigned int m_unTemperatureChangesStationary;
-		static const unsigned int R=5000;
+		static const unsigned int R=50;
 		static const unsigned int CONVERGENCE_THRESHOLD=75;
 		static const unsigned int LUT_UPPERBOUND = 4;
 		static const unsigned int LUT_RESOLUTION = 10000;

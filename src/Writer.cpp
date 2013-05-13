@@ -58,7 +58,7 @@ const std::string Writer::SEPARATOR=".";
 void Writer::OpenRFile() {
 	// data file
 	std::cout << "\tOutput file: " << m_sOutputFileName << std::endl << std::endl;
-	m_ofsRResults.open(m_sOutputFileName.append(".txt").c_str());
+	m_ofsRResults.open((m_sOutputFileName.append(".txt")).c_str());
 	if (m_ofsRResults.fail()) {
 		std::cerr << m_sOutputFileName << std::endl;
 		return;
@@ -67,16 +67,17 @@ void Writer::OpenRFile() {
 
 void Writer::OpenRTDResults() {
 	// data file
-	m_ofsRTDResults.open(m_sOutputFileName.append(".res").c_str());
+	m_ofsRTDResults.open(m_sOutputFileName.append(".rtd").c_str());
 	//LOG << "Opening " << m_sStatsFileName << std::endl;
 	if (m_ofsRTDResults.fail()) {
 		return;
 	}
 	m_ofsRTDResults << "Seed\t";
 	for(std::list<double>::iterator itList=m_listSamplingTimes.begin(); itList != m_listSamplingTimes.end(); ++itList){
-			m_ofsRTDResults << (*itList) << "\t" << std::endl;
+			m_ofsRTDResults << (*itList) << "\t";
 	}
 	m_ofsRTDResults << std::endl;
+	m_ofsRTDResults.flush();
 }
 
 void Writer::FlushRFile() {
@@ -89,12 +90,14 @@ void Writer::FlushRFile() {
 
 }
 
-void Writer::FlushRTDList() {
+void Writer::FlushRTDList(double seed) {
+	m_ofsRTDResults << seed << "\t";
 	/*Flush results*/
 	for(std::list<double>::iterator itList=m_listSolutionQuality.begin(); itList != m_listSolutionQuality.end(); ++itList){
-		m_ofsRTDResults << (*itList) << "\t" << std::endl;
+		m_ofsRTDResults << (*itList) << "\t";
 	}
 	m_ofsRTDResults << std::endl;
+	m_ofsRTDResults.flush();
 }
 
 void Writer::AddData(double seed,unsigned int best_tour_length, unsigned int constraint_violations, double cpu_time) {

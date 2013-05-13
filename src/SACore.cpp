@@ -12,6 +12,7 @@ SACore::~SACore() {
 
 void SACore::Run() {
 	m_wriResultsWriter.OpenRFile();
+	m_wriResultsWriter.OpenRTDResults();
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_lfSeed = m_vecSeeds.at(i);
 		std::srand( unsigned ( m_lfSeed ) );
@@ -28,9 +29,10 @@ void SACore::SA() {
 
 	InitTemperature();
 	/*Generate initial solution using heuristic*/
-	m_cHeuristicCore.SetInitFunction(HEURISTIC);
+	m_cHeuristicCore.SetInitFunction(RANDOM);
 	m_cHeuristicCore.GenerateInitialSolution();
-	m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolution();
+	//std::cout << m_cHeuristicCore.GetCurrentSolution();
+	m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
 	do{
@@ -53,7 +55,7 @@ void SACore::SA() {
 		std::cout << std::endl << std::endl;
 		m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_lfRunTime);
 
-	m_wriResultsWriter.FlushRTDList();
+	m_wriResultsWriter.FlushRTDList(m_lfSeed);
 	m_wriResultsWriter.ResetSolutionQualityList();
 	m_wriResultsWriter.RestartSamplingTime();
 }
@@ -61,7 +63,7 @@ void SACore::SA() {
 void SACore::ProposalMechanism()
 {
 	unsigned int i=(float(rand())/RAND_MAX)*m_unCities;
-	unsigned j=0;
+	unsigned int j=0;
 	std::vector<unsigned int> currentTour = m_cCurrentSolution.GetTour();
 
 	do{
@@ -71,6 +73,8 @@ void SACore::ProposalMechanism()
 	m_cHeuristicCore.InsertTourComponent(currentTour,i,j);
 	m_cProposedSolution.SetTour(currentTour);
 	m_cHeuristicCore.ComputeTourLengthAndConstraintsViolations(m_cProposedSolution);
+	std::cout << "Proposed Tour Length:" << m_cProposedSolution.GetTourDuration() << std::endl;
+	std::cout << "Proposed Tour CV:" << m_cProposedSolution.GetConstraintViolations() << std::endl;
 }
 
 bool SACore::AcceptanceCriterion()
@@ -83,8 +87,8 @@ bool SACore::AcceptanceCriterion()
 		return true;
 	}
 
-	//double metropolisValue = exp((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
-	double metropolisValue = ExpLUT((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
+	double metropolisValue = exp((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
+	//double metropolisValue = ExpLUT((m_cProposedSolution.GetTourDuration()-m_cCurrentSolution.GetTourDuration())/m_lfT);
 
 	if((float(rand())/RAND_MAX) <= metropolisValue){
 		m_unTemperatureChangesStationary = 0;
@@ -102,7 +106,7 @@ void SACore::InitTemperature() {
 	m_cHeuristicCore.SetInitFunction(RANDOM);
 	while(i < R){
 		m_cHeuristicCore.GenerateInitialSolution();
-		m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolution();
+		m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
 		ProposalMechanism();
 		accumulator = abs(m_cCurrentSolution.GetTourDuration() - m_cProposedSolution.GetTourDuration());
 		i++;
@@ -152,7 +156,7 @@ double SACore::ExpLUT(double value) {
 		return 0.0f;
 	}
 
-	index = (unsigned int) abs(value)/(LUT_UPPERBOUND/LUT_RESOLUTION);
+	index = (unsigned int) (abs(value)/double(LUT_UPPERBOUND/LUT_RESOLUTION));
 
 	return m_vecMetropolisLUT[index];
 }

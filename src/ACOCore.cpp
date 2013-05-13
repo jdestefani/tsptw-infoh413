@@ -48,6 +48,7 @@ void ACOCore::InitializeHeuristicValues() {
 */
 void ACOCore::Run() {
 	m_wriResultsWriter.OpenRFile();
+	m_wriResultsWriter.OpenRTDResults();
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_lfSeed = m_vecSeeds.at(i);
 		std::srand ( unsigned ( m_lfSeed ) );
@@ -89,7 +90,7 @@ void ACOCore::ACO() {
 	std::cout << std::endl << std::endl;
 	m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentBestSolution.GetTourDuration(),m_cCurrentBestSolution.GetConstraintViolations(),m_lfRunTime);
 
-	m_wriResultsWriter.FlushRTDList();
+	m_wriResultsWriter.FlushRTDList(m_lfSeed);
 	m_wriResultsWriter.ResetSolutionQualityList();
 	m_wriResultsWriter.RestartSamplingTime();
 }

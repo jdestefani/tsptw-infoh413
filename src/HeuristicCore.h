@@ -45,7 +45,7 @@
 #include <climits>
 #include <cstdlib>
 #include <set>
-#include <time.h>
+#include <ctime>
 #include <iostream>
 
 #include "TimeWindow.h"
@@ -120,6 +120,10 @@ public:
 	}
 
 	inline const CandidateSolution& GetCurrentSolution() const {
+		return m_cCurrentSolution;
+	}
+
+	inline CandidateSolution& GetCurrentSolutionMutable(){
 		return m_cCurrentSolution;
 	}
 

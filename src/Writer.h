@@ -77,10 +77,10 @@ public:
 		m_sOutputFileName.append(filename.substr(filename.find_last_of('/')+1,filename.length()));
 
 		/*Initialize sampling times vector*/
-		for(unsigned int i=LOGAXISLOWERBOUND; i<LOGAXISUPPERBOUND ; i++){
+		for(int i=LOGAXISLOWERBOUND; i<LOGAXISUPPERBOUND ; i++){
 			intervalLowerBound = pow(10,i);
 			intervalUpperBound = pow(10,i+1);
-			for(unsigned int j=intervalLowerBound; j<intervalUpperBound ; j+= (intervalUpperBound-intervalLowerBound)/SAMPLES){
+			for(double j=intervalLowerBound; j<intervalUpperBound ; j+= (intervalUpperBound-intervalLowerBound)/SAMPLESPERINTERVAL){
 				m_listSamplingTimes.push_back(j);
 			}
 		}
@@ -185,7 +185,7 @@ public:
 	void OpenRFile();
 	void OpenRTDResults();
 	void FlushRFile();
-	void FlushRTDList();
+	void FlushRTDList(double);
 	void AddData(double,unsigned int,unsigned int,double);
 	void AddSolutionQuality(double);
 	void ResetSolutionQualityList();
