@@ -53,12 +53,14 @@ const std::string Writer::VND_TYPE_PIPED="piped";
 const std::string Writer::ACO="ACO";
 const std::string Writer::SA="SA";
 const std::string Writer::SEPARATOR=".";
+const std::string Writer::RESULTAPPENDIX=".txt";
+const std::string Writer::RTDAPPENDIX=".rtd";
 
 
 void Writer::OpenRFile() {
-	// data file
-	std::cout << "\tOutput file: " << m_sOutputFileName << std::endl << std::endl;
-	m_ofsRResults.open((m_sOutputFileName.append(".txt")).c_str());
+	std::string fileName = m_sOutputFileName;
+	std::cout << "\tResults file: " << fileName.append(RESULTAPPENDIX) << std::endl;
+	m_ofsRResults.open(fileName.c_str());
 	if (m_ofsRResults.fail()) {
 		std::cerr << m_sOutputFileName << std::endl;
 		return;
@@ -66,9 +68,10 @@ void Writer::OpenRFile() {
 }
 
 void Writer::OpenRTDResults() {
-	// data file
-	m_ofsRTDResults.open(m_sOutputFileName.append(".rtd").c_str());
-	//LOG << "Opening " << m_sStatsFileName << std::endl;
+	std::string fileName = m_sOutputFileName;
+	std::cout << "\tRTDs file: " << fileName.append(RTDAPPENDIX) << std::endl << std::endl;
+	m_ofsRTDResults.open(fileName.c_str());
+
 	if (m_ofsRTDResults.fail()) {
 		return;
 	}

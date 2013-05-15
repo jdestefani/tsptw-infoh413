@@ -98,7 +98,7 @@ void CandidateSolution::Reset() {
 }
 
 double CandidateSolution::ComputeRelativeSolutionQuality(double known_best) {
-	return ((m_unTourDuration + PENALTY*m_unConstraintViolations)/known_best)-1;
+	return (double(m_unTourDuration + PENALTY*m_unConstraintViolations)/known_best)-1;
 }
 
 std::string CandidateSolution::ToString() {

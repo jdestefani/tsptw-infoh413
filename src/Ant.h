@@ -8,6 +8,8 @@
 #ifndef ANT_H_
 #define ANT_H_
 
+#include <cassert>
+#include <iostream>
 #include <vector>
 #include "CandidateSolution.h"
 
@@ -17,6 +19,13 @@ public:
 	Ant():
 	    m_cAntSolution(){
 		m_vecVisitedCities.reserve(1);
+	}
+
+	Ant(unsigned int cities):
+		m_cAntSolution(cities){
+		for(unsigned int i=0; i < cities; i++){
+			m_vecVisitedCities.push_back(false);
+		}
 	}
 
 	Ant(const std::vector<unsigned int>& tour):
@@ -34,6 +43,7 @@ public:
 	}
 
 	void SetVisitedCity(unsigned int city_index){
+		assert(city_index < m_vecVisitedCities.size());
 		m_vecVisitedCities[city_index] = true;
 	}
 

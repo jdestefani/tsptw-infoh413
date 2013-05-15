@@ -99,5 +99,5 @@ inline double ComputeRunTime(struct timespec& s_begin_time, struct timespec& s_e
 const unsigned int SAMPLESPERINTERVAL = 50;
 const int LOGAXISLOWERBOUND = -2;
 const int LOGAXISUPPERBOUND = 2;
-
+const int PENALTY = 10e4;
 #endif /* COMMONDEFS_H_ */

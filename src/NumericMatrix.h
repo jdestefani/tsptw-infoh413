@@ -42,7 +42,7 @@
 #ifndef MATRIX_H_
 #define MATRIX_H_
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 
 template<class T>

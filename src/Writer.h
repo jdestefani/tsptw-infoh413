@@ -201,7 +201,6 @@ private:
 				unsigned int bestSolution;
 				unsigned int constraintViolations;
 				double cpuRunTime;
-				static const double CONSTRAINT_VIOLATION_PENALTY=10e4;
 
 				SResultsData(double seed, unsigned int best_solution, unsigned int cv, double cpu_runtime):
 					seed(seed),
@@ -212,7 +211,7 @@ private:
 				}
 
 				double ComputePRDP(unsigned int known_best){
-					return 100*(((bestSolution+constraintViolations*CONSTRAINT_VIOLATION_PENALTY)-known_best)/known_best);
+					return 100*(((bestSolution+constraintViolations*PENALTY)-known_best)/known_best);
 				}
 	};
 
@@ -228,6 +227,8 @@ private:
 	static const std::string ACO;
 	static const std::string SA;
 	static const std::string SEPARATOR;
+	static const std::string RESULTAPPENDIX;
+	static const std::string RTDAPPENDIX;
 
 	std::string m_sOutputFileName;
 	unsigned int m_unKnownBest;

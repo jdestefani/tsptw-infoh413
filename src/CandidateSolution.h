@@ -47,6 +47,10 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <iostream>
+#include <climits>
+
+#include "CommonDefs.h"
 
 class CandidateSolution {
 public:
@@ -55,6 +59,15 @@ public:
 		m_unConstraintViolations(0),
 		m_lfSolutionEvaluation(0.0f){
 		m_vecTour.reserve(1);
+	}
+
+	CandidateSolution(unsigned int cities) :
+			m_unTourDuration(INT_MAX),
+			m_unConstraintViolations(cities),
+			m_lfSolutionEvaluation(0.0f){
+			for(unsigned int i=0; i < cities; i++){
+				m_vecTour.push_back(i);
+			}
 	}
 
 	CandidateSolution(const std::vector<unsigned int>& tour):
@@ -162,7 +175,6 @@ private:
 	unsigned int m_unConstraintViolations;
 	double m_lfSolutionEvaluation;
 
-	static const unsigned int PENALTY=10^4;
 };
 
 #endif /* CANDIDATESOLUTION_H_ */

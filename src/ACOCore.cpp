@@ -38,6 +38,7 @@ void ACOCore::InitializeHeuristicValues() {
 
 	m_unCMin = m_pcDistanceMatrix->GetMin();
 	m_unCMax = m_pcDistanceMatrix->GetMax();
+
 }
 
 /*
@@ -49,6 +50,12 @@ void ACOCore::InitializeHeuristicValues() {
 void ACOCore::Run() {
 	m_wriResultsWriter.OpenRFile();
 	m_wriResultsWriter.OpenRTDResults();
+
+	std::cout << "Heuristic values:" << std::endl;
+	std::cout << "\ta (" << m_unAMin << "," << m_unAMax << ") - lambda_a:" << m_lfLambdaA << std::endl;
+	std::cout << "\tb (" << m_unBMin << "," << m_unBMax << ") - lambda_b:" << m_lfLambdaB << std::endl;
+	std::cout << "\tc (" << m_unCMin << "," << m_unCMax << ") - lambda_c:" << m_lfLambdaC << std::endl << std::endl;
+
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_lfSeed = m_vecSeeds.at(i);
 		std::srand ( unsigned ( m_lfSeed ) );
@@ -82,13 +89,24 @@ void ACOCore::ACO() {
 			m_wriResultsWriter.NextSamplingTime();
 		}
 		m_unIterations++;
-	}while(m_lfRunTime < m_lfTMax || TerminationCondition());
+
+	}while(!TerminationCondition());
 
 
-	std::cout << "Solution found in " << m_lfRunTime << " s" << std::endl;
+	std::cout << "Solution found in " << m_lfRunTime << " s (" << m_unIterations << " iterations)" << std::endl;
 	std::cout << m_cCurrentBestSolution;
 	std::cout << std::endl << std::endl;
-	m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentBestSolution.GetTourDuration(),m_cCurrentBestSolution.GetConstraintViolations(),m_lfRunTime);
+
+	if(m_lfTimeOptimum > 0.0f){
+		std::cout << "Best feasible solution found in " << m_lfTimeOptimum << " s" << std::endl;
+		std::cout << m_cBestFeasibleSolution;
+		std::cout << std::endl << std::endl;
+		m_wriResultsWriter.AddData(m_lfSeed,m_cBestFeasibleSolution.GetTourDuration(),m_cBestFeasibleSolution.GetConstraintViolations(),m_lfTimeOptimum);
+	}
+	else{
+		m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentBestSolution.GetTourDuration(),m_cCurrentBestSolution.GetConstraintViolations(),m_lfRunTime);
+	}
+
 
 	m_wriResultsWriter.FlushRTDList(m_lfSeed);
 	m_wriResultsWriter.ResetSolutionQualityList();
@@ -108,20 +126,11 @@ void ACOCore::ConstructSolutions() {
 	for(unsigned int i=0; i<m_vecAnts.size(); i++){
 		m_vecAnts[i].ResetVisitedCities();
 		ConstructSolutionAnt(i);
-		/* Update best so far solution */
-		if(m_vecAnts[i].GetAntSolution() <= m_cCurrentBestSolution){
-			m_cCurrentBestSolution = m_vecAnts[i].GetAntSolution();
-		}
-		/* Update iteration best solution */
-		if(m_vecAnts[i].GetAntSolution() <= m_vecAnts[i].GetAntSolution()){
-			m_unIterationBestSolution = i;
-		}
 	}
-
 }
 
 void ACOCore::UpdateBestSolutions() {
-	int  bestSolution = -1;
+	int bestSolution = -1;
 	m_unIterationBestSolution = 0;
 
 	for(unsigned int i=0; i<m_vecAnts.size(); i++){
@@ -134,7 +143,8 @@ void ACOCore::UpdateBestSolutions() {
 			m_unIterationBestSolution = i;
 		}
 	}
-	if(bestSolution > 0){
+
+	if(bestSolution >= 0){
 		m_cCurrentBestSolution = m_vecAnts[bestSolution].GetAntSolution();
 	}
 }
@@ -153,7 +163,9 @@ unsigned int ACOCore::RouletteWheelSelection(unsigned int ant_index,unsigned int
 			rouletteWheel[i] = 0.0f;
 		}
 		else{
-			rouletteWheel[i] = pow(m_cPheromoneMatrix.GetElement(previouslyVisitedCity,i),m_lfAlpha) * ComputeHeuristic(previouslyVisitedCity,i);
+			//std::cout << "Pheromone:" << m_cPheromoneMatrix(previouslyVisitedCity,i) << "-" << "Heuristic:" << ComputeHeuristic(previouslyVisitedCity,i) << std::endl;
+			rouletteWheel[i] = pow(m_cPheromoneMatrix(previouslyVisitedCity,i),m_lfAlpha) * pow(ComputeHeuristic(previouslyVisitedCity,i),m_lfBeta);
+			//rouletteWheel[i] = pow(m_cPheromoneMatrix(previouslyVisitedCity,i),m_lfAlpha);
 			rouletteWheelSum += rouletteWheel[i];
 		}
 
@@ -162,13 +174,14 @@ unsigned int ACOCore::RouletteWheelSelection(unsigned int ant_index,unsigned int
 	drawnNumber = (float(rand())/RAND_MAX)*(rouletteWheelSum);
 
 	rouletteWheelSum = 0;
-	i=0;
-	while(drawnNumber > rouletteWheelSum ){
+	for(i=0;i<m_unCities;i++){
 		rouletteWheelSum += rouletteWheel[i];
-		i++;
+		if(drawnNumber < rouletteWheelSum){
+			return i;
+		}
 	}
 
-	return i;
+	return i-1;
 
 }
 
@@ -190,51 +203,58 @@ void ACOCore::PheromoneDeposit(unsigned int ant_index) {
 	/* Probabilistic MAX-MIN update */
 	if((float(rand())/RAND_MAX) < m_lfEpsilon){
 		/*Update pheromone trails according to global best solution*/
-		bestSolution.SetTour(m_cCurrentBestSolution.GetTour());
-		bestSolution.SetConstraintViolations(m_cCurrentBestSolution.GetConstraintViolations());
-		bestSolution.SetTourDuration(m_cCurrentBestSolution.GetTourDuration());
-
+		bestSolution = m_cCurrentBestSolution;
 	}
 	else{
 		/*Update pheromone trails according to iteration best solution*/
-		bestSolution.SetTour(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetTour());
-		bestSolution.SetConstraintViolations(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetConstraintViolations());
-		bestSolution.SetTourDuration(m_vecAnts[m_unIterationBestSolution].GetAntSolution().GetTourDuration());
-
+		bestSolution = m_vecAnts[m_unIterationBestSolution].GetAntSolution();
 	}
 
 	pheromoneUpdate = 1.0f/bestSolution.GetTourDuration();
 
-	for(unsigned int i=1; i<bestSolution.GetTour().size()-1; i++){
+	for(unsigned int i=0; i<bestSolution.GetTour().size()-1; i++){
 		currentCity = bestSolution.GetTour().at(i);
 		nextCity = bestSolution.GetTour().at(i+1);
 		m_cPheromoneMatrix.SetElement(currentCity,nextCity,SaturatePheromone(m_cPheromoneMatrix(currentCity,nextCity)+pheromoneUpdate));
 		m_cPheromoneMatrix.SetElement(nextCity,currentCity,m_cPheromoneMatrix(currentCity,nextCity));
 	}
 
+	m_cPheromoneMatrix.SetElement(nextCity,0,SaturatePheromone(m_cPheromoneMatrix(nextCity,0)+pheromoneUpdate));
+	m_cPheromoneMatrix.SetElement(0,nextCity,m_cPheromoneMatrix(nextCity,0));
+
+
 }
 
 bool ACOCore::TerminationCondition() {
+
 	if(m_cCurrentBestSolution.GetTourDuration() == m_unGlobalOptimum &&
 			m_cCurrentBestSolution.GetConstraintViolations() == 0){
-		return true;
+		m_cBestFeasibleSolution = m_cCurrentBestSolution;
+		m_lfTimeOptimum = m_lfRunTime;
 	}
-	return false;
+
+	if(m_lfRunTime < m_lfTMax){
+		return false;
+	}
+	return true;
 }
 
 void ACOCore::ConstructSolutionAnt(unsigned int ant_index) {
 	std::vector<unsigned int> constructedTour;
 	unsigned int steps=0;
-	unsigned int chosenCity=(float(rand())/RAND_MAX)*(m_unCities);
-
+	unsigned int chosenCity=0;
 
 	/*1. Start with the depot*/
-	constructedTour.push_back(0);
+	constructedTour.push_back(chosenCity);
+	m_vecAnts[ant_index].SetVisitedCity(chosenCity);
 	/*2. Random pick the first city*/
+	do{
+		chosenCity = (float(rand())/RAND_MAX)*m_unCities;
+	}while(m_vecAnts[ant_index].IsVisited(chosenCity));
 	constructedTour.push_back(chosenCity);
 	m_vecAnts[ant_index].SetVisitedCity(chosenCity);
 	/*3. Apply decision rule on all the other cities */
-	while(steps < m_unCities-1){
+	while(steps < m_unCities-2){
 		steps++;
 		chosenCity=RouletteWheelSelection(ant_index,steps);
 		constructedTour.push_back(chosenCity);
@@ -243,6 +263,7 @@ void ACOCore::ConstructSolutionAnt(unsigned int ant_index) {
 	/*4. Evaluate solution */
 	m_vecAnts[ant_index].GetAntSolution().SetTour(constructedTour);
 	ComputeTourLengthAndConstraintsViolations(m_vecAnts[ant_index]);
+	//std::cout << "Ant " << ant_index << ":" <<  m_vecAnts[ant_index].GetAntSolution();
 }
 
 double ACOCore::ComputeHeuristic(unsigned int city_index,unsigned int next_city_index){

@@ -542,7 +542,9 @@ void HeuristicCore::GenerateHeuristicInitialSolution() {
 		perturbations--;
 	}
 
+
 	m_cCurrentSolution.SetTour(currentTour);
+	std::cout << m_cCurrentSolution << std::endl;
 	ComputeTourLengthAndConstraintsViolations(m_cCurrentSolution);
 }
 

@@ -5,14 +5,47 @@ boxplotToPdf <- function(file,data,colNames,stringTitle,stringXLabel,pdfHeight,p
   dev.off()
 }
 
+RTDToPdf <- function(file,timeScale,data,stringTitle,stringXLabel,pdfHeight,pdfWidth){
+  pdf(file)
+  
+  #plot.ts(data)
+  #boxplot(as.data.frame(data),names=colNames,horizontal=TRUE,main=stringTitle,col=terrain.colors(length(colNames)),las=1)
+  
+  #Set up the plot - Line types and plot chars: http://www.cookbook-r.com/Graphs/Shapes_and_line_types/
+  xRange <- range(timeScale)
+  yRange <- range(0,1)
+  nPlots <- length(data)
+  plotColors <- rainbow(nPlots) 
+  lineType <- c(1:nPlots) 
+  plotChar <- seq(18,18+nPlots,1)
+  
+  plot(xrange,yrange, type="n", xlab="Time (s)",
+       ylab=expression(q[r]) , log = 'x' ) 
+  
+  
+  # add lines
+  lines(timeScale, data[[1]], type="l", lwd=1.5, lty=lineType[1], col=plotColors[1], pch=plotChar[1])
+  lines(timeScale, data[[2]], type="l", lwd=1.5, lty=lineType[2], col=plotColors[2], pch=plotChar[2])
+  lines(timeScale, data[[3]], type="l", lwd=1.5, lty=lineType[3], col=plotColors[3], pch=plotChar[3])
+  
+  #Add a title
+  title(stringTitle)
+  
+  # add a legend 
+  legend(xrange[1], yrange[2], c(0.1,0.05,0.02), cex=0.8, col=plotColors,
+         pch=plotChar, lty=lineType, title="QRTD")
+  dev.off()
+}
+
+
 computeStatistics <- function(inputFile){
   #Read data and compute errors for each cluster
   inputData <- read.table(inputFile, header = TRUE)
   
   #Detect algorithm type
   tokens <- unlist(strsplit(inputFile,"\\."))
-  outputFile <- paste(tokens[1],tokens[2],sep=".")
-  instanceName <- paste(tokens[3],tokens[4],sep=".")
+  outputFile <- tokens[1]
+  instanceName <- paste(tokens[2],tokens[3],sep=".")
   
   #Compute number of infeasible runs
   infeasibleRunPercentage <- sum(inputData[,"CV"]*1 > 0)/length(inputData[,"CV"])
@@ -23,6 +56,34 @@ computeStatistics <- function(inputFile){
   statistics <- paste(instanceName,infeasibleRunPercentage,meanPRDP,sep="\t")
   boxplots <- list(inputData[,"PRPD"])
   returnValues <- list(instanceName,outputFile,statistics,boxplots)
+  return(returnValues)
+}
+
+computeRTD <- function(inputFile){
+  #Read data and compute errors for each cluster
+  inputData <- read.table(inputFile, header = TRUE, check.name=FALSE)
+  
+  #Remove seeds column and determine time scale by the column names
+  inputData['Seed'] <- NULL
+  timeScale <- as.numeric(colnames(inputData))
+  
+  #Detect algorithm type
+  tokens <- unlist(strsplit(inputFile,"\\."))
+  outputFile <- tokens[1]
+  instanceName <- paste(tokens[2],tokens[3],sep=".")
+  
+  #Compute number of high quality runs
+  RTDTen <- inputData < 0.1
+  RTDFive <- inputData < 0.05
+  RTDTwo <- inputData < 0.02
+  
+  #Compute RTDs
+  RTDTen <- apply(RTDTen,2,sum) / nrow(inputData)
+  RTDFive <- apply(RTDFive,2,sum) / nrow(inputData)
+  RTDTwo <- apply(RTDTwo,2,sum) / nrow(inputData)
+  
+  plots <- list(RTDTen,RTDFive,RTDTwo)
+  returnValues <- list(instanceName,outputFile,plots)
   return(returnValues)
 }
 

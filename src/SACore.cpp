@@ -28,9 +28,9 @@ void SACore::SA() {
 	struct timespec sEndTime;
 	unsigned int stagnatedIterations = 0;
 
-	InitTemperature();
+	//InitTemperature();
 	/*Generate initial solution using heuristic*/
-	m_cHeuristicCore.SetInitFunction(HEURISTIC);
+	m_cHeuristicCore.SetInitFunction(RANDOM);
 	m_cHeuristicCore.GenerateInitialSolution();
 	//std::cout << m_cHeuristicCore.GetCurrentSolution();
 	m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
@@ -56,6 +56,7 @@ void SACore::SA() {
 			if(m_cCurrentSolution.GetConstraintViolations() == 0
 					&& m_cCurrentSolution.GetTourDuration() < m_cBestFeasibleSolution.GetTourDuration()){
 				m_cBestFeasibleSolution = m_cCurrentSolution;
+				m_lfTimeOptimum = m_lfRunTime;
 			}
 			stagnatedIterations = 0;
 
@@ -63,27 +64,38 @@ void SACore::SA() {
 
 		UpdateTemperature();
 
+		if(m_cCurrentSolution.GetConstraintViolations() == 0
+				&& m_cCurrentSolution.GetTourDuration() < m_cBestFeasibleSolution.GetTourDuration()){
+			m_cBestFeasibleSolution = m_cCurrentSolution;
+			m_lfTimeOptimum = m_lfRunTime;
+		}
+
 		m_unIterations++;
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
 		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
 		if(m_lfRunTime >= m_wriResultsWriter.CurrSamplingTime()){
+			//std::cout << m_cCurrentSolution;
+			//std::cout << m_wriResultsWriter.CurrSamplingTime() << "@" << m_lfRunTime << ":" << m_cCurrentSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum) << std::endl;
 			m_wriResultsWriter.AddSolutionQuality(m_cCurrentSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
 			m_wriResultsWriter.NextSamplingTime();
 		}
 	}while(!TerminationCondition());
 
+
+	std::cout << "Solution found in " << m_lfRunTime << " s (" << m_unIterations << " iterations)" << std::endl;
+	std::cout << m_cCurrentSolution;
+	std::cout << std::endl << std::endl;
+
 	if(m_lfTimeOptimum > 0.0f){
-		std::cout << "Global optimum found in " << m_lfRunTime << " s (" << m_unIterations << " iterations)" << std::endl;
+		std::cout << "Best feasible solution found in " << m_lfTimeOptimum << " s" << std::endl;
 		std::cout << m_cBestFeasibleSolution;
 		std::cout << std::endl << std::endl;
 		m_wriResultsWriter.AddData(m_lfSeed,m_cBestFeasibleSolution.GetTourDuration(),m_cBestFeasibleSolution.GetConstraintViolations(),m_lfTimeOptimum);
 	}
 	else{
-		std::cout << "Solution found in " << m_lfRunTime << " s (" << m_unIterations << " iterations)" << std::endl;
-		std::cout << m_cCurrentSolution;
-		std::cout << std::endl << std::endl;
 		m_wriResultsWriter.AddData(m_lfSeed,m_cCurrentSolution.GetTourDuration(),m_cCurrentSolution.GetConstraintViolations(),m_lfRunTime);
 	}
+
 
 	m_wriResultsWriter.FlushRTDList(m_lfSeed);
 	m_wriResultsWriter.ResetSolutionQualityList();
@@ -140,7 +152,7 @@ void SACore::InitTemperature() {
 	unsigned int i=0;
 	double accumulator = 0.0f;
 
-	m_cHeuristicCore.SetInitFunction(HEURISTIC);
+	m_cHeuristicCore.SetInitFunction(RANDOM);
 	while(i < R){
 		m_cHeuristicCore.GenerateInitialSolution();
 		m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();

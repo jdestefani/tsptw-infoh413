@@ -62,11 +62,13 @@ public:
 	 m_lfSeed(0.0f),
 	 m_lfRunTime(0.0f),
 	 m_unIterationBestSolution(0),
+	 m_cCurrentBestSolution(cities_number),
+	 m_cBestFeasibleSolution(cities_number),
 	 m_unGlobalOptimum(best_known_solution),
 	 m_unIterations(0){
 		/*Initialize ants*/
-		for(unsigned int i=0; i < ant_number; i++){
-			Ant currentAnt;
+		for(unsigned int i=0; i < m_unAntNumber; i++){
+			Ant currentAnt(m_unCities);
 			m_vecAnts.push_back(currentAnt);
 		}
 
@@ -83,8 +85,12 @@ public:
 		m_lfTauMin = m_lfTauMax/A;
 
 		/*Initialize lambda values*/
-		m_lfLambdaA = float(rand())/RAND_MAX;
+		/*m_lfLambdaA = float(rand())/RAND_MAX;
 		m_lfLambdaB = (float(rand())/RAND_MAX)*(1-m_lfLambdaA);
+		m_lfLambdaC = (1-m_lfLambdaA-m_lfLambdaB);*/
+
+		m_lfLambdaA = 1.0f/3;
+		m_lfLambdaB = 1.0f/3;
 		m_lfLambdaC = (1-m_lfLambdaA-m_lfLambdaB);
 
 		/*Initialize values required to compute heuristic*/
@@ -136,11 +142,12 @@ private:
 	unsigned int m_unCities;
 	unsigned int m_unAntNumber;
 	CandidateSolution m_cCurrentBestSolution;
+	CandidateSolution m_cBestFeasibleSolution;
 	unsigned int m_unIterationBestSolution;
 	double m_lfRunTime;
 	unsigned int m_unIterations;
 	unsigned int m_unGlobalOptimum;
-	std::list<double> m_listSamplingTimes;
+	double m_lfTimeOptimum;
 
 	void InitializeHeuristicValues();
 	void PheromoneEvaporation();
