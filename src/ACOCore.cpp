@@ -51,10 +51,11 @@ void ACOCore::Run() {
 	m_wriResultsWriter.OpenRFile();
 	m_wriResultsWriter.OpenRTDResults();
 
-	std::cout << "Heuristic values:" << std::endl;
-	std::cout << "\ta (" << m_unAMin << "," << m_unAMax << ") - lambda_a:" << m_lfLambdaA << std::endl;
-	std::cout << "\tb (" << m_unBMin << "," << m_unBMax << ") - lambda_b:" << m_lfLambdaB << std::endl;
-	std::cout << "\tc (" << m_unCMin << "," << m_unCMax << ") - lambda_c:" << m_lfLambdaC << std::endl << std::endl;
+	std::cout << "Ranges:" << std::endl;
+	std::cout << "\tPheromone range: (" << m_lfTauMin << "," << m_lfTauMax << ")" << std::endl;
+	std::cout << "\tOpening time range: (" << m_unAMin << "," << m_unAMax << ") - lambda_a:" << m_lfLambdaA << std::endl;
+	std::cout << "\tClosing time range: (" << m_unBMin << "," << m_unBMax << ") - lambda_b:" << m_lfLambdaB << std::endl;
+	std::cout << "\tTravelling time: (" << m_unCMin << "," << m_unCMax << ") - lambda_c:" << m_lfLambdaC << std::endl << std::endl;
 
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_lfSeed = m_vecSeeds.at(i);
@@ -75,11 +76,13 @@ void ACOCore::ACO() {
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
 	do{
 		ConstructSolutions();
-		UpdateBestSolutions();
 
 		/*Local search*/
 		m_cHeuristicCore.SetCurrentSolution(m_cCurrentBestSolution);
 		m_cHeuristicCore.ComputeNeighborhood();
+		m_cCurrentBestSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
+
+		UpdateBestSolutions();
 
 		PheromoneUpdate();
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);

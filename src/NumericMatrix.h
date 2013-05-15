@@ -195,24 +195,20 @@ class NumericMatrix{
 	}
 
 	inline T GetMin() const{
-		T min=(*this)(0,0);
-		for(unsigned int i = 0; i < m_unRows; i++) {
-			for(unsigned int j = 0; j < m_unColumns; j++) {
-				if(min < (*this)(i,j)){
-					min = (*this)(i,j);
-				}
+		T min=m_TMatrix[0];
+		for(unsigned int i = 0; i < m_unRows*m_unColumns; i++) {
+			if(m_TMatrix[i] < min){
+				min = m_TMatrix[i];
 			}
 		}
 		return min;
 	}
 
 	inline T GetMax() const{
-		T max=(*this)(0,0);
-		for(unsigned int i = 0; i < m_unRows; i++) {
-			for(unsigned int j = 0; j < m_unColumns; j++) {
-				if(max > (*this)(i,j)){
-					max = (*this)(i,j);
-				}
+		T max=m_TMatrix[0];
+		for(unsigned int i = 0; i < m_unRows*m_unColumns; i++) {
+			if(m_TMatrix[i] > max){
+				max = m_TMatrix[i];
 			}
 		}
 		return max;

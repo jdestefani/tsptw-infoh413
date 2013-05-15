@@ -72,17 +72,19 @@ public:
 			m_vecAnts.push_back(currentAnt);
 		}
 
+		/*Initialize pheromone lower and upper bound*/
+		m_lfTauMax = 1.0f/best_known_solution;
+		//m_lfTauMax = 1.0f/(m_lfRho*best_known_solution);
+		m_lfTauMin = m_lfTauMax/A;
+
 		/*Initialize pheromone matrix*/
 		for(unsigned int i=0; i < m_unCities; i++){
 			for(unsigned int j=0; j < i; j++){
-				m_cPheromoneMatrix.SetElement(i,j,tau_zero);
+				m_cPheromoneMatrix.SetElement(i,j,m_lfTauMax);
 				m_cPheromoneMatrix.SetElement(j,i,m_cPheromoneMatrix(i,j));
 			}
 		}
 
-		/*Initialize pheromone lower and upper bound*/
-		m_lfTauMax = 1.0f/m_lfRho*best_known_solution;
-		m_lfTauMin = m_lfTauMax/A;
 
 		/*Initialize lambda values*/
 		/*m_lfLambdaA = float(rand())/RAND_MAX;
