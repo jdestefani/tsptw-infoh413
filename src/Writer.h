@@ -47,6 +47,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <cfloat>
 
 #include "CommonDefs.h"
 
@@ -190,6 +191,7 @@ public:
 	void AddSolutionQuality(double);
 	void ResetSolutionQualityList();
 	double CurrSamplingTime();
+	double LastSamplingTime();
 	void NextSamplingTime();
 	void RestartSamplingTime();
 

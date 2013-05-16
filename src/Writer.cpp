@@ -122,7 +122,11 @@ void Writer::NextSamplingTime() {
 }
 
 double Writer::CurrSamplingTime() {
-	return *m_itNextSamplingTime;
+	return m_itNextSamplingTime != m_listSamplingTimes.end() ? (*m_itNextSamplingTime) : DBL_MAX;
+}
+
+double Writer::LastSamplingTime() {
+	return m_listSamplingTimes.back();
 }
 
 void Writer::RestartSamplingTime() {

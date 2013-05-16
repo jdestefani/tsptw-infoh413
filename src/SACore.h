@@ -53,6 +53,7 @@ public:
 				 best_known_solution),
 		 m_lfAlpha(alpha),
 		 m_lfT(T_zero),
+		 m_lfT_zero(T_zero),
 		 m_lfX_zero(x_zero),
 		 m_unIPT(ipt),
 		 m_lfTMax(t_max),
@@ -65,9 +66,7 @@ public:
 		 m_unTemperatureChanges(0),
 		 m_unTemperatureChangesStationary(0),
 		 m_lfTimeOptimum(0.0f),
-		 m_cBestFeasibleSolution(){
-
-		m_cBestFeasibleSolution.SetTourDuration(INT_MAX);
+		 m_cBestFeasibleSolution(cities_number){
 	}
 
 	virtual ~SACore();
@@ -89,6 +88,7 @@ private:
 		double m_lfAlpha;
 		double m_lfX_zero;
 		double m_lfT;
+		double m_lfT_zero;
 		double m_lfTMax;
 		unsigned int m_unIPT;
 		double m_lfSeed;

@@ -60,14 +60,13 @@ createReportFile "SA.stat"
 
 generateRandomSeeds $2 $3
 
+RTDExtension=".rtd"
 instanceDir="./instances/"
 instanceName=$1
 
 # Command line interface for the algorithms still to define
-#./TSPTW-ACO --input ${instanceDir}$1 -r $2 -s $3 -k ${bestSolutions[$1]}
-./TSPTW-SA  --input ${instanceDir}$1 -p 1000 -r $2 -s $3 -t $4 -k ${bestSolutions[$1]}
+./TSPTW-ACO --input ${instanceDir}$1 -r $2 -s $3 -t $4 -k ${bestSolutions[$1]}
+#./TSPTW-SA  --input ${instanceDir}$1 -a 0.8 -z 50 -p 1000 -r $2 -s $3 -t $4 -k ${bestSolutions[$1]}
 
-
-
-#Rscript processDataSLS.R ACO.$instanceName SA.$instanceName
+#Rscript processDataSLS.R ACO.$instanceName ACO.${instanceName%.txt}${RTDExtension} SA.$instanceName SA.${instanceName%.txt}${RTDExtension}
 

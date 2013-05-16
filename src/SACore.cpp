@@ -26,9 +26,17 @@ void SACore::Run() {
 void SACore::SA() {
 	struct timespec sBeginTime;
 	struct timespec sEndTime;
-	unsigned int stagnatedIterations = 0;
+	unsigned int refusedSteps = 0;
 
+	/*Reset values*/
+	m_lfTimeOptimum = 0.0f;
+	m_cBestFeasibleSolution.SetConstraintViolations(m_unCities);
+	m_cBestFeasibleSolution.SetTourDuration(INT_MAX);
+
+	/*Initialize temperature*/
 	//InitTemperature();
+	m_lfT = m_lfT_zero;
+
 	/*Generate initial solution using heuristic*/
 	m_cHeuristicCore.SetInitFunction(RANDOM);
 	m_cHeuristicCore.GenerateInitialSolution();
@@ -41,25 +49,28 @@ void SACore::SA() {
 
 		if(AcceptanceCriterion()){
 			m_cCurrentSolution = m_cProposedSolution;
-			stagnatedIterations = 0;
+		}
+		else{
+			refusedSteps++;
 		}
 		/*If no proposed solution is accepted for a number of iterations corresponding
 		 * to the iteration per temperature value, perform a best-improvement local search in the 1-shift
 		 * insert neighborhood of the current solution.
 		 */
 
-		if(++stagnatedIterations > m_unIPT){
+		if(refusedSteps > 10*m_unIPT){
 			m_cHeuristicCore.SetCurrentSolution(m_cCurrentSolution);
 			m_cHeuristicCore.ComputeNeighborhood();
 			m_unIterations+=pow(m_unCities-1,2);
 			m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
+
 			if(m_cCurrentSolution.GetConstraintViolations() == 0
 					&& m_cCurrentSolution.GetTourDuration() < m_cBestFeasibleSolution.GetTourDuration()){
 				m_cBestFeasibleSolution = m_cCurrentSolution;
 				m_lfTimeOptimum = m_lfRunTime;
 			}
-			stagnatedIterations = 0;
-
+			refusedSteps = 0;
+			std::cout << "Here it comes the local search!" << std::endl;
 		}
 
 		UpdateTemperature();
@@ -71,12 +82,18 @@ void SACore::SA() {
 		}
 
 		m_unIterations++;
+
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
 		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
 		if(m_lfRunTime >= m_wriResultsWriter.CurrSamplingTime()){
 			//std::cout << m_cCurrentSolution;
 			//std::cout << m_wriResultsWriter.CurrSamplingTime() << "@" << m_lfRunTime << ":" << m_cCurrentSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum) << std::endl;
-			m_wriResultsWriter.AddSolutionQuality(m_cCurrentSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
+			if(m_lfTimeOptimum > 0.0f){
+				m_wriResultsWriter.AddSolutionQuality(m_cBestFeasibleSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
+			}
+			else{
+				m_wriResultsWriter.AddSolutionQuality(m_cCurrentSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
+			}
 			m_wriResultsWriter.NextSamplingTime();
 		}
 	}while(!TerminationCondition());
@@ -163,7 +180,7 @@ void SACore::InitTemperature() {
 		i++;
 	}
 
-	m_lfT = (accumulator/(i+1)) / -log(m_lfX_zero);
+	m_lfT = float(accumulator/(i+1)) / -log(m_lfX_zero);
 	std::cout << "Initial T:" << m_lfT << std::endl;
 }
 

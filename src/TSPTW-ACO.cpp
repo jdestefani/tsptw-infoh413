@@ -318,7 +318,7 @@ int main (int argc, char **argv)
 			if(instanceReader.ReadSeeds()){
 				//instanceReader.PrintSeeds();
 				if(instanceReader.GetSeeds().size() < runs){
-					std::cerr << "[Error] - The seeds file contains lees seeds than the required number of runs " << std::endl << std::endl;
+					std::cerr << "[Error] - The seeds file contains less seeds than the required number of runs " << std::endl << std::endl;
 					exit(-1);
 				}
 			}

@@ -77,23 +77,15 @@ public:
 		//m_lfTauMax = 1.0f/(m_lfRho*best_known_solution);
 		m_lfTauMin = m_lfTauMax/A;
 
-		/*Initialize pheromone matrix*/
-		for(unsigned int i=0; i < m_unCities; i++){
-			for(unsigned int j=0; j < i; j++){
-				m_cPheromoneMatrix.SetElement(i,j,m_lfTauMax);
-				m_cPheromoneMatrix.SetElement(j,i,m_cPheromoneMatrix(i,j));
-			}
-		}
-
 
 		/*Initialize lambda values*/
-		/*m_lfLambdaA = float(rand())/RAND_MAX;
+		m_lfLambdaA = float(rand())/RAND_MAX;
 		m_lfLambdaB = (float(rand())/RAND_MAX)*(1-m_lfLambdaA);
-		m_lfLambdaC = (1-m_lfLambdaA-m_lfLambdaB);*/
-
-		m_lfLambdaA = 1.0f/3;
-		m_lfLambdaB = 1.0f/3;
 		m_lfLambdaC = (1-m_lfLambdaA-m_lfLambdaB);
+
+		/*m_lfLambdaA = 1.0f/3;
+		m_lfLambdaB = 1.0f/3;
+		m_lfLambdaC = (1-m_lfLambdaA-m_lfLambdaB);*/
 
 		/*Initialize values required to compute heuristic*/
 		InitializeHeuristicValues();
@@ -150,6 +142,8 @@ private:
 	unsigned int m_unIterations;
 	unsigned int m_unGlobalOptimum;
 	double m_lfTimeOptimum;
+	struct timespec m_sBeginTime;
+	struct timespec m_sEndTime;
 
 	void InitializeHeuristicValues();
 	void PheromoneEvaporation();
@@ -157,6 +151,8 @@ private:
 	void ConstructSolutionAnt(unsigned int);
 	double SaturatePheromone(double);
 	double ComputeHeuristic(unsigned int,unsigned int);
+	void SampleSolutionQuality();
+	void ResetPheromone();
 
 };
 

@@ -55,7 +55,7 @@ void ACOCore::Run() {
 	std::cout << "\tPheromone range: (" << m_lfTauMin << "," << m_lfTauMax << ")" << std::endl;
 	std::cout << "\tOpening time range: (" << m_unAMin << "," << m_unAMax << ") - lambda_a:" << m_lfLambdaA << std::endl;
 	std::cout << "\tClosing time range: (" << m_unBMin << "," << m_unBMax << ") - lambda_b:" << m_lfLambdaB << std::endl;
-	std::cout << "\tTravelling time: (" << m_unCMin << "," << m_unCMax << ") - lambda_c:" << m_lfLambdaC << std::endl << std::endl;
+	std::cout << "\tTraveling time: (" << m_unCMin << "," << m_unCMax << ") - lambda_c:" << m_lfLambdaC << std::endl << std::endl;
 
 	for(unsigned int i=0; i<m_unRuns;i++){
 		m_lfSeed = m_vecSeeds.at(i);
@@ -70,10 +70,16 @@ void ACOCore::Run() {
 
 
 void ACOCore::ACO() {
-	struct timespec sBeginTime;
-	struct timespec sEndTime;
 
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
+	/*Reset values*/
+	ResetPheromone();
+	m_lfTimeOptimum = 0.0f;
+	m_cBestFeasibleSolution.SetConstraintViolations(m_unCities);
+	m_cBestFeasibleSolution.SetTourDuration(INT_MAX);
+	m_cCurrentBestSolution.SetConstraintViolations(m_unCities);
+	m_cCurrentBestSolution.SetTourDuration(INT_MAX);
+
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&m_sBeginTime);
 	do{
 		ConstructSolutions();
 
@@ -82,15 +88,9 @@ void ACOCore::ACO() {
 		m_cHeuristicCore.ComputeNeighborhood();
 		m_cCurrentBestSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
 
-		UpdateBestSolutions();
+		//UpdateBestSolutions();
 
 		PheromoneUpdate();
-		clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sEndTime);
-		m_lfRunTime = ComputeRunTime(sBeginTime,sEndTime);
-		if(m_lfRunTime > m_wriResultsWriter.CurrSamplingTime()){
-			m_wriResultsWriter.AddSolutionQuality(m_cCurrentBestSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
-			m_wriResultsWriter.NextSamplingTime();
-		}
 		m_unIterations++;
 
 	}while(!TerminationCondition());
@@ -117,6 +117,23 @@ void ACOCore::ACO() {
 }
 
 
+void ACOCore::SampleSolutionQuality() {
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&m_sEndTime);
+	m_lfRunTime = ComputeRunTime(m_sBeginTime,m_sEndTime);
+	if( m_wriResultsWriter.CurrSamplingTime() < m_lfRunTime){ //&& m_lfRunTime <= m_wriResultsWriter.LastSamplingTime()){
+		//std::cout << m_wriResultsWriter.CurrSamplingTime() << "@" << m_lfRunTime << ":" << m_cCurrentBestSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum) << std::endl;
+		if(m_lfTimeOptimum > 0.0f){
+			m_wriResultsWriter.AddSolutionQuality(m_cBestFeasibleSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
+		}
+		else{
+			m_wriResultsWriter.AddSolutionQuality(m_cCurrentBestSolution.ComputeRelativeSolutionQuality(m_unGlobalOptimum));
+		}
+		m_wriResultsWriter.NextSamplingTime();
+	}
+}
+
+
+
 void ACOCore::PheromoneUpdate() {
 	PheromoneEvaporation();
 	for(unsigned int i=0; i<m_vecAnts.size(); i++){
@@ -129,6 +146,21 @@ void ACOCore::ConstructSolutions() {
 	for(unsigned int i=0; i<m_vecAnts.size(); i++){
 		m_vecAnts[i].ResetVisitedCities();
 		ConstructSolutionAnt(i);
+		/* Update best so far solution */
+		if(m_vecAnts[i].GetAntSolution() <= m_cCurrentBestSolution){
+			m_cCurrentBestSolution = m_vecAnts[i].GetAntSolution();
+		}
+		/* Update iteration best solution */
+		if(m_vecAnts[i].GetAntSolution() <= m_vecAnts[m_unIterationBestSolution].GetAntSolution()){
+			m_unIterationBestSolution = i;
+		}
+		SampleSolutionQuality();
+	}
+
+	if(m_cCurrentBestSolution.GetConstraintViolations() == 0
+			&& m_cCurrentBestSolution.GetTourDuration() < m_cBestFeasibleSolution.GetTourDuration()){
+		m_cBestFeasibleSolution = m_cCurrentBestSolution;
+		m_lfTimeOptimum = m_lfRunTime;
 	}
 }
 
@@ -142,7 +174,7 @@ void ACOCore::UpdateBestSolutions() {
 			bestSolution = i;
 		}
 		/* Update iteration best solution */
-		if(m_vecAnts[i].GetAntSolution() <= m_vecAnts[i].GetAntSolution()){
+		if(m_vecAnts[i].GetAntSolution() <= m_vecAnts[m_unIterationBestSolution].GetAntSolution()){
 			m_unIterationBestSolution = i;
 		}
 	}
@@ -331,4 +363,11 @@ double ACOCore::SaturatePheromone(double pheromoneValue) {
 	return pheromoneValue < m_lfTauMin ? m_lfTauMin : pheromoneValue > m_lfTauMax ? m_lfTauMax : pheromoneValue;
 }
 
-
+void ACOCore::ResetPheromone() {
+	for(unsigned int i=0; i < m_unCities; i++){
+		for(unsigned int j=0; j < i; j++){
+			m_cPheromoneMatrix.SetElement(i,j,m_lfTauMax);
+			m_cPheromoneMatrix.SetElement(j,i,m_cPheromoneMatrix(i,j));
+		}
+	}
+}

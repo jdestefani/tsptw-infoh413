@@ -153,7 +153,6 @@ the Makefile will trigger the compilation of the files, producing the executable
 Note: The code is written in C++98. Hence, the code should be
 reasonably portable to other Operating Systems than Linux or Unix.
 
-
 ======
 USAGE
 ======
@@ -390,15 +389,18 @@ The CSV structure of the file allows for an easy manipulation and post-processin
 SCRIPTS
 =======
 
-The software comes bundled with two scripts, each of them in the Iterative Improvement and Variable Neighborhood Descent form.
-The scripts are used respectively, to launch all the tested algorithm on a single instance and to process the results to draw the box plots
-and to compute the required statistics.
+The software comes bundled with three scripts, to perform the simulations and analyze data for the II, VND and SLS algorithm, respectively.
+The scripts are used to:
+1. Launch all the algorithms of the desired type on a single instance 
+2. Process the results to:
+   a. Draw the requested graphs (box plots and run-time distributions)
+   b. Compute statistics.
 
 =============
 launchTSPTW-X (X being either II or VND)
 =============
 
-Usage : launchTSPTW-X [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
+Usage : ./launchTSPTW-X.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
 
 The script takes as input exactly three parameters:
 [INSTANCE_NAME]: String indicating the instance name (all the instances are assumed to be in the instances folder)
@@ -428,7 +430,7 @@ which represents: the instance name, the percentage of infeasible runs, the mean
 launchTSPTW-SLS 
 ===============
 
-Usage : launchTSPTW-SLS [INSTANCE_NAME] [RUNS] [SEEDS_FILE]
+Usage : ./launchTSPTW-SLS.sh [INSTANCE_NAME] [RUNS] [SEEDS_FILE] [MAX_RUNTIME]
 
 The script takes as input exactly three parameters:
 [INSTANCE_NAME]: String indicating the instance name (all the instances are assumed to be in the instances folder)
@@ -450,7 +452,6 @@ Each line is composed by:
 Instance	Infeasible	mean(PRDP)	mean(CpuTime)
 
 which represents: the instance name, the percentage of infeasible runs, the mean PRDP and the mean runtime across 100 runs.
-
 
 
 N.B. : In order to process the data, a working R distribution (including the package Rscript) must be installed.
