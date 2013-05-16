@@ -82,7 +82,6 @@ int main (int argc, char **argv)
 	double alpha=DEFAULT_ALPHA;
 	double beta=DEFAULT_BETA;
 	double rho=DEFAULT_RHO;
-	double tau_zero=DEFAULT_TAU_ZERO;
 	double epsilon=DEFAULT_EPSILON;
 	unsigned int ants=DEFAULT_ANTS;
 	unsigned int runs=DEFAULT_RUNS;
@@ -103,7 +102,6 @@ int main (int argc, char **argv)
 					{"alpha",   required_argument,       0, 'a'},
 					{"beta",  	required_argument,       0, 'b'},
 					{"rho",     required_argument,       0, 'h'},
-					{"tau-zero",required_argument,       0, 'z'},
 					{"epsilon", required_argument,       0, 'e'},
 					{"t-max",  	required_argument,       0, 't'},
 					{"ants",  	required_argument,       0, 'n'},
@@ -116,7 +114,7 @@ int main (int argc, char **argv)
 			/* getopt_long stores the option index here. */
 			int option_index = 0;
 
-			c = getopt_long (argc, argv, "a:b:h:z:e:t:n:i:r:s:k:",
+			c = getopt_long (argc, argv, "a:b:h:e:t:n:i:r:s:k:",
 					long_options, &option_index);
 
 			/* Detect the end of the options. */
@@ -163,17 +161,6 @@ int main (int argc, char **argv)
 				}
 				else{
 					std::cerr << "[Error] - Missing rho value." << std::endl << std::endl;
-					usage();
-					exit(0);
-				}
-				break;
-
-			case 'z':
-				if(optarg != NULL){
-					tau_zero = atof(optarg);
-				}
-				else{
-					std::cerr << "[Error] - Missing tau_zero value." << std::endl << std::endl;
 					usage();
 					exit(0);
 				}
@@ -301,7 +288,6 @@ int main (int argc, char **argv)
 	std::cout << "\tAlpha: " << alpha << std::endl;
 	std::cout << "\tBeta: " << beta << std::endl;
 	std::cout << "\tRho: " << rho << std::endl;
-	std::cout << "\tTau_zero: " << tau_zero << std::endl;
 	std::cout << "\tEpsilon: " << epsilon << std::endl;
 	std::cout << "\tAnts: " << ants << std::endl;
 	std::cout << "\tSeeds file: " << seedsFileName << std::endl;
@@ -334,7 +320,6 @@ int main (int argc, char **argv)
 					alpha,
 					beta,
 					rho,
-					tau_zero,
 					epsilon,
 					max_runtime,
 					instanceReader.GetSeeds(),

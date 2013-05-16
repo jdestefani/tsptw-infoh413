@@ -67,16 +67,18 @@ computeRTD <- function(inputFile){
   instanceName <- paste(tokens[2],tokens[3],sep=".")
   
   #Compute number of high quality runs
+  RTDTwenty <- inputData < 0.2
   RTDTen <- inputData < 0.1
   RTDFive <- inputData < 0.05
   RTDTwo <- inputData < 0.02
   
   #Compute RTDs
+  RTDTwenty <- apply(RTDTwenty,2,sum) / nrow(inputData)
   RTDTen <- apply(RTDTen,2,sum) / nrow(inputData)
   RTDFive <- apply(RTDFive,2,sum) / nrow(inputData)
   RTDTwo <- apply(RTDTwo,2,sum) / nrow(inputData)
   
-  plots <- cbind(RTDTen,RTDFive,RTDTwo)
+  plots <- cbind(RTDTwenty,RTDTen,RTDFive,RTDTwo)
   returnValues <- list(instanceName,algorithmName,timeScale,plots)
   return(returnValues)
 }
@@ -102,7 +104,7 @@ SAResults <- computeStatistics(SAFile)
 #Compute RTD for all the files
 ACORTD <- computeStatistics(ACOFileRTD)
 SARTD <- computeStatistics(SAFileRTD)
-RTDVs <- cbind(ACORTD[[4]][,3],SARTD[[4]][,3])
+RTDVs <- cbind(ACORTD[[4]][,4],SARTD[[4]][,4])
 
 #Detect instance names
 instanceName <- ACOResults[[1]]
@@ -124,12 +126,15 @@ boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames,past
 
 #Real time distributions plot
 RTDToPdf(paste(instanceName,"RTDs",sep="-"),ACORTD[[3]],RTDVs,paste(instanceName,"RTD",sep="-"),c("ACO","SA"))
+RTDToPdf(paste("ACO",instanceName,"RTDs",sep="-"),ACORTD[[3]],ACORTD[[4]],paste("ACO",instanceName,"RTD",sep="-"),c("20%","10%","5%","2%"))
+RTDToPdf(paste("SA",instanceName,"RTDs",sep="-"),SARTD[[3]],SARTD[[4]],paste("SA",instanceName,"RTD",sep="-"),c("20%","10%","5%","2%"))
 
 #Write statistics in separate files for each algorithm
 write(ACOResults[[3]],ACOResults[[2]],append=TRUE)
 write(SAResults[[3]],SAResults[[2]],append=TRUE)
 
-write(paste("ACO vs SA",testWilcoxon$p.value,sep="\t"),paste(instanceName,"Tests",sep=""),append=TRUE)
+#Write test results in 
+write(paste(instanceName,testWilcoxon$p.value,sep="\t"),"SLSWilcoxonTests",append=TRUE)
 
 #Clean up memory
 rm(ACOFile)

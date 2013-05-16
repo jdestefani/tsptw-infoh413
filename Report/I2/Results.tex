@@ -3,7 +3,7 @@
 For each algorithm $A$, applied on instance $i$, using different randomly generated seeds one have to compute:
 \begin{itemize}
   \item  Percentage of runs with constraint violations (0.xxyyy has to be interpreted as xx.yyy\%)
-  \item  Mean penalised relative percentage deviation
+  \item  Mean penalized relative percentage deviation
 \end{itemize}
 
 In order to compute these statistics, each algorithm $A$ is launched 25 times on the same instance, measuring the following quantities on each run:
@@ -17,14 +17,14 @@ For each instance $i$, the distributions of PRPD are also displayed using box-pl
 
 \paragraph{Constraint Violations}
 In the standard formulation of the TSP problem, a solution to the problem is represented by a permutation of the different
-entities (solution components), that the hypothetical travelling salesman has to visit.
+entities (solution components), that the hypothetical traveling salesman has to visit.
 
-The best solution for the problem is the permutation that minimizes the total travelling time (distance) among the cities.
+The best solution for the problem is the permutation that minimizes the total traveling time (distance) among the cities.
 The presence of time windows introduce an additional constraint on the feasibility of the solution.
 
 In fact, each solution component has an associated time window within which it has to be visited in order to guarantee the feasibility of the tour.
 
-Arriving in a (city) before the opening of the corresponding time window involves a delay in the total travelling time (to wait for the time window to open) whereas the arrival after the closure of the time windows will generate a constraint violation.
+Arriving in a (city) before the opening of the corresponding time window involves a delay in the total traveling time (to wait for the time window to open) whereas the arrival after the closure of the time windows will generate a constraint violation.
 
 Thus, a solution is feasible if and only if all the time windows constraints are met, or in other words, if there are no constraint violations.
 
@@ -32,13 +32,14 @@ In this case, the best solution is the feasible solution which minimizes the tot
 
 \paragraph{Penalized Relative Percentage Deviation}
 The penalized relative percentage deviation (PRDP from now on) is a measure of the solution quality, with respect to the best known solution for the instance, taking into account a strong penalization for the violation of constraints.
+
 The PRPD is computed as follows:
 \begin{equation}
 pRPD_{kri} = 100 \cdot \frac{(f_{kri} + 10^4\cdot\Omega_{kri})-best_i}{best_i}
 \end{equation}
 
-\paragraph{Runtime}
-The runtime is a measure of both the quality and the time complexity of the algorithm.
+\paragraph{Run-time}
+The run-time is a measure of both the quality and the time complexity of the algorithm.
 
 It is measured using the function \verb|int clock_gettime(clockid_t clk_id, struct timespect *tp)| from the \verb|time.h| library.
 
@@ -63,9 +64,9 @@ The solution quality $q$ is often expressed as relative solution quality:
 
 where $q_b$ is the solution quality of the best known solution for the considered instance $\pi$.
 
-The runtime distribution of $A$ on $\pi$ consists of the probability distribution of the bivariate random variable ($RT_{A,\pi},SQ_{A,\pi}$).
+The run-time distribution of $A$ on $\pi$ consists of the probability distribution of the bi-variate random variable ($RT_{A,\pi},SQ_{A,\pi}$).
 
-In other words, the runtime distribution can be defined as: 
+In other words, the run-time distribution can be defined as: 
 \begin{equation}
   RTD_{A,\pi}(t,q) = P_s[RT_{a,\pi} \le t,SQ_{a,\pi} \le q]
 \end{equation}
@@ -73,7 +74,7 @@ In other words, the runtime distribution can be defined as:
 $RTD:\mathbb{R}^{+} \times \mathbb{R}^{+} \mapsto [0,1]$ is indeed a function, defined for algorithm $A$ on instance $\pi \in \Pi$, that maps to each pair run-time $t$, solution quality $q$ the corresponding success probability.
 
 
-On one hand, by fixing the solution quality to a certain value $q^{*}$ one can obtain the qualified runtime distribution:
+On one hand, by fixing the solution quality to a certain value $q^{*}$ one can obtain the qualified run-time distribution:
 \begin{equation}
   QRTD_{A,\pi,q^{*}}(t) = RTD_{A,\pi}(t,q^{*}) = P_s[RT_{a,\pi} \le t,SQ_{a,\pi} \le q^{*}]
 \end{equation}
@@ -91,12 +92,21 @@ which determines the probability of finding a solution having a certain quality 
 These are marginal distributions of the run-time one, which allow to have a better insight, respectively, on the time required for the algorithm to find a reasonably good solution and conversely, on the solution quality that can be obtained by fixing a computation time bound, of the algorithm $A$ on instance $\pi$.
 
 \subsubsection{Measurement}\label{subsec:measure}
-In the case of the Travelling Salesman Problem with Time Windows, the algorithm has not only to minimize the total travelling time, but also respect all the constraints determined by the time window of each of the nodes.
+In the case of the Travel ling Salesman Problem with Time Windows, the algorithm has not only to minimize the total Travel ling time, but also respect all the constraints determined by the time window of each of the nodes.
 
 The solution quality is defined by aggregating the two objectives and taking into account a penalization $p_e = 10^4$ for each constraint violations:
 \begin{equation}
   q(p) = f(p) + p_e \cdot\Omega(p)
 \end{equation}
+
+from which
+\begin{equation}
+  q_r(p) = \frac{q(p)}{q_{best}} - 1
+\end{equation}
+
+It should be noted that, since the number of constraint violations $\Omega(p)$ constitutes a hard constraint on the feasibility of the solution, the value of the penality $p_e$ is at least ten times bigger than the magnitude of the worst solutions.
+
+This implies that infeasible solutions with a shorter tour with respect to the optimal one, will have an higher relative solution quality $q_r$ than worse but yet feasible solutions.
 
 The measurement of the run-time distributions to reach sufficiently high quality solution, of the implemented algorithms, consists indeed in the estimation of the qualified run-time distribution $QRTD_{A,\pi,q_r^{*}}(t)$ for a sufficiently high relative solution quality $q_r^{*} \in (0,0.025)$.
 
@@ -106,8 +116,9 @@ P_s[RT_{A,\pi} \le t,RSQ_{A,\pi} \le q_r^{*}] \approx \frac{\text{\#repetitions 
 \end{equation}
 
 To compute the relative frequencies, the solution quality will be measured at regular intervals of time in order to have enough samples to ensure a good quality plot.
-Since the time scale of the plot will be logaritmic, the sampling process will occur in a way that every interval $[10^i,10^{i+1}]$ will contain the same number $s=50$ of samples.
- 
+Since the time scale of the plot will be logarithmic, the sampling process will occur in a way that every interval $[10^i,10^{i+1}]$ will contain the same number $s=50$ of relative solution qualites samples.
+
+\subsection{Results} 
 
 % Measure, for each of the implemented algorithms on 5 instances, the run-time distributions to reach suf-
 % ficiently high quality solutions (e.g. best-known solutions available at http://iridia.ulb.ac.be/

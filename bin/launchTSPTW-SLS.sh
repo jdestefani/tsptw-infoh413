@@ -57,6 +57,7 @@ bestSolutions[n80w200.005.txt]=440
 
 createReportFile "ACO.stat"
 createReportFile "SA.stat"
+touch "SLSWilcoxonTest"
 
 generateRandomSeeds $2 $3
 
@@ -65,8 +66,8 @@ instanceDir="./instances/"
 instanceName=$1
 
 # Command line interface for the algorithms still to define
-./TSPTW-ACO --input ${instanceDir}$1 -r $2 -s $3 -t $4 -k ${bestSolutions[$1]}
-#./TSPTW-SA  --input ${instanceDir}$1 -a 0.8 -z 50 -p 1000 -r $2 -s $3 -t $4 -k ${bestSolutions[$1]}
+#./TSPTW-ACO -a 2.0 -b 1.0 --input ${instanceDir}$1 -r $2 -s $3 -t $4 -k ${bestSolutions[$1]}
+./TSPTW-SA  --input ${instanceDir}$1 -a 0.8 -z 50 -p 1000 -r $2 -s $3 -t $4 -k ${bestSolutions[$1]}
 
 #Rscript processDataSLS.R ACO.$instanceName ACO.${instanceName%.txt}${RTDExtension} SA.$instanceName SA.${instanceName%.txt}${RTDExtension}
 

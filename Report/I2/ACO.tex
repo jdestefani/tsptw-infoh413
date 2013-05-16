@@ -31,9 +31,9 @@ of the iterative improvement algorithm for the hybrid SLS algorithm.
 \end{enumerate}
 
 \subsection{Introduction} \label{sec:introACO}
-Ant Colony Optimization is an example of population-based metaheuristic (i.e a set of algorithmic concepts that can be used to define heuristic methods) inspired by the behavior of the ant species \emph{Iridomyrmex humilis}.
+Ant Colony Optimization is an example of population-based meta-heuristic (i.e a set of algorithmic concepts that can be used to define heuristic methods) inspired by the behavior of the ant species \emph{Iridomyrmex humilis}.
 
-To be more precise, these insects are able, by means of stigmergic communication, to choose the shortest path between their nest and a food source, when given the choice (\cite{deneubourg1990self}).
+To be more precise, these insects are able, by means of stigmergic communication, to choose the shortest path between their nest and a food source, when given the choice (cf. \cite{deneubourg1990self}).
 
 The communication process occurs by deposing a certain quantity of pheromone in the environment that can be sensed by the other ants and that will be used by them as an heuristic (i.e an information to guide their choice) for selecting the shortest path.
 
@@ -42,13 +42,13 @@ Furthermore, the pheromone quantity on a certain location decreases over time be
 The convergence to one of the paths will occur as a consequence of the self-reinforcing pheromone deposit mechanism.
 In fact the more pheromone is deposited on a path, the more ants will follow the pheromone trail on that path deposing even more pheromone.
 
-The first application of Ant Colony Optimization method, the Ant System, has been made on the optimization version of the Travelling Salesman Problem (TSP) (\cite{dorigo1996ant}).
+The first application of Ant Colony Optimization method, the Ant System, has been made on the optimization version of the Travelling Salesman Problem (TSP) (cf. \cite{dorigo1996ant}).
 
-In this implementation a population of virtual agents (an ant colony) is used to explore the search space (the virtual environment).
+In this implementation, a population of virtual agents (an ant colony) is used to explore the search space (the virtual environment).
 
-In the same fashion as the real insects, the ants are able to deposit virtual pheromone in the environment, to signal to the other ants the presence of promising solutions.
+In the same fashion as the real insects, the simulated ants are able to deposit virtual pheromone in the environment, to signal to the other ants the presence of promising solutions.
 
-The general outline of the implemented algorithm is the following: 
+The general outline of the ACO meta-heuristic is the following: 
 
 \begin{algorithm}[!h]
   \caption{Ant Colony Optimization - Outline}\label{aco:outline}
@@ -62,20 +62,22 @@ The general outline of the implemented algorithm is the following:
 \end{algorithmic}
 \end{algorithm}
 
-The design of the solution construction and pheromone update mechanism is the main point of the algorithm.
+The design of the solution construction and pheromone update mechanism has a great impact on the performance of the algorithm.
 Implementation details of the basic ACO system, the Ant System can be found in \cite{dorigo2006artificial}.
 
 \subsection{Algorithm structure} \label{sec:algstrucACO}
-The proposed algorithm is an implementation of one of the extensions to the Ant Colony Optimization metaheuristic framework, the \maxmin Ant System (cf. \cite{stutzle2000max}).
-The main differences with respect to the basic ACO approach are the following:
+The proposed algorithm draws inspiration from one of the extensions to the Ant Colony Optimization meta-heuristic framework, the \maxmin Ant System (cf. \cite{stutzle2000max}).
+
+The main differences of the \maxmin Ant System with respect to the basic ACO approach are the following:
 \begin{itemize}
   \item Only iteration best or best-so-far ants update pheromone.
   \item A local search after the solution generation is used to further improve the solutions found by the ants at each iteration.
   \item $\forall t \text{ } \tau_{\min} < \tau_{i,j}(t) < \tau_{\max}  $ - Pheromone trails have explicit upper and lower limits
-  % \item Pheromone trails are re-initialized when stagnated.
+  \item Pheromone trails are re-initialized when stagnated.
 \end{itemize}
 
-The aforementioned design choice were made because:
+The implemented algorithm differs from the \maxmin Ant System in the implementation of the pheromone update.
+Here, the pheromone deposit is made by all the ants, each one of them deciding whether to deposit the pheromone on the current best solution or the iteration best one.
 
 \begin{itemize}
     \item The initialization of the pheromone trails to their upper bound favors diversification at the beginning of each trial.
@@ -88,12 +90,12 @@ The aforementioned design choice were made because:
 \begin{algorithm}[!h]
   \caption{\maxmin Ant System for TSPTW - Outline}\label{maxmintsptw}
   \begin{algorithmic}[1]
-    \Procedure{ACO}{$\alpha,\beta,\rho,\tau_0,p_b,t_{\max},f_{best}$}\Comment{The main procedure}
+    \Procedure{ACO}{$\alpha,\beta,\rho,\varepsilon,t_{\max},f_{best}$}
     \Require $N$ - Node set
     \Require $E$ - Edge set 
     \Require $c$ - Edge cost function
     \Require $t$ - Time window function
-    \State {\emph{InitalizePheromoneTrail}($\tau_0,n_{cities}$)}
+    \State {\emph{InitalizePheromoneTrail}($f_{best},n_{cities}$)}
     \While{\emph{!TerminationCondition}($s,t_{max},f_{best}$)}
       \ForAll {Ant $k$}
         \State $s' \gets$ \emph{ConstructSolution}($\alpha,\beta$)
@@ -156,7 +158,7 @@ The aforementioned design choice were made because:
 \newpage
 In the implementation, an instance is completely defined by:
 \begin{itemize}
-\item \textbf{Cost matrix} - Encapsulating information on the node set $N$, edge set $E$, and weighting of each edge $c$.
+\item \textbf{Cost matrix} - Encapsulating information on the node set $N$, edge set $E$, and weighting of each edge $c$ (cf. \nameref{sec:probform}).
 \item \textbf{Time window vector} - Describing the time window mapping function $t$ for each node.
 \end{itemize}
 
@@ -164,9 +166,10 @@ In the implementation, an instance is completely defined by:
 \begin{algorithm}[!h]
   \caption{Pheromone Initialization}\label{init}
   \begin{algorithmic}[1]
-    \Procedure{InitalizePheromoneTrail}{$\tau_0,n_{cities}$}
-      \State $\tau_{\max} \gets $
-      \State $\tau_{\min} \gets $
+    \Procedure{InitalizePheromoneTrail}{$f_{best},n_{cities}$}
+      \State $a \gets 10$
+      \State $\tau_{\max} \gets \frac{1}{f_{best}}$
+      \State $\tau_{\min} \gets \frac{\hat{\tau}_{\max}}{a}$
       \State $i \gets 0$
       \State $j \gets 0$
       \For{$i < n_{cities}$} 
@@ -189,13 +192,27 @@ For this reason, every admissible edge $e_{i,j}$ of $E$ has an associated pherom
 
 The initialization value $\tau_0$ is a parameter of the algorithm, for the \maxmin Ant System $\tau_0 = \tau_{i,j}(0) = \tau_{\max}$. 
 
+Provided that the best solution is known, the bounds on the pheromone values can be determined as:
+\begin{equation}
+\begin{array}{lccr}
+  \tau_{\max} = \frac{1}{f_{best}} & & & \tau_{\min} = \frac{\tau_{\max}}{a}
+\end{array}
+\end{equation}
+
+Whenever the global optima value is unknown, the values of the bounds can be estimated using the best known solution so far, by:
+
+\begin{equation}
+\begin{array}{lccr}
+  \hat{\tau}_{\max} = \frac{1}{\rho \cdot T_{d}^{\text{Bo}}} & & & \hat{\tau}_{\min} = \frac{\hat{\tau}_{\max}}{a}
+\end{array}
+\end{equation}
 
 \subsubsection{Solution construction}
 \begin{algorithm}[!h]
   \caption{Solution Construction}\label{solConstr}
   \begin{algorithmic}[1]
-    \Procedure{ConstructSolution}{$\alpha,\beta$}\Comment{The main procedure}
-      \State \Comment{$s_i$ reprents the $i^{th}$ component of the solution}
+    \Procedure{ConstructSolution}{$\alpha,\beta$}
+      \State \Comment{$s_i$ represents the $i^{th}$ component of the solution}
       \State $s_0 \gets 0$ \Comment{Every solution starts at the depot}
       \State $s_1 \gets$ \emph{RandomCitySelection}() \Comment{Random choice of the starting city}
       \State $i \gets 1$
@@ -221,30 +238,6 @@ As one can see in \ref{eq:tranprob}, the transition probability is determined by
 This probability is defined on the set $A(s_i)$ of available (i.e. not yet visited) cities while visiting solution component $s_i$.
 The value of the parameters $\alpha$ and $\beta$ determines the relative importance of the heuristic information and the pheromone trail, respectively.
 
-\subsubsection{Solution improvement}
-\begin{algorithm}[!h]
-  \caption{Solution improvement}\label{solImprov}
-  \begin{algorithmic}[1]
-    \Procedure{IsImproving}{$s,s'$}\Comment{The main procedure}
-      \If {$\Omega(s') < \Omega(s)$}
-          \State \textbf{return true}
-      \Else
-           \If {$\Omega(s') = \Omega(s) \wedge f(s') < f(s)$}
-            \State \textbf{return true}
-           \EndIf
-      \EndIf
-      \State \textbf{return false}
-      \EndProcedure
-\end{algorithmic}
-\end{algorithm}
-
-A solution $s'$ is considered improving the current best solution $s$ if and only if:
-\begin{itemize}
-  \item Either,it has a smaller number of constraints violation (i.e. $\Omega(s') < \Omega(s)$)
-  \item Or, it has the same number of constraints violations ($\Omega(s') == \Omega(s)$) but the total tour duration is smaller ($f(s') < f(s)$).
-\end{itemize}
-
-
 \subsubsection{Admissible heuristics}
 The heuristic component $\eta_{i,j}$ is used to guide the selection of solution components towards those components that are included in optimal solution.
 
@@ -255,6 +248,7 @@ The heuristic originally proposed by Dorigo et al, in \cite{dorigo1996ant}, for 
 \end{equation}
 
 The main idea behind this heuristic is that, if the selection process tends to select, at each step, the shortest connection between the current node and the following, the built tour should be of the shortest length.
+
 This heuristic is cited for explanation purposes, even though it cannot be used for the TSPTW problem, since it will guide the exploration only towards shorter solutions, without taking into account the presence of the time windows.
 
 \paragraph{Cheng and Mao, 2007}
@@ -302,7 +296,7 @@ where
 
 
 \paragraph{Lopez-Ibanez and Blum, 2010}
-The approach used in \cite{lopez2010beam} is a linear combination based on $\lambda_i$ coefficients, of the normalized values of opening and closing times of the time windows and the travelling cost from one city to another.
+The approach used in \cite{lopez2010beam} is a linear combination based on $\lambda_i$ coefficients, of the normalized values of opening and closing times of the time windows and the traveling cost from one city to another.
 
 \begin{equation} \label{eq:heuristic}
 \eta_{i-1,k} = \lambda_{a} \cdot \frac{a_{\max}-a_{k}}{a_{\max}-a_{\min}} + \lambda_{b} \cdot \frac{b_{\max}-b_{k}}{b_{\max}-b_{\min}} + \lambda_{c} \cdot \frac{c_{\max}-c_{i-1,k}}{c_{\max}-c_{\min}}
@@ -316,36 +310,62 @@ where
   \item $b_i$ - Closing time of time window $i$
   \item $b_{\max} = \max_{j \in N} b_{j}$ - Maximum time window closing time in the neighborhood of node $i$
   \item $b_{\min} = \min_{j \in N} b_{j}$ - Minimum time window closing time in the neighborhood of node $i$
-  \item $c_{i,j}$ - Travelling cost from node $i$ to node $j$
-  \item $c_{\max} = \max_j c_{i,j}$ - Maximum travelling cost from node $i$ 
-  \item $c_{\min} = \min_j c_{i,j}$ - Minimum travelling cost from node $i$
+  \item $c_{i,j}$ - Traveling cost from node $i$ to node $j$
+  \item $c_{\max} = \max_j c_{i,j}$ - Maximum traveling cost from node $i$ 
+  \item $c_{\min} = \min_j c_{i,j}$ - Minimum traveling cost from node $i$
   \item $\lambda_{a},\lambda_{b},\lambda_{c}$ s.t. $\lambda_{a}+\lambda_{b}+\lambda_{c}=1$ - Randomly selected weights
 \end{itemize}
 
 In this implementation, the heuristic information will be computed according to \cite{lopez2010beam}
 
+\subsubsection{Solution improvement}
+\begin{algorithm}[!h]
+  \caption{Solution improvement}\label{solImprov}
+  \begin{algorithmic}[1]
+    \Procedure{IsImproving}{$s,s'$}
+      \If {$\Omega(s') < \Omega(s)$}
+          \State \textbf{return true}
+      \Else
+           \If {$\Omega(s') = \Omega(s) \wedge f(s') < f(s)$}
+            \State \textbf{return true}
+           \EndIf
+      \EndIf
+      \State \textbf{return false}
+      \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+A solution $s'$ is considered improving the current best solution $s$ if and only if:
+\begin{itemize}
+  \item Either,it has a smaller number of constraints violation (i.e. $\Omega(s') < \Omega(s)$)
+  \item Or, it has the same number of constraints violations ($\Omega(s') = \Omega(s)$) but the total tour duration is smaller ($f(s') < f(s)$).
+\end{itemize}
+
+
 \subsubsection{Pheromone trails update}
 \begin{algorithm}[!h]
   \caption{Pheromone Trails Update}\label{update}
   \begin{algorithmic}[1]
-    \Procedure{UpdatePheromoneTrails}{$\rho,p_b$}\Comment{The main procedure}
+    \Procedure{UpdatePheromoneTrails}{$\rho,p_b$}
      \State $i \gets 0$
       \State $j \gets 0$
       \For{$i < n_{cities}$} 
         \For{$j < i$}
-          \If{\emph{Random}() $< \varepsilon$} 
-          \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bi}$
-          \Else
-          \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bo}$
-          \EndIf
-          \If{$\tau_{ij} < \tau_{\min}$} 
-            \State $\tau_{ij} \gets \tau_{\min}$
-          \EndIf
-          \If{$\tau_{ij} > \tau_{\max}$} 
-            \State $\tau_{ij} \gets \tau_{\max}$
-          \EndIf
+          \ForAll{Ants}
+            \If{\emph{Random}() $< \varepsilon$} 
+              \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bi}$
+            \Else
+              \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bo}$
+            \EndIf
+            \If{$\tau_{ij} < \tau_{\min}$} 
+              \State $\tau_{ij} \gets \tau_{\min}$
+            \EndIf
+            \If{$\tau_{ij} > \tau_{\max}$} 
+              \State $\tau_{ij} \gets \tau_{\max}$
+            \EndIf
           \State $\tau_{ji} \gets \tau_{ij}$
           \State $ j \gets j + 1$  
+        \EndFor
         \EndFor
         \State $ i \gets i + 1$ 
       \EndFor
@@ -353,7 +373,7 @@ In this implementation, the heuristic information will be computed according to 
 \end{algorithmic}
 \end{algorithm}
 
-As discussed in \nameref{sec:algstrucACO}, the pheromone update will be made by a single ant, being either the one who found the best solution in the current iteration: 
+As discussed in \nameref{sec:algstrucACO}, the pheromone update will be made by all the ants, updating the pheromone values either on the trail corresponding to the best solution in the current iteration: 
 
 \begin{equation}
   \Delta\tau_{i,j}^{Bi} = \begin{cases}
@@ -362,7 +382,7 @@ As discussed in \nameref{sec:algstrucACO}, the pheromone update will be made by 
       \end{cases}
 \end{equation}
 
-Or the one having found the global best (best-so-far) solution:
+Or the global best (best-so-far) solution:
 
 \begin{equation}
   \Delta\tau_{i,j}^{Bo} = \begin{cases}
@@ -379,19 +399,11 @@ where
 \item $T^{\text{Bo}}$ - Best tour overall 
 \end{itemize}
 
-
-Provided that the best solution is known, the bounds on the pheromone values can be estimated by:
-\begin{equation}
-\begin{array}{lccr}
-  \hat{\tau}_{\max} = \frac{1}{\rho \cdot T_{d}^{\text{Go}}} & & & \hat{\tau}_{\min} = \frac{\hat{\tau}_{\max}}{a}
-\end{array}
-\end{equation}
-
 \subsubsection{Local search}
 \begin{algorithm}[!h]
-  \caption{Iterative Improvement - (Insert neighborhood with best improve pivoting rule)}\label{locsearch}
+  \caption{Iterative Improvement - (Insert neighborhood with best-improvement pivoting rule)}\label{locsearch}
   \begin{algorithmic}[1]
-    \Procedure{IterativeImprovementIBI}{$s$}\Comment{The main procedure}
+    \Procedure{IterativeImprovementIBI}{$s$}
       \State $s^{*} \gets s$ 
       \For {$i \in \{1,\cdots,|N|\}$}
         \For {$j \in \{1,\cdots,|N|\}$}
@@ -412,8 +424,8 @@ Provided that the best solution is known, the bounds on the pheromone values can
 \begin{algorithm}[!h]
   \caption{Insert neighbor solution computation}\label{locsearch}
   \begin{algorithmic}[1]
-    \Procedure{InsertTourComponent}{$s,i,j$}\Comment{The main procedure}
-      \State \Comment{$s_i$ reprents the $i^{th}$ component of the solution}
+    \Procedure{InsertTourComponent}{$s,i,j$}
+      \State \Comment{$s_i$ represents the $i^{th}$ component of the solution}
       \State $e \gets s_i$
       \If{i<j}
       \State $k \gets i$
@@ -434,26 +446,14 @@ Provided that the best solution is known, the bounds on the pheromone values can
 \end{algorithmic}
 \end{algorithm}
 
-
-The solution construction process, used by every ant $k$ in the system, consist of a probabilistic selection of solution components.
-Every edge $e_{i,j}$ has a selection probability $p_{i,j}^k(t)$ (also called transition probability) defined as follows:
-
-\begin{equation} 
-p_{i,j}^k(t) = \begin{cases}
-  \frac{[\tau_{i,j}(t)]^\alpha \cdot [\eta_{i,j}]^\beta}{\sum_{k} \in A(s_{i}) [\tau_{k,j}(t)]^\alpha \cdot [\eta_{k,j}]^\beta} & j \in A(s_{i}) \\
- 0 & \text{otherwise} \\
-\end{cases}
-\end{equation}
-
-As one can see in \ref{eq:tranprob}, the transition probability is determined by a constant, locally available heuristic information $\eta_{i,j}$ and by the time varying pheromone trail $\tau_{i,j}(t)$.
-This probability is defined on the set $A(s_i)$ of available (i.e. not yet visited) cities while visiting solution component $s_i$.
-The value of the parameters $\alpha$ and $\beta$ determines the relative importance of the heuristic information and the pheromone trail, respectively.
+The local search procedure, a 1-shift best-improvement search in the neighborhood of the the current best solution $s$,  is performed after the tour construction and evaluation by each ant.
+In this implementation, the local search procedure is performed only once, instead of being launched on the solution constructed by each ant.
 
 \subsubsection{Termination condition}
 \begin{algorithm}[!h]
   \caption{Termination Condition}\label{termcond}
   \begin{algorithmic}[1]
-    \Procedure{TerminationCondintion}{$s,t_{\max},s_{best}$}
+    \Procedure{TerminationCondition}{$s,t_{\max},s_{best}$}
           \If{ $(f(s) = f_{best} \wedge \Omega(s) = 0) \vee  t > t_{\max} $}
 				    \State \textbf{return true}
 			    \EndIf
@@ -462,23 +462,31 @@ The value of the parameters $\alpha$ and $\beta$ determines the relative importa
 \end{algorithmic}
 \end{algorithm}
 
-The algorithm will terminate if the maximum time limit is exceeded or, if the best known solution is constructed by one of the ants during an iteration.
+The algorithm will stop if the maximum time limit is exceeded or, if the best known solution is constructed by one of the ants during an iteration.
+In the actual implementation, in order to estimate the run time distribution over a sufficiently long run, only the time constraint is considered, while the global optimum tour structure is stored in memory, along with its finding time.
 
 \subsubsection{Implementation parameters}
 \begin{center}
 \begin{tabular}{|c|c|c|}
 \hline
 \textbf{Parameter} & \textbf{Default} & \textbf{Selected} \\ \hline 
-$\alpha$ & 1.0 & 1.0 \\\hline
-$\beta$ & 2.0 & 2.0 \\\hline 
-$\tau_0$ & 1.0 & 1.0 \\ \hline
+$\alpha$ & 1.0 & 2.0 \\\hline
+$\beta$ & 2.0 & 1.0 \\\hline 
+$\rho$ & 0.8 & 0.8 \\\hline 
 $\varepsilon$ & 0.5 & 0.5 \\ \hline 
 $Ants$ & 25 & 25 \\ \hline  
-$t_{\max}$ & 10[s] & 10[s] \\ \hline
+$t_{\max}$ & 10[s] & 100[s] \\ \hline
 \end{tabular}
 \captionof{table}{SA - Algorithm parameters overview}
 \label{saParameters}
 \end{center}
+
+The value of $\beta = 2 \cdot \alpha$ was chosen in order to differentiate the contribution of the pheromone and heuristic information to the selection probability of a solution component.
+With this parameter choice, the information exchanged by the ants through stigmergy will have an higher weight in the solution construction process than the information locally available to the ant (i.e. the heuristic).
+The parameter $\varepsilon$ influences the trail update process by determining the likelihood with which the current best solution will be used for the pheromone update in spite of the best solution found in the iteration.
+A value of $0.5$ provides an unbiased selection among the two.
+The number of ants and the value of $\rho$ were chosen according to cite \cite{stutzle2000max}.
+The maximum run-time $t_{\max}$ has been chosen equal to 100 seconds in order to analyze the run-time distribution of the algorithm over a sufficiently long run.
 
  
 \end{homeworkProblem}

@@ -278,7 +278,7 @@ The first algorithm implemented is a population-based one, presented in detail i
 It consist of an implementation of the \maxmin Ant System (cf. \cite{stutzle2000max}) to the TSPTW problem, using the heuristic proposed in \cite{lopez2010beam}. 
 
 On the other hand, the second algorithm can be classified as simple SLS.
-It is an implementation of the Simulated Annealing metheuristic (cf. \cite{kirkpatrick1983optimization}), whose detailed description can be found in section \nameref{sa}.
+It is an implementation of the Simulated Annealing meta-heuristic (cf. \cite{kirkpatrick1983optimization}), whose detailed description can be found in section \nameref{sa}.
 
 Section \nameref{results} shows the results obtained by the implemented algorithms on the proposed set of instances, along with their analysis.
 
@@ -287,9 +287,9 @@ The implementations had been written using the C++ programming language, in orde
 
 The modular and object oriented approach applied in the first implementation exercise allowed to build I/O software modules (\emph{InstanceReader} and \emph{Writer}) that have been re-used here.
 
-Furthermore, the same conceptual division among the command line interface \emph{TSPTW-X} and the actual implementation \emph{XCore} (X being ACO and SA, in this case) has been maintained to favor encapsulation.
+Furthermore, the same conceptual division among the command line interface \emph{TSPTW-X} and the actual implementation \emph{XCore} (X being either ACO or SA, in this case) has been maintained to favor encapsulation.
 
-The cores are directly linked with the reader (\emph{InstanceReader}) which reads the files containing all the informations to run the simulation (distance matrix, time windows vector and seeds list) and the writer (\emph{Writer}) which outputs the results of the simulation in a CSV file.
+The cores are directly linked with the reader (\emph{InstanceReader}) which reads the files containing all the information to run the simulation (distance matrix, time windows vector and seeds list) and the writer (\emph{Writer}) which outputs the results of the simulation in a CSV file.
 In addition to the previous exercise, the solver core (\emph{HeuristicCore}) is used to give access to the already implemented perturbative local search methods.
 
 Two different command line front-ends, sharing the same underlying structure, but having a different set of parameters, have been developed to distinguish the ACO command-line interface from the SA one. 
@@ -374,11 +374,11 @@ reasonably portable to other Operating Systems than Linux or Unix.
 \subsection{How to run the program?}
 
 Once the program has been compiled, two separate executable files,
-corresponding to the different kind of metaheuristic (i.e. Iterative Improvement
-and Variable Neighborhood Descent) can be either launched directly via the command line
+corresponding to the different kind of metaheuristic (i.e. Ant Colony Optimization
+and Simulated Annealing) can be either launched directly via the command line
 interface or using the bash script to launch.
 
-The design choice to separate the two different kind of metaheuristic is made in order to limit the number of command line parameters to be given as input to the program.
+The design choice to separate the two different kind of meta-heuristic is made in order to limit the number of command line parameters to be given as input to the program.
 
 \subsubsection{Command-line execution}
 By launching\footnote{The squared-bracket notation implies that the formal parameters to the script have to be substituted by their actual value.}:
@@ -403,29 +403,6 @@ The argument to the input option must contain the full path to the instance file
 The seeds file must contain a number of seeds at least equal to the number of
 runs required, one seed per line without any additional information.
 
-The options controlling the same parameters are mutually exclusive, with that
-meaning that only one option must be selected in order to run the program.
-If multiple options for the same parameter are chosen, the program will not
-run.
-
-\paragraph{TSPTW-II}
-\begin{tabular}{|l|c|}
-\hline
-\textbf{Parameter}	&	\textbf{Mutually exclusive options} \\ \hline
-Initial solution & -d,--random , -h,--heuristic \\ \hline
-Neighborhood type &-t,--transpose , -e,--exchange , -n,--insert \\ \hline 
-Pivoting rule &	-f,--first-imp , -b,--best-imp \\ \hline
-\end{tabular}
-
-\paragraph{TSPTW-VND}
-
-\begin{tabular}{|l|c|}
-\hline
-\textbf{Parameter}	&	\textbf{Mutually exclusive options} \\ \hline
-VND algorithm & -t,--standard , -p,--piped \\ \hline
-Neighborhood chain & 	-a,--TEI  , -b,--TIE \\ \hline
-\end{tabular}
-
 \paragraph{Output}
 Each experiment produces a couple of files:
 \begin{itemize}
@@ -446,9 +423,7 @@ The internal structure of the \verb|.txt| files is:
 \textbf{Seed}	&	\textbf{CV} & \textbf{PRPD} \\ \hline
 \end{tabular}
 
-For each run of the algorithm, the program writes in the file, using a tabulation as separator, the used seed, the number of constraints violations and the penalized relative percentage deviation.
-
-
+For each run of the algorithm, the program writes in the file, using a tabulation as separator, the used seed, the number of constraints violations and the penalized relative percentage deviation. \\
 
 The internal structure of the \verb|.rtd| files: 
 \begin{tabular}{|c|c|c|c|}
@@ -457,6 +432,7 @@ The internal structure of the \verb|.rtd| files:
 \end{tabular}
 
 For each run of the algorithm, the program writes in the file, using a tabulation as separator, the seed of the run and the solution quality sampled at the time indicated in the column header, computed as described in \nameref{subsec:measure}.
+
 Each set of samples is separated from the following using a newline character.
 
 
@@ -482,15 +458,17 @@ The script assumes that all the instances are located into the instances folder,
 
 Each execution of the script will then generate the files:
 \begin{itemize}
-  \item $[INSTANCE\_NAME]-PRPD.pdf$ containing the box-plots of the PRPD distribution for each algorithm.
+  \item \verb|[INSTANCE\_NAME]-PRPD.pdf| containing the box-plots of the PRPD distribution for each algorithm.
+  \item \verb|[INSTANCE\_NAME]-RTD.pdf| containing the plot comparing the run-time distributions of the two algorithms.
+  \item \verb|ACO-[INSTANCE\_NAME]-RTD.pdf| and \verb|ACO-[INSTANCE\_NAME]-RTD.pdf|containing the plots comparing the run-time distributions for different values of the solution quality $q^*$ for the same algorithm.
   \item 
         \begin{itemize}
-          \item \textbf{(ACO)} ACO.stats 
-          \item \textbf{(SA)} SA.stats
+          \item \textbf{(ACO)} \verb|ACO.stats| 
+          \item \textbf{(SA)} \verb|SA.stats|
         \end{itemize}
 \end{itemize}
 
-The internal structure of the file is the following:
+The internal structure of the \verb|*.stats| file is the following:
 \begin{center}
 \begin{tabular}{|c|c|c|c|}
 \hline
@@ -500,7 +478,7 @@ The internal structure of the file is the following:
 
 Each line contains the instance name, the percentage of unfeasible runs, the mean PRDP and the mean run-time across [RUNS] runs.
 
-\section{Problem formulation}
+\section{Problem formulation}\label{sec:probform}
 An instance of the Travelling Salesman Problem with Time Windows (TSPTW) can be expressed as a tuple $<N,E,c,t>$ where:
 \begin{itemize}
   \item $N:\{0,\cdots,n\}$ - Node set 

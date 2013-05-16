@@ -11,10 +11,10 @@
 ########## the TSP problem with Time Windows #########
 ######################################################
 
-      Version: 1.0
+      Version: 1.1
       File:    CommonDefs.h
       Author:  Jacopo De Stefani
-      Purpose: Implementation file containing global data types definitions
+      Purpose: Header file containing global data types definitions
       	  	   used by the different modules
       Check:   README and gpl.txt
 */

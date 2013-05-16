@@ -1,13 +1,52 @@
 /*
- * ACOCore.cpp
- *
- *  Created on: Apr 21, 2013
- *      Author: development
- */
+
+      TTTTTT   SSSSS  PPPPP	  TTTTTT  W         W
+        TT    SS      PP  PP	TT	   W       W
+        TT     SSSS   PPPPP		TT      W W W W
+        TT        SS  PP		TT		 W W W
+        TT    SSSSS   PP		TT		  W W
+
+######################################################
+########## Iterative improvement algorithms for ######
+########## the TSP problem with Time Windows #########
+######################################################
+
+      Version: 1.1
+      File:    AcoCore.cpp
+      Author:  Jacopo De Stefani
+      Purpose: Implementation file for the core class of the ACO solver
+      Check:   README and gpl.txt
+*/
+
+/***************************************************************************
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    email: jacopo.de.stefani@ulb.ac.be
+
+***************************************************************************/
 
 #include "ACOCore.h"
 
 
+/*
+      METHOD:         Method used to initialize the parameters required to compute the heuristic.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class
+*/
 void ACOCore::InitializeHeuristicValues() {
 	unsigned int currA;
 	unsigned int currB;
@@ -42,7 +81,7 @@ void ACOCore::InitializeHeuristicValues() {
 }
 
 /*
-      METHOD:         Run the chosen II algorithm for the desired number of runs.
+      METHOD:         Run the chosen ACO algorithm for the desired number of runs.
       INPUT:          none
       OUTPUT:         none
       (SIDE)EFFECTS:  Modifies the state of the class
@@ -116,7 +155,12 @@ void ACOCore::ACO() {
 	m_wriResultsWriter.RestartSamplingTime();
 }
 
-
+/*
+      METHOD:         Method used to sample the solution quality at a certain instant in time and pass it to the writer.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Add a sample to the sample list in the writer
+*/
 void ACOCore::SampleSolutionQuality() {
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&m_sEndTime);
 	m_lfRunTime = ComputeRunTime(m_sBeginTime,m_sEndTime);
@@ -133,7 +177,12 @@ void ACOCore::SampleSolutionQuality() {
 }
 
 
-
+/*
+      METHOD:         Method used to perform the pheromone update (evaporation and deposit).
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class
+*/
 void ACOCore::PheromoneUpdate() {
 	PheromoneEvaporation();
 	for(unsigned int i=0; i<m_vecAnts.size(); i++){
