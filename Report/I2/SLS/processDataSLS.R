@@ -18,7 +18,7 @@ RTDToPdf <- function(file,timeScale,data,stringTitle,legend,pdfHeight,pdfWidth){
   lineType <- c(1:nPlots) 
   plotChar <- seq(18,18+nPlots,1)
   
-  plot(xrange,yrange, type="n", xlab="Time (s)", ylab=expression(p) , log = 'x' )   
+  plot(xRange,yRange, type="n", xlab="Time (s)", ylab=expression(p) , log = 'x' )   
 
   # add lines
   matlines(timeScale, data, type="l" , lwd=1.5, lty=lineType, col=plotColors, pch=plotChar)
@@ -27,12 +27,12 @@ RTDToPdf <- function(file,timeScale,data,stringTitle,legend,pdfHeight,pdfWidth){
   title(stringTitle)
   
   # add a legend 
-  legend(xrange[1], yrange[2], legend, cex=0.8, col=plotColors, pch=plotChar, lty=lineType, title="QRTD")
+  legend(xRange[1], yRange[2], legend, cex=0.8, col=plotColors, pch=plotChar, lty=lineType, title="QRTD")
   dev.off()
 }
 
 
-computeStatistics <- function(inputFile){
+computeStatistics <- function(inputFile,PRPD){
   #Read data and compute errors for each cluster
   inputData <- read.table(inputFile, header = TRUE)
   
@@ -45,21 +45,26 @@ computeStatistics <- function(inputFile){
   infeasibleRunPercentage <- sum(inputData[,"CV"]*1 > 0)/length(inputData[,"CV"])
   
   #Mean penalised relative percentage deviation and cpu time
-  meanPRDP <- mean(inputData[,"PRPD"])
+  meanPRDP <- mean(PRPD)
   
   statistics <- paste(instanceName,infeasibleRunPercentage,meanPRDP,sep="\t")
-  boxplots <- list(inputData[,"PRPD"])
+  boxplots <- PRPD
   returnValues <- list(instanceName,outputFile,statistics,boxplots)
   return(returnValues)
 }
 
-computeRTD <- function(inputFile){
+computeRTD <- function(inputFile,bestSolution){
   #Read data and compute errors for each cluster
   inputData <- read.table(inputFile, header = TRUE, check.name=FALSE)
   
   #Remove seeds column and determine time scale by the column names
   inputData['Seed'] <- NULL
   timeScale <- as.numeric(colnames(inputData))
+  
+  #Computed corrected PRPD
+  print(inputData["100"])
+  finalSolutionQuality <- inputData["100"]
+  PRPD <- apply(finalSolutionQuality,1:2,function(x) (x*100))
   
   #Detect algorithm type
   tokens <- unlist(strsplit(inputFile,"\\."))
@@ -79,7 +84,7 @@ computeRTD <- function(inputFile){
   RTDTwo <- apply(RTDTwo,2,sum) / nrow(inputData)
   
   plots <- cbind(RTDTwenty,RTDTen,RTDFive,RTDTwo)
-  returnValues <- list(instanceName,algorithmName,timeScale,plots)
+  returnValues <- list(instanceName,algorithmName,timeScale,plots,PRPD)
   return(returnValues)
 }
 
@@ -95,16 +100,17 @@ ACOFile <- args[1]
 ACOFileRTD <- args[2]
 SAFile <- args[3]
 SAFileRTD <- args[4]
+bestSolution <- as.numeric(args[5])
 rm(args)
 
-#Compute statistics for all the files
-ACOResults <- computeStatistics(ACOFile)
-SAResults <- computeStatistics(SAFile)
-
 #Compute RTD for all the files
-ACORTD <- computeRTD(ACOFileRTD)
-SARTD <- computeRTD(SAFileRTD)
+ACORTD <- computeRTD(ACOFileRTD,bestSolution)
+SARTD <- computeRTD(SAFileRTD,bestSolution)
 RTDVs <- cbind(ACORTD[[4]][,4],SARTD[[4]][,4])
+
+#Compute statistics for all the files
+ACOResults <- computeStatistics(ACOFile,ACORTD[[5]])
+SAResults <- computeStatistics(SAFile,SARTD[[5]])
 
 #Detect instance names
 instanceName <- ACOResults[[1]]
@@ -114,12 +120,12 @@ columnNames <- cbind("ACO",
                      "SA")
 
 #Extract data for PRDP plots
-PRDPBoxPlotData <- list(ACOResults[[4]][1],
-                        SAResults[[4]][1])
+PRDPBoxPlotData <- list(ACOResults[[4]],
+                        SAResults[[4]])
 
 # Statistical tests
 #Compare ACO vs. SA for each neighborhood
-testWilcoxon <- wilcox.test(ACOResults[[4]][[2]],SAResults[[4]][[2]],paired=TRUE)
+testWilcoxon <- wilcox.test(ACORTD[[5]],SARTD[[5]],paired=TRUE)
 
 #Box plots
 boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames,paste(instanceName,"PRPD",sep="-"),"RPD")

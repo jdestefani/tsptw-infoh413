@@ -213,7 +213,7 @@ private:
 				}
 
 				double ComputePRDP(unsigned int known_best){
-					return 100*(((bestSolution+constraintViolations*PENALTY)-known_best)/known_best);
+					return 100*((double(bestSolution+constraintViolations*PENALTY)-known_best)/known_best);
 				}
 	};
 
