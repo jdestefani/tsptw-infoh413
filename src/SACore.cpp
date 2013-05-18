@@ -39,7 +39,12 @@
 ***************************************************************************/
 #include "SACore.h"
 
-
+/*
+      METHOD:         Run the SA algorithm for the desired number of runs.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modifies the state of the class
+*/
 void SACore::Run() {
 	m_wriResultsWriter.OpenRFile();
 	m_wriResultsWriter.OpenRTDResults();
@@ -53,10 +58,15 @@ void SACore::Run() {
 	m_wriResultsWriter.FlushRFile();
 }
 
+/*
+      METHOD:         Core method of the SA algorithm.
+      INPUT:          none
+      OUTPUT:         none
+      (SIDE)EFFECTS:  Modify the internal state of the class
+*/
 void SACore::SA() {
 	struct timespec sBeginTime;
 	struct timespec sEndTime;
-	unsigned int refusedSteps = 0;
 
 	/*Reset values*/
 	m_lfTimeOptimum = 0.0f;
@@ -64,13 +74,11 @@ void SACore::SA() {
 	m_cBestFeasibleSolution.SetTourDuration(INT_MAX);
 
 	/*Initialize temperature*/
-	//InitTemperature();
 	m_lfT = m_lfT_zero;
 
-	/*Generate initial solution using heuristic*/
+	/*Generate random initial solution*/
 	m_cHeuristicCore.SetInitFunction(RANDOM);
 	m_cHeuristicCore.GenerateInitialSolution();
-	//std::cout << m_cHeuristicCore.GetCurrentSolution();
 	m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&sBeginTime);
@@ -80,27 +88,7 @@ void SACore::SA() {
 		if(AcceptanceCriterion()){
 			m_cCurrentSolution = m_cProposedSolution;
 		}
-		else{
-			refusedSteps++;
-		}
-		/*If no proposed solution is accepted for a number of iterations corresponding
-		 * to the iteration per temperature value, perform a best-improvement local search in the 1-shift
-		 * insert neighborhood of the current solution.
-		 */
 
-		/*if(refusedSteps > 10*m_unIPT){
-			m_cHeuristicCore.SetCurrentSolution(m_cCurrentSolution);
-			m_cHeuristicCore.ComputeNeighborhood();
-			m_unIterations+=pow(m_unCities-1,2);
-			m_cCurrentSolution = m_cHeuristicCore.GetCurrentSolutionMutable();
-
-			if(m_cCurrentSolution.GetConstraintViolations() == 0
-					&& m_cCurrentSolution.GetTourDuration() < m_cBestFeasibleSolution.GetTourDuration()){
-				m_cBestFeasibleSolution = m_cCurrentSolution;
-				m_lfTimeOptimum = m_lfRunTime;
-			}
-			refusedSteps = 0;
-		}*/
 
 		UpdateTemperature();
 
@@ -148,24 +136,35 @@ void SACore::SA() {
 	m_wriResultsWriter.RestartSamplingTime();
 }
 
+/*
+      METHOD:         Implementation of the solution proposal mechanism.
+      INPUT:          None
+      OUTPUT:         None
+      (SIDE)EFFECTS:  Generate a solution and store it in m_cProposedSolution
+*/
 void SACore::ProposalMechanism()
 {
 	unsigned int i=1+((float(rand())/RAND_MAX)*(m_unCities-1));
 	unsigned int j=0;
 	std::vector<unsigned int> currentTour = m_cCurrentSolution.GetTour();
 
+	/*Regenerate the second index for permutation until it is equal to the first one*/
 	do{
 		j=1+((float(rand())/RAND_MAX)*(m_unCities-1));
 	}while(j==i);
 
-	//m_cHeuristicCore.SwapTourComponents(currentTour,i,j);
 	m_cHeuristicCore.InsertTourComponent(currentTour,i,j);
 	m_cProposedSolution.SetTour(currentTour);
 	m_cHeuristicCore.ComputeTourLengthAndConstraintsViolations(m_cProposedSolution);
-	//std::cout << "Proposed Tour Length:" << m_cProposedSolution.GetTourDuration() << std::endl;
-	//std::cout << "Proposed Tour CV:" << m_cProposedSolution.GetConstraintViolations() << std::endl;
+
 }
 
+/*
+      METHOD:         Implementation of the acceptance criterion.
+      INPUT:          None
+      OUTPUT:         true if the proposed solution is accepted, false otherwise
+      (SIDE)EFFECTS:  None
+*/
 bool SACore::AcceptanceCriterion()
 {
 	m_cProposedSolution.ComputeSolutionEvaluation();
@@ -193,7 +192,13 @@ bool SACore::AcceptanceCriterion()
 	return false;
 }
 
-
+/*
+      METHOD:         Implementation of the temperature initialization process as in "A compressed-annealing heuristic for the traveling salesman
+					  problem with time windows",.
+      INPUT:          None
+      OUTPUT:         true if the proposed solution is accepted, false otherwise
+      (SIDE)EFFECTS:  Modifies the value of the temperature in m_lfT
+*/
 void SACore::InitTemperature() {
 	unsigned int i=0;
 	double accumulator = 0.0f;
@@ -213,6 +218,12 @@ void SACore::InitTemperature() {
 	std::cout << "Initial T:" << m_lfT << std::endl;
 }
 
+/*
+      METHOD:         Implementation of the temperature update process.
+      INPUT:          None
+      OUTPUT:         None
+      (SIDE)EFFECTS:  Modifies the value of the temperature in m_lfT
+*/
 void SACore::UpdateTemperature()
 {
 	if((m_unIterations % m_unIPT) == 0){
@@ -222,6 +233,12 @@ void SACore::UpdateTemperature()
 	}
 }
 
+/*
+      METHOD:         Implementation of the termination condition.
+      INPUT:          None
+      OUTPUT:         true if the condition is verified, false otherwise.
+      (SIDE)EFFECTS:  None
+*/
 bool SACore::TerminationCondition() {
 
 	if(m_cCurrentSolution.GetTourDuration() == m_unGlobalOptimum &&

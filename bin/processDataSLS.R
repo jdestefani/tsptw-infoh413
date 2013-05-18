@@ -18,7 +18,7 @@ RTDToPdf <- function(file,timeScale,data,stringTitle,legend,pdfHeight,pdfWidth){
   lineType <- c(1:nPlots) 
   plotChar <- seq(18,18+nPlots,1)
   
-  plot(xrange,yrange, type="n", xlab="Time (s)", ylab=expression(p) , log = 'x' )   
+  plot(xRange,yRange, type="n", xlab="Time (s)", ylab=expression(p) , log = 'x' )   
 
   # add lines
   matlines(timeScale, data, type="l" , lwd=1.5, lty=lineType, col=plotColors, pch=plotChar)
@@ -27,7 +27,7 @@ RTDToPdf <- function(file,timeScale,data,stringTitle,legend,pdfHeight,pdfWidth){
   title(stringTitle)
   
   # add a legend 
-  legend(xrange[1], yrange[2], legend, cex=0.8, col=plotColors, pch=plotChar, lty=lineType, title="QRTD")
+  legend(xRange[1], yRange[2], legend, cex=0.8, col=plotColors, pch=plotChar, lty=lineType, title="QRTD")
   dev.off()
 }
 
@@ -48,7 +48,7 @@ computeStatistics <- function(inputFile){
   meanPRDP <- mean(inputData[,"PRPD"])
   
   statistics <- paste(instanceName,infeasibleRunPercentage,meanPRDP,sep="\t")
-  boxplots <- list(inputData[,"PRPD"])
+  boxplots <- inputData[,"PRPD"]
   returnValues <- list(instanceName,outputFile,statistics,boxplots)
   return(returnValues)
 }
@@ -114,12 +114,12 @@ columnNames <- cbind("ACO",
                      "SA")
 
 #Extract data for PRDP plots
-PRDPBoxPlotData <- list(ACOResults[[4]][1],
-                        SAResults[[4]][1])
+PRDPBoxPlotData <- list(ACOResults[[4]],
+                        SAResults[[4]])
 
 # Statistical tests
 #Compare ACO vs. SA for each neighborhood
-testWilcoxon <- wilcox.test(ACOResults[[4]][[2]],SAResults[[4]][[2]],paired=TRUE)
+testWilcoxon <- wilcox.test(ACOResults[[4]],SAResults[[4]],paired=TRUE)
 
 #Box plots
 boxplotToPdf(paste(instanceName,"PRPD",sep="-"),PRDPBoxPlotData,columnNames,paste(instanceName,"PRPD",sep="-"),"RPD")

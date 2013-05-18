@@ -92,7 +92,7 @@ which determines the probability of finding a solution having a certain quality 
 These are marginal distributions of the run-time one, which allow to have a better insight, respectively, on the time required for the algorithm to find a reasonably good solution and conversely, on the solution quality that can be obtained by fixing a computation time bound, of the algorithm $A$ on instance $\pi$.
 
 \subsubsection{Measurement}\label{subsec:measure}
-In the case of the Travel ling Salesman Problem with Time Windows, the algorithm has not only to minimize the total Travel ling time, but also respect all the constraints determined by the time window of each of the nodes.
+In the case of the Travelling Salesman Problem with Time Windows, the algorithm has not only to minimize the total Travel ling time, but also respect all the constraints determined by the time window of each of the nodes.
 
 The solution quality is defined by aggregating the two objectives and taking into account a penalization $p_e = 10^4$ for each constraint violations:
 \begin{equation}
@@ -151,10 +151,19 @@ n80w200.005 &	5.96046447753906e-08\\
 \label{tab:wilcoxon}
 \end{center}
 
+\paragraph{Comments}
+Before applying the Wilcoxon paired signed rank test one should verify the following conditions:
+\begin{enumerate}
+  \item The distribution of the differences of the solution qualities for the two algorithms must by symmetrical around the median value.
+  \item The samples of solution qualities to compare should not contain any null value. 
+\end{enumerate}
+
+Since the first condition has not been verified, and the second one will be violated whenever the algorithms are able to reach the global optimum, the exact computation of the p-values for the analyzed instances is not possible.
+
 \subsubsection{Statistics}
 
 \begin{center}
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|l|c|l|}
 \hline
 \textbf{Instance} & \textbf{\% Unfeasible} & $\mathbf{\bar{PRDP}}$\\
 \hline
@@ -184,7 +193,7 @@ n80w200.005 &	0 &	14.9363656\\
 \end{center}
 
 \begin{center}
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|l|c|l|}
 \hline
 \textbf{Instance} & \textbf{\% Unfeasible} & $\mathbf{\bar{PRDP}}$\\
 \hline
@@ -217,7 +226,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w20.001}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w20.001/n80w20.001-PRPD}.pdf}
-\captionof{figure}{n80w20.001 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w20.001 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -238,7 +247,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w20.002}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w20.002/n80w20.002-PRPD}.pdf}
-\captionof{figure}{n80w20.002 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w20.002 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -259,7 +268,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w20.003}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w20.003/n80w20.003-PRPD}.pdf}
-\captionof{figure}{n80w20.003 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w20.003 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -280,7 +289,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w20.004}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w20.004/n80w20.004-PRPD}.pdf}
-\captionof{figure}{n80w20.004 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w20.004 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -301,7 +310,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w20.005}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w20.005/n80w20.005-PRPD}.pdf}
-\captionof{figure}{n80w20.005 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w20.005 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -322,7 +331,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w200.001}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w200.001/n80w200.001-PRPD}.pdf}
-\captionof{figure}{n80w200.001 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w200.001 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -343,7 +352,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w200.002}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w200.002/n80w200.002-PRPD}.pdf}
-\captionof{figure}{n80w200.002 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w200.002 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -364,7 +373,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w200.003}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w200.003/n80w200.003-PRPD}.pdf}
-\captionof{figure}{n80w200.003 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w200.003 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -385,7 +394,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w200.004}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w200.004/n80w200.004-PRPD}.pdf}
-\captionof{figure}{n80w200.004 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w200.004 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -406,7 +415,7 @@ n80w200.005 &	0 &	38.227284\\
 \subsubsection{n80w200.005}
 \begin{center}
 \includegraphics[width=0.6\textwidth,keepaspectratio]{{SLS/n80w200.005/n80w200.005-PRPD}.pdf}
-\captionof{figure}{n80w200.005 - Penalised Relative Percentage box-plot for the implemented SLS algorithms}
+\captionof{figure}{n80w200.005 - Penalised Relative Percentage Deviation box-plot for the implemented SLS algorithms}
 \end{center}
 
 \begin{center}
@@ -424,11 +433,38 @@ n80w200.005 &	0 &	38.227284\\
 \captionof{figure}{n80w200.005 - Run-time distribution plots of the SA algorithm for different values of $q*$}
 \end{center}
 
-% \subsection{Results discussion}
-% By looking at tables \ref{tab:s.tei}, \ref{tab:s.tie}, \ref{tab:p.tei}, \ref{tab:p.tie} one can see that:
-% \begin{itemize}
+\subsection{Results discussion}
+Before starting the results analysis one should note that the maximum run-time of the algorithm should be chosen to allow for long enough run of the SLS.
+  
+The proposed maximum run-time is equal to $10 \cdot 1000 \cdot runtime(VND)$, which in the worst case, for the proposed algorithms, will be equal to $60000s$.
+  
+In order to have reasonable computation times for the whole set of instances, the maximum run-time has been set to $100s$.
+  
+This choice has a strong influence on the quality of the solution generated by the algorithm.
 
-% \item For some instances (e.g. $n80w20.002$,$n80w20.003$) the algorithm are not able to converge to a feasible solution, as shown in the corresponding boxplots, since the PRPD distribution is centered around 12000-15000, thus indicating the presence of at least 1 constraint violations in most of the cases.
+\paragraph{Solution quality}
+
+By looking at tables \ref{tab:acostat}, \ref{tab:sastat} one can see that:
+\begin{itemize}
+
+\item The conclusions that can be drawn by observing the percentage of infeasible runs and the average penalised relative percentage deviation may seem conflicting at first sight. 
+This is due to the fact that unfeasible solutions have a great impact on the average PRPD because of the magnitude of the penalization related to constraint violations.
+
+\item Both algorithms are more effective on the $n80w200.X$ instances than the $n80w20.X$ ones, since they have a lower percentage of infeasible runs and a lower PRPD.
+
+\item As in the previous implementation exercise, instance $n80w20.002$ appears to be the most difficult one for both the algorithm, since the PRPD distribution is centered around 12000-15000, thus indicating the presence of constraint violations in the best found solution.
+
+This result is confirmed by a percentage of unfeasible solution greater than 80\% for both the algorithms.
+
+\item Instances $n80w20.003$ and $n80w20.004$ are also particularly difficult to solve for both the algorithms, as the higher percentage of unfeasible solutions shows.
+
+Moreover, by looking at the box-plots, one can see that both the distributions are centered on values higher than 20000, thus indicating an high number of constraint violations in most of the simulations.
+
+
+\item The SA algorithm is able to generate more feasible solution than the ACO one on almost all the instances, the only exception being instance $n80w20.002$.
+
+\item Furthermore, by looking at the PRPD, namely its average value and its distribution, represented by means of a box-plot, one can see that the penalized relative percentage deviation of the solutions generated by the SA algorithm is generally lower than the solutions generated by the ACO one.
+ACO algorithm reaches higher quality solutions only on instances $n80w20.002$ and $n80w200.005$.
 
 % \item For some other instances (e.g. $n80w20.004$,$n80w20.005$) the algorithms are able to converge to feasible solutions and to the best-known one, but having a right-skewed distribution towards higher values of PRPD.
 
@@ -440,10 +476,37 @@ n80w200.005 &	0 &	38.227284\\
 
 % \item The standard variable neighborhood descent with Transpose-Insert-Exchange neighborhood chain (s.tie) outperforms all the other algorithms in terms of solution quality and runtime.
 
-% \item Tables \ref{tab:w.11}, \ref{tab:w.12}, \ref{tab:w.13}, \ref{tab:w.14}, \ref{tab:w.15}, \ref{tab:w.16}, \ref{tab:w.17}, \ref{tab:w.18}, \ref{tab:w.19}, \ref{tab:w.20} contain, in any case, p-values considerably smaller than the significance level ($\alpha=0.05$). 
+\item Table \ref{tab:wilcoxon} contains, for each analyzed problem instance, p-values considerably smaller than the significance level ($\alpha=0.05$). 
 
-% This implies that the null hypothesis corresponding to the equality of the median values of the differences of the two distributions can be rejected, hence assessing the existence of a statistically significant difference among the solution quality generated by analyzed algorithms.
+This implies that the null hypothesis corresponding to the equality of the median values of the differences of the two distributions can be rejected, hence assessing the existence of a statistically significant difference among the solution quality generated by the implemented algorithms.
 
 % \item By looking at the Cpu time, one can see that the instances \emph{n80w20.X} have generally lower runtimes than the \emph{n80w200.X} ones. They can then be considered, with respect to the variable neighborhood descent algorithms, simpler (quickier to solve) instances with respect to the latter.
 
-% \end{itemize}
+\end{itemize}
+
+\subsection{Run-time distribution}
+By looking at the qualified run-time distribution plots one can see that:
+\begin{itemize}
+
+\item No run-time distribution is able to reach a success probability of 1.
+
+On the majority of the instances, this can also be deduced by looking at the percentage of unfeasible runs in \ref{tab:acostat}, \ref{tab:sastat}. 
+
+Due to the penalization on constraint violations, a solution must be feasible in order to have an high quality, hence a non null percentage of unfeasible solution will necessarily imply that it would be impossible to reach an high solution quality on all the runs.  
+
+
+\item Both the algorithms are able to reach an higher percentage of feasible solutions on the $n80w200.X$ instances than on the $n80w20.X$ ones, but no algorithm is able to generate high quality solutions ($q_r < 0.02$) on any of the $n80w200.X$ instances.
+
+\item On the other hand, on the $n80w20.X$ set, the SA algorithm is able to generate high quality solutions with an high probability with a smaller run-time than the ACO algorithm.
+
+Again, the only exception is the $n80w20.002$ instance.
+
+\item However, if one considers higher values of $q^{*}$, one can see that the ACO algorithm is able to find solutions having a better quality than those generated by the SA one on the $n80w200.X$ set.
+
+\item The run-time distribution plots comparing the distributions for different quality thresholds ($q^{*}$) shows that even by relaxing the bound up to 20\% a success probability of 1 cannot be attained.
+
+This shows that both of the algorithms tends to converge to feasible but sub-optimal solutions.
+
+\item The probability of finding high quality solutions, on all the instances, has a step increase around $1s$ for the SA algorithm and around $30s$ for the ACO.
+ 
+\end{itemize}

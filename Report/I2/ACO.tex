@@ -152,15 +152,9 @@ Here, the pheromone deposit is made by all the ants, each one of them deciding w
   \item \emph{TC} $\equiv$ \emph{TerminationCondition}($s,t_{max},f_{best}$)
 \end{itemize}
 \end{minipage}
-\captionof{figure}{\maxmin  Ant System GLSM}
+\captionof{figure}{Implemented Ant System GLSM}
 \end{center}
 
-\newpage
-In the implementation, an instance is completely defined by:
-\begin{itemize}
-\item \textbf{Cost matrix} - Encapsulating information on the node set $N$, edge set $E$, and weighting of each edge $c$ (cf. \nameref{sec:probform}).
-\item \textbf{Time window vector} - Describing the time window mapping function $t$ for each node.
-\end{itemize}
 
 \subsubsection{Pheromone Initialization}
 \begin{algorithm}[!h]
@@ -190,7 +184,7 @@ While the real ants can deposit pheromone anywhere in the environment, the virtu
 
 For this reason, every admissible edge $e_{i,j}$ of $E$ has an associated pheromone value $\tau_{i,j}$, that have to be initialized at the beginning of the execution of the algorithm.
 
-The initialization value $\tau_0$ is a parameter of the algorithm, for the \maxmin Ant System $\tau_0 = \tau_{i,j}(0) = \tau_{\max}$. 
+The initialization value $\tau_0$ is a parameter of the algorithm, for the \maxmin Ant System $\tau_0 = \tau_{\max}$. 
 
 Provided that the best solution is known, the bounds on the pheromone values can be determined as:
 \begin{equation}
@@ -206,6 +200,7 @@ Whenever the global optima value is unknown, the values of the bounds can be est
   \hat{\tau}_{\max} = \frac{1}{\rho \cdot T_{d}^{\text{Bo}}} & & & \hat{\tau}_{\min} = \frac{\hat{\tau}_{\max}}{a}
 \end{array}
 \end{equation}
+
 
 \subsubsection{Solution construction}
 \begin{algorithm}[!h]
@@ -319,7 +314,8 @@ where
 In this implementation, the heuristic information will be computed according to \cite{lopez2010beam}
 
 \subsubsection{Solution improvement}
-\begin{algorithm}[!h]
+
+\begin{algorithm}[H]
   \caption{Solution improvement}\label{solImprov}
   \begin{algorithmic}[1]
     \Procedure{IsImproving}{$s,s'$}
@@ -337,13 +333,13 @@ In this implementation, the heuristic information will be computed according to 
 
 A solution $s'$ is considered improving the current best solution $s$ if and only if:
 \begin{itemize}
-  \item Either,it has a smaller number of constraints violation (i.e. $\Omega(s') < \Omega(s)$)
+  \item Either, it has a smaller number of constraints violation (i.e. $\Omega(s') < \Omega(s)$)
   \item Or, it has the same number of constraints violations ($\Omega(s') = \Omega(s)$) but the total tour duration is smaller ($f(s') < f(s)$).
 \end{itemize}
 
 
 \subsubsection{Pheromone trails update}
-\begin{algorithm}[!h]
+\begin{algorithm}[H]
   \caption{Pheromone Trails Update}\label{update}
   \begin{algorithmic}[1]
     \Procedure{UpdatePheromoneTrails}{$\rho,p_b$}
@@ -399,8 +395,9 @@ where
 \item $T^{\text{Bo}}$ - Best tour overall 
 \end{itemize}
 
+\newpage
 \subsubsection{Local search}
-\begin{algorithm}[!h]
+\begin{algorithm}[H]
   \caption{Iterative Improvement - (Insert neighborhood with best-improvement pivoting rule)}\label{locsearch}
   \begin{algorithmic}[1]
     \Procedure{IterativeImprovementIBI}{$s$}
@@ -450,8 +447,8 @@ The local search procedure, a 1-shift best-improvement search in the neighborhoo
 In this implementation, the local search procedure is performed only once, instead of being launched on the solution constructed by each ant.
 
 \subsubsection{Termination condition}
-\begin{algorithm}[!h]
-  \caption{Termination Condition}\label{termcond}
+\begin{algorithm}[H]
+  \caption{Termination Condition}\label{aco:termcond}
   \begin{algorithmic}[1]
     \Procedure{TerminationCondition}{$s,t_{\max},s_{best}$}
           \If{ $(f(s) = f_{best} \wedge \Omega(s) = 0) \vee  t > t_{\max} $}
@@ -482,10 +479,15 @@ $t_{\max}$ & 10[s] & 100[s] \\ \hline
 \end{center}
 
 The value of $\beta = 2 \cdot \alpha$ was chosen in order to differentiate the contribution of the pheromone and heuristic information to the selection probability of a solution component.
+
 With this parameter choice, the information exchanged by the ants through stigmergy will have an higher weight in the solution construction process than the information locally available to the ant (i.e. the heuristic).
+
 The parameter $\varepsilon$ influences the trail update process by determining the likelihood with which the current best solution will be used for the pheromone update in spite of the best solution found in the iteration.
+
 A value of $0.5$ provides an unbiased selection among the two.
+
 The number of ants and the value of $\rho$ were chosen according to cite \cite{stutzle2000max}.
+
 The maximum run-time $t_{\max}$ has been chosen equal to 100 seconds in order to analyze the run-time distribution of the algorithm over a sufficiently long run.
 
  

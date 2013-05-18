@@ -366,7 +366,6 @@ void usage(void)
   std::cout << "-a,--alpha \t [Opt,Alpha] \t Influence of pheromone trails." << std::endl;
   std::cout << "-b,--beta\t [Opt,Beta] \t Influence of heuristic information." << std::endl;
   std::cout << "-h,--rho \t [Opt,Rho] \t Pheromone trail evaporation." << std::endl;
-  std::cout << "-z,--tau-zero \t [Opt,Tau_zero]  Pheromone trail initial value." << std::endl;
   std::cout << "-e,--epsilon \t [Opt,Epsilon] \t Probability of choosing the best global solution instead of the best iteration one for pheromone update." << std::endl;
   std::cout << "-t,--t-max \t [Opt,T-Max] \t Maximum runtime for each run" << std::endl;
   std::cout << "-n,--ants \t [Opt,Ants] \t Number of ants." << std::endl;

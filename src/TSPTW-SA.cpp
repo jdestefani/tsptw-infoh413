@@ -286,7 +286,6 @@ int main (int argc, char **argv)
 	std::cout << "\tInstance: " << inputFileName << std::endl;
 	std::cout << "\tAlpha: " << alpha << std::endl;
 	std::cout << "\tT-zero: " << T_zero << std::endl;
-	std::cout << "\tX-zero: " << x_zero << std::endl;
 	std::cout << "\tIPT: " << ipt << std::endl;
 	std::cout << "\tMaximum runtime: " << t_max << std::endl;
 	std::cout << "\tSeeds file: " << seedsFileName << std::endl;
@@ -366,7 +365,6 @@ void usage(void)
   std::cout << "Flag \t\t Argument \t Description" << std::endl;
   std::cout << "-a,--alpha \t [Opt,Alpha] \t Temperature decaying coefficient." << std::endl;
   std::cout << "-z,--T-zero \t [Opt,Tau_zero]  Initial temperature value." << std::endl;
-  std::cout << "-x,--x_zero \t [Opt,Epsilon] \t Initial accepting ratio." << std::endl;
   std::cout << "-p,--ipt \t [Opt,Epsilon] \t Iterations per temperature." << std::endl;
   std::cout << "-l,--lbtu \t [Opt,Epsilon] \t Lower bound on temperature updates." << std::endl;
   std::cout << "-t,--t-max \t [Opt,T-Max] \t Maximum runtime for each run." << std::endl;
