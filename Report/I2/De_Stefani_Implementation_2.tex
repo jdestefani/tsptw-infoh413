@@ -269,12 +269,12 @@
 \newpage
 
 \section{Report Outline}
-The main objective of this implementation exercise is to compare the performance of two stochastic local search (SLS), whose implementation will be built on top of the perturbative local search methods from the first implementation exercise.
+The main objective of this implementation exercise is to compare the performance of two stochastic local search (SLS) algorithms, whose implementation will be built on top of the perturbative local search methods from the first implementation exercise.
 
 The \nameref{impl} section will discuss the general code structure and how to run the program and interpret the results.
 
 The first implemented algorithm is a population-based one, presented in detail in section \nameref{aco}.
-It consist of an Ant Colony algorithm inspired by the \maxmin Ant System (cf. \cite{stutzle2000max}) to the TSPTW problem, using the heuristic proposed in \cite{lopez2010beam}. 
+It consists of an Ant Colony algorithm inspired by the \maxmin Ant System (cf. \cite{stutzle2000max}) to the TSPTW problem, using the heuristic proposed in \cite{lopez2010beam}. 
 
 On the other hand, the second algorithm can be classified as a simple SLS.
 It is an implementation of the Simulated Annealing meta-heuristic (cf. \cite{kirkpatrick1983optimization}), whose detailed description can be found in section \nameref{sa}.
@@ -327,12 +327,12 @@ The global program structure is depicted here:
  \captionof{figure}{Simulation Code Structure}
 \end{center}
 
-The names of the nodes corresponds to those of the implementation (.cpp) and header files for the corresponding classes.
+The names of the nodes correspond to those of the implementation (.cpp) and header files for the corresponding classes.
 
 In addition to these, a class to represent the time windows (TimeWindow.h), one to represent the candidate solution as
 a user defined data type (CandidateSolution.\{h,cpp\}) and one to implement the virtual ant (Ant.h) have been implemented.
 
-In order to improve the performances of the algorithm a template class called \emph{NumericMatrix} has been created to reduce the computation time due to the access to the matrices (distance and pheromone).
+In order to improve the performances of the algorithm, a template class called \emph{NumericMatrix} has been created to reduce the computation time due to the access to the matrices (distance and pheromone ones).
 
 \subsection{How to compile the program?}
 The software was developed in C++98 under Linux (Debian Wheezy), using the GNU g++ (Debian 4.7.2-5) 4.7.2 compiler and tested in this environment. 
@@ -357,7 +357,7 @@ tar -xvf TSPTW.V1.1.tar
 
 The software will be extracted in a new folder TSPTW.V1.0 
 
-Finally, by launching
+Finally, by launching:
 \begin{center}
 \begin{verbatim}
 make all
@@ -424,7 +424,7 @@ The internal structure of the \verb|.txt| files is:
 
 For each run of the algorithm, the program writes in the file, using a tabulation as separator, the used seed, the number of constraints violations and the penalized relative percentage deviation. \\
 
-The internal structure of the \verb|.rtd| files: 
+The internal structure of the \verb|.rtd| files is: 
 \begin{tabular}{|c|c|c|c|}
 \hline
 \textbf{Seed}	&	\textbf{0.002} & \textbf{...} & \textbf{100}  \\ \hline
@@ -452,6 +452,8 @@ The script will:
 \end{enumerate}
 
 The script assumes that all the instances are located into the instances folder, hence it is only necessary to indicate the instance name, instead of the complete path.
+
+\textbf{Note:} The post-processing script will work if and only if, the maximum run-time is equal to 100s.
 
 \paragraph{Output}
 
@@ -525,10 +527,10 @@ In the implementation, an instance is completely defined by:
 \section{Conclusions}
 To summarize the results from the previous analysis:
 \begin{itemize}
-      \item On this set of instances, the Simulated Annealing algorithm performs generally better than Ant Colony Optimization.
-    \item Simulated Annealing is able to generate an higher percentage of feasible and high quality solutions. 
-  \item I believe that the strong limitation of computation times, with respect to VND, has a strong impact on the performance of the algorithms as the generally low probability of finding high quality solutions shows, for ACO in particular.
-  \item Further improvement on the ACO algorithm could be made by implementing the original \maxmin system and using an heuristic which could make a better use of the locally available information and guide the algorithm towards feasible solutions.
+  \item On this set of instances, the Simulated Annealing algorithm performs generally better than Ant Colony Optimization.
+  \item Simulated Annealing is able to generate an higher percentage of feasible and high quality solutions. 
+  \item I believe that the strong limitation of computation times, with respect to VND, has a strong impact on the performance of the algorithms as shown by the generally low probability of finding high quality solutions, for ACO in particular.
+  \item Further improvements to the ACO algorithm could be made by implementing the original \maxmin system and using an heuristic which could make a better use of the locally available information and guide the algorithm towards feasible solutions.
   \item While the performances of the ACO system are comparable, if not slightly worse than the best VND algorithm implemented in the previous implementation exercise, SA has considerably low run-times required to find high-quality solution and higher percentages of feasible solutions, thus outperforming both the aforementioned algorithms.
   \item The usage of average statistics as metrics to measure the quality of the algorithms is strongly biased by the presence of outliers (penalization, in this case).
 \end{itemize}

@@ -42,7 +42,7 @@ Furthermore, the pheromone quantity on a certain location decreases over time be
 The convergence to one of the paths will occur as a consequence of the self-reinforcing pheromone deposit mechanism.
 In fact the more pheromone is deposited on a path, the more ants will follow the pheromone trail on that path deposing even more pheromone.
 
-The first application of Ant Colony Optimization method, the Ant System, has been made on the optimization version of the Travelling Salesman Problem (TSP) (cf. \cite{dorigo1996ant}).
+The first application of Ant Colony Optimization method, the Ant System, has been made on the optimization version of the Traveling Salesman Problem (TSP) (cf. \cite{dorigo1996ant}).
 
 In this implementation, a population of virtual agents (an ant colony) is used to explore the search space (the virtual environment).
 
@@ -187,13 +187,14 @@ For this reason, every admissible edge $e_{i,j}$ of $E$ has an associated pherom
 The initialization value $\tau_0$ is a parameter of the algorithm, for the \maxmin Ant System $\tau_0 = \tau_{\max}$. 
 
 Provided that the best solution is known, the bounds on the pheromone values can be determined as:
+
 \begin{equation}
 \begin{array}{lccr}
   \tau_{\max} = \frac{1}{f_{best}} & & & \tau_{\min} = \frac{\tau_{\max}}{a}
 \end{array}
 \end{equation}
 
-Whenever the global optima value is unknown, the values of the bounds can be estimated using the best known solution so far, by:
+Whenever the global optimum value is unknown, the values of the bounds can be estimated using the best known solution so far, by:
 
 \begin{equation}
 \begin{array}{lccr}
@@ -349,9 +350,9 @@ A solution $s'$ is considered improving the current best solution $s$ if and onl
         \For{$j < i$}
           \ForAll{Ants}
             \If{\emph{Random}() $< \varepsilon$} 
-              \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bi}$
-            \Else
               \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bo}$
+            \Else
+              \State $\tau_{ij} \gets (1-\rho)\cdot\tau_{ij}+\Delta\tau_{i,j}^{Bi}$
             \EndIf
             \If{$\tau_{ij} < \tau_{\min}$} 
               \State $\tau_{ij} \gets \tau_{\min}$
@@ -395,7 +396,8 @@ where
 \item $T^{\text{Bo}}$ - Best tour overall 
 \end{itemize}
 
-\newpage
+The choice between the two aforementioned solutions is made stochastically with a probability $\varepsilon$ (a parameter of the algorithm) to choose the best-so-far solution.
+
 \subsubsection{Local search}
 \begin{algorithm}[H]
   \caption{Iterative Improvement - (Insert neighborhood with best-improvement pivoting rule)}\label{locsearch}
@@ -418,7 +420,7 @@ where
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[!h]
+\begin{algorithm}[H]
   \caption{Insert neighbor solution computation}\label{locsearch}
   \begin{algorithmic}[1]
     \Procedure{InsertTourComponent}{$s,i,j$}
@@ -480,9 +482,9 @@ $t_{\max}$ & 10[s] & 100[s] \\ \hline
 
 The value of $\beta = 2 \cdot \alpha$ was chosen in order to differentiate the contribution of the pheromone and heuristic information to the selection probability of a solution component.
 
-With this parameter choice, the information exchanged by the ants through stigmergy will have an higher weight in the solution construction process than the information locally available to the ant (i.e. the heuristic).
+With this parameter choice, the information exchanged by the ants through virtual stigmergy will have an higher weight in the solution construction process than the information locally available to the ant (i.e. the heuristic).
 
-The parameter $\varepsilon$ influences the trail update process by determining the likelihood with which the current best solution will be used for the pheromone update in spite of the best solution found in the iteration.
+The parameter $\varepsilon$ influences the trail update process by determining the likelihood with which the current best-so-far solution will be used for the pheromone update in spite of the best solution found in the iteration.
 
 A value of $0.5$ provides an unbiased selection among the two.
 
